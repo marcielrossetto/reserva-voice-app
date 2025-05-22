@@ -1,0 +1,51 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Reservas por Voz</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Nova Reserva / Consultar</h1>
+
+    <button id="startVoiceCmdBtn">🎤 Iniciar Comando de Voz</button>
+    <p id="voiceStatus">Status: Ocioso</p>
+    <p>Comando Transcrito: <em id="transcribedText"></em></p>
+    <p>Intenção Reconhecida: <em id="recognizedIntent"></em></p>
+
+    <hr />
+    <h2>Formulário de Reserva (preenchido por voz)</h2>
+    <form id="reservaForm">
+      <div><label>Telefone: <input type="text" id="telefone" name="telefone" /></label></div>
+      <div><label>Nome: <input type="text" id="nome" name="nome" /></label></div>
+      <div><label>Data: <input type="date" id="data" name="data" /></label></div>
+      <div><label>Horário: <input type="time" id="horario" name="horario" /></label></div>
+      <div><label>Nº de Pessoas: <input type="number" id="numPessoas" name="numPessoas" /></label></div>
+      <div><label>Telefone Alternativo: <input type="text" id="telefoneAlternativo" name="telefoneAlternativo" /></label></div>
+      <div><label>Forma de Pagamento: <input type="text" id="formaPagamento" name="formaPagamento" /></label></div>
+      <div><label>Tipo de Evento: <input type="text" id="tipoEvento" name="tipoEvento" /></label></div>
+      <div><label>Valor do Rodízio: <input type="text" id="valorRodizio" name="valorRodizio" /></label></div>
+      <div><label>Número da Mesa: <input type="text" id="numeroMesa" name="numeroMesa" /></label></div>
+      <div><label>Observações: <textarea id="observacoes" name="observacoes"></textarea></label></div>
+    </form>
+
+    <hr />
+    <h2>Resultados da Pesquisa / Reservas</h2>
+    <button id="newSearchOrReservationBtn">Limpar Tudo</button>
+    <button id="manualSubmitBtn" type="button">Teste Manual</button>
+
+    <table id="reservasTable">
+      <thead>
+        <tr>
+          <th>Nome</th><th>Telefone</th><th>Data</th><th>Horário</th><th>Pessoas</th><th>Obs.</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="apiMessage"></p>
+
+    <script src="script.js"></script>
+  </body>
+</html>
