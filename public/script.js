@@ -4,66 +4,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   console.log("SpeechRecognition suportado?", !!SpeechRecognition);
 
-  const startVoiceCmdBtn          = document.getElementById("startVoiceCmdBtn");
-  const voiceStatus               = document.getElementById("voiceStatus");
-  const transcribedTextElem       = document.getElementById("transcribedText");
-  const recognizedIntentElem      = document.getElementById("recognizedIntent");
-  const reservaForm               = document.getElementById("reservaForm");
-  // ... (outros elementos)
+  const startVoiceCmdBtn = document.getElementById("startVoiceCmdBtn");
+  const voiceStatus = document.getElementById("voiceStatus");
+  const transcribedTextElem = document.getElementById("transcribedText");
+  const recognizedIntentElem = document.getElementById("recognizedIntent");
+  const apiMessage = document.getElementById("apiMessage");
+  const reservaForm = document.getElementById("reservaForm");
 
   let recognition;
-  let recognizing = false;
-  let finalTranscript = '';
+  let recognizing = false; // Para controlar o estado do botão
+  // Não precisamos de 'finalTranscriptAcumulado' se continuous = false
 
   if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.lang = "pt-BR";
-    recognition.continuous = true;
-    recognition.interimResults = true; // Mantenha true para melhor feedback
+    recognition.continuous = false; // <<-- Importante: para após a primeira fala/pausa
+    recognition.interimResults = false; // <<-- Simplifica o onresult
 
     recognition.onstart = () => {
       console.log("🔊 recognition.onstart");
       recognizing = true;
-      voiceStatus.textContent = "Ouvindo... Fale e clique em 'Parar' ou aguarde o silêncio."; // Atualizar instrução
-      startVoiceCmdBtn.textContent = "Parar de Ouvir";
-      startVoiceCmdBtn.disabled = false;
-      finalTranscript = '';
-      transcribedTextElem.textContent = '...'; // Indicação visual que está esperando
+      voiceStatus.textContent = "Ouvindo...";
+      startVoiceCmdBtn.textContent = "Processando..."; // Ou "Ouvindo..."
+      startVoiceCmdBtn.disabled = true; // Desabilita enquanto ouve/processa
+      transcribedTextElem.textContent = '...';
+      if (apiMessage) apiMessage.textContent = '';
     };
 
     recognition.onresult = (event) => {
-      console.log("🎙️ recognition.onresult - Evento recebido:", event); // Log mais detalhado
-      let interimTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        const transcriptPart = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          console.log("  -> Resultado Final:", transcriptPart);
-          finalTranscript += transcriptPart + ' '; // Adiciona espaço entre segmentos finais
-        } else {
-          console.log("  -> Resultado Intermediário:", transcriptPart);
-          interimTranscript += transcriptPart;
-        }
-      }
-      transcribedTextElem.textContent = finalTranscript.trim() + interimTranscript;
-      console.log("  Texto acumulado (final):", finalTranscript.trim());
-      console.log("  Texto intermediário atual:", interimTranscript);
+      console.log("🎙️ recognition.onresult - Evento recebido:", event);
+      const transcript = event.results[0][0].transcript.trim();
+      console.log("  Texto reconhecido (final):", transcript);
+      transcribedTextElem.textContent = transcript;
 
-      // Opcional: lógica de timeout para parar automaticamente após silêncio
-      // clearSpeechTimeout();
-      // speechTimeout = setTimeout(() => {
-      //   if (recognizing) {
-      //     console.log("Timeout de silêncio atingido, parando reconhecimento.");
-      //     recognition.stop();
-      //   }
-      // }, 3000); // Para após 3 segundos de silêncio (ajuste conforme necessário)
+      // CHAMA O PROCESSAMENTO DIRETAMENTE AQUI!
+      if (transcript) {
+        voiceStatus.textContent = "Processando sua fala...";
+        processVoiceCommand(transcript); // <<--- CHAMADA CORRETA AQUI
+      } else {
+        voiceStatus.textContent = "Nenhuma fala detectada.";
+        // O onend será chamado, e lá resetamos o botão
+      }
     };
 
     recognition.onerror = (event) => {
-      // LOG MAIS DETALHADO DO ERRO
       console.error("⚠️ recognition.onerror - DETALHES DO ERRO:", event);
-      console.error("   Tipo de Erro:", event.error);
-      console.error("   Mensagem de Erro:", event.message);
-
+      // ... (seu código de tratamento de erro detalhado aqui - MANTENHA-O) ...
       let userMessage = `Erro no reconhecimento: ${event.error}.`;
       if (event.error === 'no-speech') {
         userMessage = "Nenhuma fala foi detectada. Tente falar mais alto ou verifique o microfone.";
@@ -75,82 +61,146 @@ document.addEventListener("DOMContentLoaded", () => {
         userMessage = "Erro de rede durante o reconhecimento. Verifique sua conexão.";
       }
       voiceStatus.textContent = userMessage;
-      
-      // Resetar estado se ocorrer um erro crítico
-      if (recognizing) { // Só para se estava recognizing
-          // Não chamar recognition.stop() aqui se o erro já o fez,
-          // mas garantir que o estado da UI seja resetado.
-          recognizing = false;
-          startVoiceCmdBtn.textContent = "Iniciar Comando de Voz";
-          startVoiceCmdBtn.disabled = false;
-      }
+      transcribedTextElem.textContent = '(Erro)';
+      // O 'onend' será chamado automaticamente após um erro,
+      // então o botão será resetado lá.
     };
 
     recognition.onend = () => {
       console.log("⏹️ recognition.onend - Reconhecimento finalizado.");
-      // clearSpeechTimeout(); // Limpa o timeout se estiver usando
-      
-      // Só processa se estava 'recognizing' e foi parado (seja por stop() ou naturalmente)
-      // E se não foi um erro que já resetou 'recognizing'
-      if (!recognizing && !startVoiceCmdBtn.disabled) { // Se já foi resetado por onerror, não faz nada
-          console.log("   onend chamado após erro já tratado ou estado já resetado.");
-          return;
-      }
-
-      recognizing = false; // Garante que está false
+      recognizing = false;
       startVoiceCmdBtn.textContent = "Iniciar Comando de Voz";
-      startVoiceCmdBtn.disabled = false;
-
-      const trimmedTranscript = finalTranscript.trim();
-      if (trimmedTranscript) {
-        console.log("   Texto final para processamento:", trimmedTranscript);
-        transcribedTextElem.textContent = trimmedTranscript;
-        voiceStatus.textContent = "Processando sua fala...";
-        processVoiceCommand(trimmedTranscript);
-      } else {
-        console.log("   Nenhum texto final para processar.");
-        // Não mostra "Nenhuma fala capturada" se já houve um erro com mensagem específica
-        if (voiceStatus.textContent.startsWith("Ouvindo") || voiceStatus.textContent.startsWith("Processando")) {
-             voiceStatus.textContent = "Nenhuma fala capturada para processar.";
-        }
-        transcribedTextElem.textContent = transcribedTextElem.textContent || "(Nenhuma fala)"; // Mantém o que foi exibido se houver algo
+      startVoiceCmdBtn.disabled = false; // Reabilita o botão
+      
+      // Se o voiceStatus ainda estiver "Processando sua fala...",
+      // significa que o processVoiceCommand foi chamado mas ainda não retornou
+      // ou já atualizou o status.
+      // Se o transcribedTextElem ainda for '...' e não houve erro,
+      // pode significar que onresult não pegou nada.
+      if (transcribedTextElem.textContent === '...' && !voiceStatus.textContent.includes("Erro")) {
+          voiceStatus.textContent = "Nenhuma fala capturada.";
+          transcribedTextElem.textContent = "(Nenhuma fala)";
       }
     };
 
     startVoiceCmdBtn.addEventListener("click", () => {
       console.log("🚀 Botão clicado. Estado recognizing atual:", recognizing);
       if (recognizing) {
-        console.log("   Usuário clicou para PARAR. Solicitando parada do reconhecimento...");
-        recognition.stop();
+        // Com continuous = false, o usuário não precisa clicar para parar.
+        // O reconhecimento para sozinho. O botão já está desabilitado.
+        // Se você quiser permitir um "cancelar", poderia chamar recognition.abort()
+        // mas a lógica do botão "Processando..." já cobre isso.
+        console.log("   Reconhecimento em progresso, botão de parada não aplicável com continuous=false e botão desabilitado.");
       } else {
-        clearAll();
+        clearDisplayFields(); // Limpa apenas os campos de feedback
+        voiceStatus.textContent = "Aguardando para iniciar...";
+        transcribedTextElem.textContent = '...';
         console.log("   Usuário clicou para INICIAR.");
         try {
           recognition.start();
         } catch (err) {
           console.error("❌ Erro ao chamar recognition.start():", err);
-          voiceStatus.textContent = "Erro ao iniciar. Tente novamente.";
-          // Não precisa mexer em recognizing ou no botão aqui, pois onstart/onerror cuidarão
+          voiceStatus.textContent = `Erro ao iniciar: ${err.message}. Tente novamente.`;
+          recognizing = false;
+          startVoiceCmdBtn.textContent = "Iniciar Comando de Voz";
+          startVoiceCmdBtn.disabled = false;
         }
       }
     });
 
   } else {
-    // ... (código para API não suportada)
+    voiceStatus.textContent = "Seu navegador não suporta reconhecimento de voz.";
+    if(startVoiceCmdBtn) startVoiceCmdBtn.disabled = true;
   }
 
-  // ... (funções processVoiceCommand, fillForm, clearAll, displayReservas, etc.)
-  // Mantenha a função clearAll como estava para limpar os campos
-  function clearAll() {
-    reservaForm.reset();
-    // ... (outros resets que você tinha)
+  function clearDisplayFields() {
     transcribedTextElem.textContent = "";
-    recognizedIntentElem.textContent = "";
-    apiMessage.textContent = "";
-    if (!recognizing) { // Só reseta o status se não estiver ouvindo
-        voiceStatus.textContent = "Ocioso (clique para falar)";
-    }
+    if (recognizedIntentElem) recognizedIntentElem.textContent = "";
+    if (apiMessage) apiMessage.textContent = "";
+  }
+  
+  function clearForm() {
+      if (reservaForm) reservaForm.reset();
   }
 
-  // ... (resto do seu script.js)
+  // =======================================================================
+  // DEFINIÇÃO DA FUNÇÃO processVoiceCommand (COLOQUE-A AQUI NO ESCOPO GLOBAL)
+  // =======================================================================
+  async function processVoiceCommand(commandText) {
+    console.log('Enviando para o backend:', commandText);
+    // O voiceStatus já foi atualizado para "Processando sua fala..." em onresult
+    // O botão startVoiceCmdBtn já está desabilitado desde onstart
+
+    try {
+      const response = await fetch('/api/reservas/voice-command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ commandText: commandText }),
+      });
+
+      const result = await response.json(); 
+
+      if (!response.ok) {
+        console.error('Erro do servidor:', response.status, result);
+        voiceStatus.textContent = `Erro do servidor: ${result.message || response.statusText}`;
+        if (apiMessage) apiMessage.textContent = `Detalhe: ${result.error || result.rawResponse || JSON.stringify(result.data) || 'Nenhum detalhe adicional.'}`;
+      } else {
+        console.log('Resposta do backend:', result);
+        voiceStatus.textContent = "Comando processado!"; // Atualiza o status
+        if (apiMessage) apiMessage.textContent = result.message || "Sucesso!";
+
+        if (result.intent === "fazer_reserva" && result.data) {
+          fillFormWithNLUData(result.data);
+           if (result.message && result.message !== "Sucesso!") { 
+             voiceStatus.textContent = result.message;
+          } else {
+             voiceStatus.textContent = "Dados da reserva preenchidos. Verifique e confirme.";
+          }
+        } else if (result.intent && result.intent.startsWith("ERROR_NLU")) {
+            voiceStatus.textContent = `Erro no NLU: ${result.data?.message || result.error || "Não foi possível processar."}`;
+            if (result.rawResponse && apiMessage) {
+                apiMessage.textContent = "Resposta bruta da IA: " + result.rawResponse.substring(0, 100) + "...";
+            }
+        } else {
+            voiceStatus.textContent = result.message || "Intenção não reconhecida ou dados incompletos.";
+            if (apiMessage && result.data) apiMessage.textContent = JSON.stringify(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Erro de rede ou ao fazer fetch para /voice-command:', error);
+      voiceStatus.textContent = 'Erro de comunicação ao processar seu comando.';
+      if (apiMessage) apiMessage.textContent = `Detalhe: ${error.message}`;
+    }
+    // O onend será chamado de qualquer forma, e lá o botão é reabilitado.
+    // Não precisamos reabilitar o botão aqui explicitamente.
+  }
+
+  function fillFormWithNLUData(data) {
+    if (!reservaForm) return;
+    // ... (código da função fillFormWithNLUData como na resposta anterior)
+    if (data.nome) reservaForm.elements.nome.value = data.nome;
+    if (data.telefone) reservaForm.elements.telefone.value = data.telefone;
+    if (data.data) reservaForm.elements.data.value = data.data;
+    if (data.horario) reservaForm.elements.horario.value = data.horario;
+    if (data.numPessoas) reservaForm.elements.numPessoas.value = data.numPessoas;
+    if (data.telefoneAlternativo && reservaForm.elements.telefoneAlternativo) reservaForm.elements.telefoneAlternativo.value = data.telefoneAlternativo;
+    if (data.formaPagamento && reservaForm.elements.formaPagamento) reservaForm.elements.formaPagamento.value = data.formaPagamento;
+    if (data.tipoEvento && reservaForm.elements.tipoEvento) reservaForm.elements.tipoEvento.value = data.tipoEvento;
+    if (data.valorRodizio && reservaForm.elements.valorRodizio) reservaForm.elements.valorRodizio.value = data.valorRodizio;
+    if (data.numeroMesa && reservaForm.elements.numeroMesa) reservaForm.elements.numeroMesa.value = data.numeroMesa;
+    if (data.observacoes && reservaForm.elements.observacoes) reservaForm.elements.observacoes.value = data.observacoes;
+    console.log("Formulário preenchido com dados do NLU.");
+  }
+
+  const clearButton = document.getElementById('clearAllButton');
+  if (clearButton) {
+      clearButton.addEventListener('click', () => {
+          clearDisplayFields();
+          clearForm();
+          voiceStatus.textContent = "Campos limpos. Clique para iniciar novo comando.";
+      });
+  }
+
 });
