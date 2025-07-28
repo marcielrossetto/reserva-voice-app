@@ -17,35 +17,42 @@
 
     <hr />
     <h2>Formulário de Reserva (preenchido)</h2>
-    <form id="reservaForm">
-      <div><label>Telefone: <input type="text" id="telefone" name="telefone" /></label></div>
-      <div><label>Nome: <input type="text" id="nome" name="nome" /></label></div>
-      <div><label>Data: <input type="date" id="data" name="data" /></label></div>
-      <div><label>Horário: <input type="time" id="horario" name="horario" /></label></div>
-      <div><label>Nº de Pessoas: <input type="number" id="numPessoas" name="numPessoas" /></label></div>
-      <div><label>Telefone Alternativo: <input type="text" id="telefoneAlternativo" name="telefoneAlternativo" /></label></div>
-      <div><label>Forma de Pagamento: <input type="text" id="formaPagamento" name="formaPagamento" /></label></div>
-      <div><label>Tipo de Evento: <input type="text" id="tipoEvento" name="tipoEvento" /></label></div>
-      <div><label>Valor do Rodízio: <input type="text" id="valorRodizio" name="valorRodizio" /></label></div>
-      <div><label>Número da Mesa: <input type="text" id="numeroMesa" name="numeroMesa" /></label></div>
-      <div><label>Observações: <textarea id="observacoes" name="observacoes"></textarea></label></div>
-    </form>
+    <h3>PROMPT = Gostaria de fazer uma reserva PARA XX PESSOAS  EM NOME DE XXXX NA DATA DE XX XX XXXXX HORARIO XX XX A FORMA DE PAGAMENTO VAI SER XX EVENTO DE XX VALOR RODIZIO XX O NUMERO DA MESA E XX COM A OBSERVACAO DE XXXX </h3>
+       <h1>Sistema de Reservas Inteligente</h1>
+
+
+    <!-- Seção para Colar Texto (NOVO) -->
+    <div class="card">
+      <h2>Opção 2: Reserva por Texto</h2>
+      <p>Cole a solicitação de reserva abaixo. Pode ser um texto corrido ou preenchido.</p>
+      <textarea id="textInputArea" rows="8" placeholder="Exemplo: 'Gostaria de fazer uma reserva para Ana, telefone 11987654321, para amanhã às 20h para 4 pessoas para comemorar um aniversário.'"></textarea>
+      <button id="submitTextBtn">Analisar e Salvar Reserva</button>
+      <p id="apiMessage"></p>
+    </div>
 
     <hr />
-    <h2>Resultados da Pesquisa / Reservas</h2>
-    <button id="newSearchOrReservationBtn">Limpar Tudo</button>
-    <button id="manualSubmitBtn" type="button">Teste Manual</button>
 
-    <table id="reservasTable">
-      <thead>
-        <tr>
-          <th>Nome</th><th>Telefone</th><th>Data</th><th>Horário</th><th>Pessoas</th><th>Obs.</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <p id="apiMessage"></p>
-
+    <!-- Seção de Resultados -->
+    <div class="card">
+        <h2>Reservas Confirmadas</h2>
+        <table id="reservasTable">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Data</th>
+              <th>Horário</th>
+              <th>Pessoas</th>
+              <th>Observações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- As reservas salvas aparecerão aqui -->
+          </tbody>
+        </table>
+    </div>
+    <hr />
+  
     <script src="script.js"></script>
   </body>
 </html>
