@@ -1,58 +1,107 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Reservas por Voz</title>
+    <title>Sistema Inteligente de Reservas</title>
+    <!-- Google Fonts para um visual mais moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Arquivo de Estilos -->
     <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <h1>Nova Reserva / Consultar</h1>
+</head>
+<body>
 
-    <button id="startVoiceCmdBtn">🎤 Iniciar Comando de Voz</button>
-    <p id="voiceStatus">Status: Ocioso</p>
-    <p>Comando Transcrito: <em id="transcribedText"></em></p>
-    <p>Intenção Reconhecida: <em id="recognizedIntent"></em></p>
+    <header>
+        <h1>Sistema Inteligente de Reservas</h1>
+        <p>Crie e consulte suas reservas usando voz ou texto.</p>
+    </header>
 
-    <hr />
-    <h2>Formulário de Reserva (preenchido)</h2>
-    <h3>PROMPT = Gostaria de fazer uma reserva PARA XX PESSOAS  EM NOME DE XXXX NA DATA DE XX XX XXXXX HORARIO XX XX A FORMA DE PAGAMENTO VAI SER XX EVENTO DE XX VALOR RODIZIO XX O NUMERO DA MESA E XX COM A OBSERVACAO DE XXXX </h3>
-       <h1>Sistema de Reservas Inteligente</h1>
+    <main class="container">
 
+        <!-- Coluna da Esquerda: Entradas do Usuário -->
+        <div class="input-column">
+            
+            <!-- Card de Comando de Voz -->
+            <div class="card">
+                <h2>🎤 Opção 1: Comando por Voz</h2>
+                <p>Clique no botão e diga os detalhes da reserva.</p>
+                <button id="startVoiceCmdBtn">Iniciar Comando de Voz</button>
+                <div id="voiceStatusContainer">
+                    <span id="voiceStatus">Pronto para começar.</span>
+                </div>
+                <p class="transcribed-text-container">
+                    <strong>Você disse:</strong>
+                    <em id="transcribedText">...</em>
+                </p>
+            </div>
 
-    <!-- Seção para Colar Texto (NOVO) -->
-    <div class="card">
-      <h2>Opção 2: Reserva por Texto</h2>
-      <p>Cole a solicitação de reserva abaixo. Pode ser um texto corrido ou preenchido.</p>
-      <textarea id="textInputArea" rows="8" placeholder="Exemplo: 'Gostaria de fazer uma reserva para Ana, telefone 11987654321, para amanhã às 20h para 4 pessoas para comemorar um aniversário.'"></textarea>
-      <button id="submitTextBtn">Analisar e Salvar Reserva</button>
-      <p id="apiMessage"></p>
-    </div>
+            <!-- Card de Reserva por Texto -->
+            <div class="card">
+                <h2>✏️ Opção 2: Reserva por Texto</h2>
+                <p>Cole ou digite a solicitação de reserva abaixo.</p>
+                <textarea 
+                    id="textInputArea" 
+                    rows="6" 
+                    placeholder="Ex: 'Reservar para Carlos, tel 21987654321, amanhã às 19h, 2 pessoas, aniversário.'"
+                ></textarea>
+                <button id="submitTextBtn">Analisar e Salvar Reserva</button>
+            </div>
+            
+            <!-- Card para Mensagens da API -->
+            <div id="apiMessage" class="message-container">
+                <!-- Mensagens de sucesso ou erro aparecerão aqui -->
+            </div>
 
-    <hr />
+        </div>
 
-    <!-- Seção de Resultados -->
-    <div class="card">
-        <h2>Reservas Confirmadas</h2>
-        <table id="reservasTable">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Telefone</th>
-              <th>Data</th>
-              <th>Horário</th>
-              <th>Pessoas</th>
-              <th>Observações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- As reservas salvas aparecerão aqui -->
-          </tbody>
-        </table>
-    </div>
-    <hr />
-  
+        <!-- Coluna da Direita: Resultados e Filtros -->
+        <div class="results-column">
+
+            <div class="card">
+                <h2>📅 Filtrar Reservas</h2>
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label for="filterStartDate">Data Inicial:</label>
+                        <input type="date" id="filterStartDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="filterEndDate">Data Final:</label>
+                        <input type="date" id="filterEndDate" />
+                    </div>
+                    <button id="filterBtn">Filtrar</button>
+                    <button id="clearFilterBtn" class="secondary">Limpar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Reservas Confirmadas</h2>
+                <div class="table-wrapper">
+                    <table id="reservasTable">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Pessoas</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- As reservas salvas aparecerão aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Desenvolvido Marciel Rossetto</p>
+    </footer>
+
     <script src="script.js"></script>
-  </body>
+</body>
 </html>

@@ -91,4 +91,50 @@ router.get("/", async (req, res) => {
     }
 });
 
+
+/**
+ * ROTA PARA FILTRAR RESERVAS POR DATA E HORÁRIO
+ * Endpoint: GET /api/filter-reservations?data=2025-07-30&horario=20:00
+ */
+/**
+ * FILTRAR RESERVAS ENTRE DUAS DATAS
+ * Endpoint: GET /api/filter-reservations?start=2025-07-27&end=2025-07-30
+ */
+router.get("/filter-reservations", async (req, res) => {
+    try {
+        const { start, end, horario } = req.query;
+
+        let filtro = {};
+
+        if (start && end) {
+            const dataInicio = new Date(start);
+            const dataFim = new Date(end);
+            dataFim.setHours(23, 59, 59, 999);
+            filtro.data = { $gte: dataInicio, $lte: dataFim };
+        } else if (start) {
+            const dataInicio = new Date(start);
+            filtro.data = { $gte: dataInicio };
+        } else if (end) {
+            const dataFim = new Date(end);
+            dataFim.setHours(23, 59, 59, 999);
+            filtro.data = { $lte: dataFim };
+        }
+
+        if (horario) {
+            filtro.horario = horario;
+        }
+
+        const reservasFiltradas = await Reserva.find(filtro).sort({ data: 1, horario: 1 });
+
+        if (reservasFiltradas.length === 0) {
+            return res.status(404).json({ message: "Nenhuma reserva encontrada para o período selecionado." });
+        }
+
+        res.status(200).json(reservasFiltradas);
+    } catch (err) {
+        console.error("Erro no filtro:", err);
+        res.status(500).json({ message: "Erro ao filtrar reservas." });
+    }
+});
+
 module.exports = router;
