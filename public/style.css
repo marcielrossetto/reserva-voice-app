@@ -221,6 +221,50 @@ textarea:focus, input[type="date"]:focus {
     flex-shrink: 0;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  color: #fff;
+  font-size: 14px;
+}
+
+.logo-title h1 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.username {
+  background: #2563eb;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  color: #fff;
+}
+
+#logoutBtn {
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+#logoutBtn:hover {
+  background: #dc2626;
+}
+
 
 /* --- TABELA DE RESULTADOS --- */
 .table-wrapper {

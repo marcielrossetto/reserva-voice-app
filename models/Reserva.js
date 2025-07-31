@@ -1,4 +1,3 @@
-// models/Reserva.js
 const mongoose = require("mongoose");
 
 const ReservaSchema = new mongoose.Schema({
@@ -14,6 +13,7 @@ const ReservaSchema = new mongoose.Schema({
   numeroMesa: { type: String, trim: true },
   observacoes: { type: String, trim: true },
   criadoEm: { type: Date, default: Date.now },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 });
 
 ReservaSchema.index({ data: 1, horario: 1 });

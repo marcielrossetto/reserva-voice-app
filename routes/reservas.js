@@ -1,140 +1,119 @@
-// routes/reservas.js
 const express = require("express");
 const router = express.Router();
-const Reserva = require("../models/Reserva"); // Assumindo que seu modelo Mongoose está aqui
-const { determineIntentAndExtractData } = require("../utils/nluService"); // A mágica da IA acontece aqui
+const Reserva = require("../models/Reserva");
+const { determineIntentAndExtractData } = require("../utils/nluService");
 const { parseISO, isValid } = require("date-fns");
+const authMiddleware = require("../middlewares/authMiddleware");
+
+// Todas as rotas abaixo exigem autenticação
+router.use(authMiddleware);
 
 /**
- * ROTA UNIFICADA PARA PROCESSAR RESERVAS (VOZ OU TEXTO)
+ * ✅ 1. Criar reserva via IA (voz ou texto)
  * Endpoint: POST /api/process-reservation
- * Recebe: { userInputText: "..." }
- * Responde: { message: "...", reservation: {...} } em caso de sucesso
- *           ou { message: "..." } em caso de erro/intenção incompleta.
  */
 router.post("/process-reservation", async (req, res) => {
-    // MUDANÇA 1: O nome do campo agora é 'userInputText'
-    const { userInputText } = req.body;
-    console.log("\n--- BACKEND: Nova Requisição /process-reservation ---");
-    console.log("BACKEND (1): Texto recebido:", userInputText);
+  const { userInputText } = req.body;
+  console.log("\n--- BACKEND: Nova Requisição /process-reservation ---");
+  console.log("Texto recebido:", userInputText);
 
-    if (!userInputText || userInputText.trim() === "") {
-        return res.status(400).json({ message: "O texto para análise não foi fornecido." });
+  if (!userInputText || userInputText.trim() === "") {
+    return res.status(400).json({ message: "O texto para análise não foi fornecido." });
+  }
+
+  try {
+    const nluResult = await determineIntentAndExtractData(userInputText);
+    console.log("Resultado do NLU:", nluResult);
+
+    if (nluResult.intent !== "fazer_reserva") {
+      return res.status(400).json({
+        message: `Não foi possível criar uma reserva. Intenção reconhecida como '${nluResult.intent}'.`
+      });
     }
 
-    try {
-        // MUDANÇA 2: A chamada ao serviço de NLU continua a mesma, mas agora ele usa o prompt híbrido
-        console.log("BACKEND (2): Chamando o serviço NLU...");
-        const nluResult = await determineIntentAndExtractData(userInputText);
-        console.log("BACKEND (3): Resultado do NLU:", JSON.stringify(nluResult, null, 2));
+    const { data } = nluResult;
+    const camposObrigatorios = ["nome", "telefone", "data", "horario", "numPessoas"];
+    const faltantes = camposObrigatorios.filter(campo => !data[campo]);
 
-        // MUDANÇA 3: A lógica do switch é simplificada para focar na ação principal
-        switch (nluResult.intent) {
-            case "fazer_reserva": {
-                const { data } = nluResult;
-                const camposObrigatorios = ['nome', 'telefone', 'data', 'horario', 'numPessoas'];
-                const camposFaltantes = camposObrigatorios.filter(campo => !data[campo]);
-
-                if (camposFaltantes.length > 0) {
-                    const message = `Informações insuficientes. Por favor, forneça: ${camposFaltantes.join(', ')}.`;
-                    console.log("BACKEND (ERRO 4.1):", message);
-                    return res.status(400).json({ message });
-                }
-                
-                const reservaDateObject = parseISO(data.data);
-                if (!isValid(reservaDateObject)) {
-                    const message = `A data extraída ('${data.data}') é inválida. Tente novamente.`;
-                    return res.status(400).json({ message });
-                }
-
-                const dadosParaSalvar = { ...data, data: reservaDateObject };
-                const novaReserva = new Reserva(dadosParaSalvar);
-                const reservaSalva = await novaReserva.save();
-                
-                console.log("BACKEND (SUCESSO 4.2): Reserva salva com ID:", reservaSalva._id);
-
-                // MUDANÇA 4: A resposta de sucesso agora corresponde EXATAMENTE ao que o frontend espera
-                return res.status(201).json({
-                    message: "Reserva criada com sucesso!",
-                    reservation: reservaSalva // A chave é 'reservation'
-                });
-            }
-
-            case "intencao_incompleta":
-            case "consultar_informacao":
-            case "geral_dialogo":
-            case "intencao_desconhecida":
-                console.log(`BACKEND (INFO 4.3): Intenção '${nluResult.intent}' recebida.`);
-                return res.status(400).json({ 
-                    message: `Não foi possível criar uma reserva. A intenção foi reconhecida como '${nluResult.intent}'. Tente ser mais específico com os dados da reserva.` 
-                });
-
-            // Erro vindo diretamente do serviço de NLU (ex: falha na API da IA)
-            default: // Inclui casos de ERROR_NLU_*
-                console.error("BACKEND (ERRO 4.4): Erro do serviço NLU ou intenção não tratada.", nluResult.error);
-                return res.status(500).json({ message: nluResult.error || "Ocorreu um erro ao processar sua solicitação." });
-        }
-    } catch (err) {
-        console.error("BACKEND (ERRO CATCH GERAL):", err);
-        res.status(500).json({ message: "Ocorreu um erro interno inesperado no servidor." });
+    if (faltantes.length > 0) {
+      return res.status(400).json({
+        message: `Faltam informações: ${faltantes.join(", ")}.`
+      });
     }
+
+    const reservaDate = parseISO(data.data);
+    if (!isValid(reservaDate)) {
+      return res.status(400).json({ message: `Data inválida: ${data.data}` });
+    }
+
+    const novaReserva = new Reserva({
+      ...data,
+      data: reservaDate,
+      userId: req.userId // VINCULA AO USUÁRIO LOGADO
+    });
+
+    const reservaSalva = await novaReserva.save();
+    console.log("Reserva salva com ID:", reservaSalva._id);
+
+    return res.status(201).json({
+      message: "Reserva criada com sucesso!",
+      reservation: reservaSalva
+    });
+
+  } catch (err) {
+    console.error("Erro no processamento:", err);
+    return res.status(500).json({ message: "Erro interno ao processar a reserva." });
+  }
 });
-
-
-// Rota GET para listar reservas (pode ser mantida para depuração ou um painel admin)
-router.get("/", async (req, res) => {
-    try {
-        const todasAsReservas = await Reserva.find().sort({ data: -1 }).limit(50);
-        res.status(200).json(todasAsReservas);
-    } catch (err) {
-        res.status(500).json({ message: "Erro ao buscar reservas." });
-    }
-});
-
 
 /**
- * ROTA PARA FILTRAR RESERVAS POR DATA E HORÁRIO
- * Endpoint: GET /api/filter-reservations?data=2025-07-30&horario=20:00
+ * ✅ 2. Listar reservas do usuário logado
+ * Endpoint: GET /api/reservas
  */
+router.get("/", async (req, res) => {
+  try {
+    const reservas = await Reserva.find({ userId: req.userId }).sort({ data: -1 });
+    return res.status(200).json(reservas);
+  } catch (err) {
+    console.error("Erro ao buscar reservas:", err);
+    return res.status(500).json({ message: "Erro ao buscar reservas." });
+  }
+});
+
 /**
- * FILTRAR RESERVAS ENTRE DUAS DATAS
+ * ✅ 3. Filtrar reservas por intervalo de datas (somente do usuário)
  * Endpoint: GET /api/filter-reservations?start=2025-07-27&end=2025-07-30
  */
 router.get("/filter-reservations", async (req, res) => {
-    try {
-        const { start, end, horario } = req.query;
+  try {
+    const { start, end, horario } = req.query;
+    let filtro = { userId: req.userId };
 
-        let filtro = {};
-
-        if (start && end) {
-            const dataInicio = new Date(start);
-            const dataFim = new Date(end);
-            dataFim.setHours(23, 59, 59, 999);
-            filtro.data = { $gte: dataInicio, $lte: dataFim };
-        } else if (start) {
-            const dataInicio = new Date(start);
-            filtro.data = { $gte: dataInicio };
-        } else if (end) {
-            const dataFim = new Date(end);
-            dataFim.setHours(23, 59, 59, 999);
-            filtro.data = { $lte: dataFim };
-        }
-
-        if (horario) {
-            filtro.horario = horario;
-        }
-
-        const reservasFiltradas = await Reserva.find(filtro).sort({ data: 1, horario: 1 });
-
-        if (reservasFiltradas.length === 0) {
-            return res.status(404).json({ message: "Nenhuma reserva encontrada para o período selecionado." });
-        }
-
-        res.status(200).json(reservasFiltradas);
-    } catch (err) {
-        console.error("Erro no filtro:", err);
-        res.status(500).json({ message: "Erro ao filtrar reservas." });
+    if (start && end) {
+      const dataInicio = new Date(start);
+      const dataFim = new Date(end);
+      dataFim.setHours(23, 59, 59, 999);
+      filtro.data = { $gte: dataInicio, $lte: dataFim };
+    } else if (start) {
+      filtro.data = { $gte: new Date(start) };
+    } else if (end) {
+      const dataFim = new Date(end);
+      dataFim.setHours(23, 59, 59, 999);
+      filtro.data = { $lte: dataFim };
     }
+
+    if (horario) filtro.horario = horario;
+
+    const reservas = await Reserva.find(filtro).sort({ data: 1, horario: 1 });
+    if (reservas.length === 0) {
+      return res.status(404).json({ message: "Nenhuma reserva encontrada para o período selecionado." });
+    }
+
+    return res.status(200).json(reservas);
+  } catch (err) {
+    console.error("Erro no filtro:", err);
+    return res.status(500).json({ message: "Erro ao filtrar reservas." });
+  }
 });
 
 module.exports = router;

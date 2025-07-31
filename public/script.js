@@ -1,5 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Elementos da UI ---
+  // ==========================
+  // Verificação de login
+  // ==========================
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+
+  // Botão de logout
+  const logoutBtn = document.createElement("button");
+  logoutBtn.textContent = "Sair";
+  logoutBtn.style = "position:fixed; top:10px; right:10px; background:#d33; color:white; padding:8px; border:none; cursor:pointer;";
+  document.body.appendChild(logoutBtn);
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+  });
+
+  // ==========================
+  // Elementos da UI
+  // ==========================
   const startVoiceCmdBtn = document.getElementById("startVoiceCmdBtn");
   const voiceStatus = document.getElementById("voiceStatus");
   const transcribedTextElem = document.getElementById("transcribedText");
@@ -7,25 +28,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitTextBtn = document.getElementById("submitTextBtn");
   const apiMessage = document.getElementById("apiMessage");
   const reservasTableBody = document.querySelector("#reservasTable tbody");
-
-  // Elementos do filtro por intervalo de datas
   const filterBtn = document.getElementById("filterBtn");
   const filterStartDate = document.getElementById("filterStartDate");
   const filterEndDate = document.getElementById("filterEndDate");
 
-  // Função para exibir mensagens
   function displayMessage(text, type) {
     apiMessage.textContent = text;
     apiMessage.className = `message ${type}`;
   }
 
-  // Função para formatar data
   const formatDate = (date) => {
     const d = new Date(date);
     return d.toLocaleDateString("pt-BR");
   };
 
-  // Função para adicionar reserva na tabela
   function addReservationToTable(data) {
     const row = document.createElement("tr");
     const observacoes = data.tipoEvento
@@ -60,16 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (endValue) url += `end=${endValue}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       const result = await response.json();
 
+      reservasTableBody.innerHTML = "";
+
       if (!response.ok) {
-        reservasTableBody.innerHTML = "";
         displayMessage(result.message || "Nenhuma reserva encontrada.", "error");
         return;
       }
 
-      reservasTableBody.innerHTML = "";
       result.forEach(addReservationToTable);
       displayMessage("Filtro aplicado com sucesso!", "success");
     } catch (err) {
@@ -81,8 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================
   // RECONHECIMENTO DE VOZ
   // ==========================
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition;
 
   if (SpeechRecognition) {
@@ -92,50 +111,65 @@ document.addEventListener("DOMContentLoaded", () => {
     recognition.interimResults = false;
 
     recognition.onstart = () => {
-      voiceStatus.textContent = "Ouvindo...";
+      voiceStatus.textContent = "🎤 Ouvindo...";
       startVoiceCmdBtn.disabled = true;
       submitTextBtn.disabled = true;
-      transcribedTextElem.textContent = "...";
-      apiMessage.textContent = "";
     };
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript.trim();
       transcribedTextElem.textContent = transcript;
+      voiceStatus.textContent = "Processando...";
       if (transcript) {
-        voiceStatus.textContent = "Processando sua fala...";
         processAndSaveReservation(transcript);
       }
     };
 
     recognition.onerror = (event) => {
-      let userMessage = `Erro no reconhecimento: ${event.error}.`;
-      if (event.error === "no-speech") userMessage = "Nenhuma fala foi detectada.";
-      if (event.error === "audio-capture") userMessage = "Problema na captura de áudio.";
-      if (event.error === "not-allowed") userMessage = "Permissão para usar o microfone foi negada.";
-      voiceStatus.textContent = userMessage;
-      transcribedTextElem.textContent = "(Erro)";
+      voiceStatus.textContent = "Erro: " + event.error;
     };
 
     recognition.onend = () => {
       startVoiceCmdBtn.disabled = false;
       submitTextBtn.disabled = false;
-      if (voiceStatus.textContent === "Ouvindo..." || voiceStatus.textContent === "Processando sua fala...") {
-        voiceStatus.textContent = "Pronto para um novo comando.";
-      }
+      voiceStatus.textContent = "Pronto para começar.";
     };
 
     startVoiceCmdBtn.addEventListener("click", () => {
-      try {
-        recognition.start();
-      } catch (err) {
-        voiceStatus.textContent = `Erro ao iniciar: ${err.message}.`;
-      }
+      recognition.start();
     });
   } else {
     startVoiceCmdBtn.disabled = true;
     voiceStatus.textContent = "Seu navegador não suporta reconhecimento de voz.";
   }
+
+
+
+
+const userInfoDiv = document.getElementById("userInfo");
+const username = localStorage.getItem("username");
+
+if (username) {
+  userInfoDiv.innerHTML = `
+    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&rounded=true" alt="Avatar" />
+    <span>${username}</span>
+  `;
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const userNameElem = document.getElementById("userName");
+  const userName = localStorage.getItem("username");
+  if (userName) {
+    userNameElem.textContent = `Olá, ${userName}`;
+  }
+});
+const userNameElem = document.getElementById("userName");
+const userName = localStorage.getItem("username");
+
+if (userName) {
+  userNameElem.textContent = `Olá, ${userName}`;
+} else {
+  userNameElem.textContent = "Olá, Usuário";
+}
 
   // ==========================
   // PROCESSAR RESERVA (VOZ OU TEXTO)
@@ -157,14 +191,17 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch("/api/process-reservation", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ userInputText: inputText }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Ocorreu um erro no servidor.");
+        throw new Error(result.message || "Erro no servidor.");
       }
 
       if (result.reservation) {

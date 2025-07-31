@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Sistema de Reservas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #4f46e5, #3b82f6);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 350px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+    h2, h3 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #3730a3;
+    }
+    hr {
+      margin: 20px 0;
+      border: none;
+      height: 1px;
+      background: #ddd;
+    }
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+    .loading {
+      color: #4f46e5;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Entrar</h2>
+    <input type="email" id="emailLogin" placeholder="Digite seu e-mail" />
+    <input type="password" id="senhaLogin" placeholder="Digite sua senha" />
+    <button id="loginBtn">Entrar</button>
+
+    <hr>
+
+    <h3>Criar Conta</h3>
+    <input type="text" id="nome" placeholder="Nome completo" />
+    <input type="email" id="emailReg" placeholder="E-mail" />
+    <input type="password" id="senhaReg" placeholder="Senha" />
+    <button id="registerBtn">Cadastrar</button>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const apiBase = "/api/auth";
+    const messageBox = document.getElementById("message");
+
+    function showMessage(msg, color = "black") {
+      messageBox.textContent = msg;
+      messageBox.style.color = color;
+    }
+
+    // ✅ LOGIN
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("emailLogin").value.trim();
+      const senha = document.getElementById("senhaLogin").value.trim();
+
+      if (!email || !senha) {
+        showMessage("Preencha todos os campos!", "red");
+        return;
+      }
+
+      try {
+        showMessage("Verificando...", "#4f46e5");
+        const res = await fetch(`${apiBase}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, senha })
+        });
+
+        const data = await res.json();
+        console.log("Resposta login:", data);
+
+        if (res.ok && data.token) {
+          localStorage.setItem("token", data.token);
+          if (data.user && data.user.nome) {
+            localStorage.setItem("username", data.user.nome);
+          }
+          showMessage("Login bem-sucedido! Redirecionando...", "green");
+          setTimeout(() => window.location.href = "/", 1500);
+        } else {
+          showMessage(data.message || "Erro no login!", "red");
+        }
+      } catch (err) {
+        showMessage("Erro no login. Tente novamente!", "red");
+      }
+    });
+
+    // ✅ REGISTRO
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const nome = document.getElementById("nome").value.trim();
+      const email = document.getElementById("emailReg").value.trim();
+      const senha = document.getElementById("senhaReg").value.trim();
+
+      if (!nome || !email || !senha) {
+        showMessage("Preencha todos os campos!", "red");
+        return;
+      }
+
+      try {
+        showMessage("Cadastrando...", "#4f46e5");
+        const res = await fetch(`${apiBase}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, email, senha })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showMessage("Cadastro realizado! Faça login.", "green");
+        } else {
+          showMessage(data.message || "Erro no cadastro!", "red");
+        }
+      } catch (err) {
+        showMessage("Erro no cadastro. Tente novamente!", "red");
+      }
+    });
+  </script>
+</body>
+</html>
