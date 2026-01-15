@@ -1,19 +1,36 @@
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "chave-secreta-super-segura";
+const prisma = require("../lib/prisma");
 
-function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "Token não fornecido. Faça login primeiro." });
+module.exports = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token não fornecido" });
   }
+
+  const token = authHeader.replace("Bearer ", "");
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.userId = decoded.id;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Token inválido ou expirado." });
-  }
-}
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-module.exports = authMiddleware;
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: decoded.userId },
+      include: { empresa: true }
+    });
+
+    if (!usuario) {
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+
+    req.user = {
+      id: usuario.id,
+      nome: usuario.nome,
+      nivel: usuario.nivel,
+      empresaId: usuario.empresaId
+    };
+
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Token inválido" });
+  }
+};

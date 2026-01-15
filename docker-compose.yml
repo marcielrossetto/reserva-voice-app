@@ -1,33 +1,30 @@
-version: "3.9"
 services:
   app:
     build: .
-    container_name: reserva-app
+    container_name: reserva_app
     ports:
       - "3001:3001"
     env_file:
       - .env
     depends_on:
-      - mongo
+      - postgres
     volumes:
       - .:/app
       - /app/node_modules
-    networks:
-      - reserva-network
+    restart: always
 
-  mongo:
-    image: mongo:6.0
-    container_name: reserva-mongo
+  postgres:
+    image: postgres:16
+    container_name: reserva_postgres
+    environment:
+      POSTGRES_DB: reservasdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: senha_forte
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongo-data:/data/db
-    networks:
-      - reserva-network
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
 
 volumes:
-  mongo-data:
-
-networks:
-  reserva-network:
-    driver: bridge
+  postgres_data:

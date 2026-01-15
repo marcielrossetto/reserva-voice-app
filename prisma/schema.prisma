@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* =========================
+   EMPRESAS
+========================= */
+model Empresa {
+  id                    Int       @id @default(autoincrement())
+  nomeEmpresa           String
+  cnpjCpf               String?
+  telefone              String?
+  dataInclusao          DateTime?
+  logo                  Bytes?
+  logoCaminho           String?
+
+  dataCadastro          DateTime  @default(now())
+
+  // 🔥 TRIAL
+  dataInicioTeste       DateTime?
+  dataExpiracao         DateTime?
+
+  status                Boolean   @default(true)
+  statusPagamento       Int       @default(0) // 0 = trial / pendente, 1 = pago
+  plano                 String    @default("mensal")
+  valor                 Decimal   @default(0.00)
+
+  dataUltimoPagamento   DateTime?
+  observacoes           String?
+  excluida              Boolean   @default(false)
+  dataExclusao          DateTime?
+
+  usuarios              Usuario[]
+  clientes              Cliente[]
+  bebidas               BebidaCadastro[]
+  filaEspera            FilaEspera[]
+  vouchers              Voucher[]
+  precoRodizio          PrecoRodizio[]
+  pagamentosMensais     PagamentoMensal[]
+  filaConfigDia         FilaConfigDia[]
+  menuProdutos          MenuProduto[]
+  menuCardapios         MenuCardapio[]
+
+  @@map("empresas")
+}
+
+/* =========================
+   LOGIN / USUÁRIOS
+========================= */
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  email     String   @unique
+  senha     String
+  nivel     String
+  status    Boolean  @default(true)
+  dataEmissao DateTime @default(now())
+
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  @@map("login")
+}
+
+/* =========================
+   CLIENTES / RESERVAS
+========================= */
+model Cliente {
+  id                   Int      @id @default(autoincrement())
+  empresaId            Int
+  nome                 String
+  data                 DateTime
+  numPessoas           Int
+  horario              DateTime
+  telefone             String?
+  telefone2            String?
+  tipoEvento           String
+  formaPagamento       String
+  valorRodizio         Int?
+  numMesa              String?
+  observacoes          String
+  obsCliente           String?
+  dataEmissao          DateTime @default(now())
+  status               Boolean  @default(true)
+  confirmado            Boolean @default(false)
+  usuarioId            Int?
+  motivoCancelamento   String?
+  tortaTermoVela       Boolean @default(false)
+  churrascaria         Boolean @default(false)
+  executivo             Boolean @default(false)
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@map("clientes")
+}
+
+/* =========================
+   BEBIDAS
+========================= */
+model BebidaCadastro {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int
+  nome         String
+  precoAtual   Decimal  @default(0.00)
+  ativo        Boolean  @default(true)
+  dataCriacao  DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("bebidas_cadastro")
+}
+
+/* =========================
+   FILA DE ESPERA
+========================= */
+model FilaEspera {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int
+  nome         String
+  telefone     String?
+  numPessoas   Int
+  status       Int      @default(0)
+  prioridade   Boolean  @default(false)
+  numMesa      String?
+  dataCriacao  DateTime @default(now())
+  horaSentado  DateTime?
+  prioMotivo   String?
+  posicaoFila  Int?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("fila_espera")
+}
+
+/* =========================
+   CONFIG FILA DIA
+========================= */
+model FilaConfigDia {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int
+  dataConfig     DateTime
+  numeroInicial  Int      @default(1)
+  createdAt      DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, dataConfig])
+  @@map("fila_config_dia")
+}
+
+/* =========================
+   MENU
+========================= */
+model MenuCardapio {
+  id        Int     @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  ordem     Int     @default(0)
+  status    Boolean @default(true)
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categorias MenuCategoria[]
+
+  @@map("menu_cardapios")
+}
+
+model MenuCategoria {
+  id          Int    @id @default(autoincrement())
+  cardapioId  Int
+  nome        String
+  ordem       Int    @default(0)
+  layoutTipo  String @default("vinho")
+  status      Boolean @default(true)
+
+  cardapio MenuCardapio @relation(fields: [cardapioId], references: [id], onDelete: Cascade)
+  produtos  MenuProduto[]
+
+  @@map("menu_categorias")
+}
+
+model MenuProduto {
+  id           Int     @id @default(autoincrement())
+  categoriaId  Int
+  empresaId    Int
+  codPdv       String?
+  nome         String
+  descricao    String?
+  preco        Decimal @default(0.00)
+  foto         Bytes?
+  fotoCaminho  String?
+  origemPais   String?
+  tipoUva      String?
+  tamanhoDose  String?
+  status       Boolean @default(true)
+  layoutTipo   String  @default("normal")
+  ordem        Int     @default(0)
+
+  empresa   Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria MenuCategoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@map("menu_produtos")
+}
+
+/* =========================
+   PAGAMENTOS
+========================= */
+model PagamentoMensal {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  ano         Int
+  mes         Int
+  dataRegistro DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, mes, ano])
+  @@map("pagamentos_mensais")
+}
+
+/* =========================
+   PREÇO RODÍZIO
+========================= */
+model PrecoRodizio {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int
+  almoco         Decimal
+  jantar         Decimal
+  domingoAlmoco  Decimal
+  outros         Decimal
+  dataEmissao    DateTime @default(now())
+  campoManual1  String?
+  campoManual2  String?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("preco_rodizio")
+}
+
+/* =========================
+   VOUCHERS
+========================= */
+model Voucher {
+  id              Int      @id @default(autoincrement())
+  empresaId       Int
+  codigoVoucher   String   @unique
+  tokenSeguranca  String?
+  tipo            String   @default("Cortesia")
+  tipoRodizio     String?
+  valorRodizio    Decimal  @default(0.00)
+  possuiBebida    Boolean  @default(false)
+  valorBebida     Decimal  @default(0.00)
+  qtdBebida       Int      @default(0)
+  tipoBebida      String?
+  possuiSobremesa Boolean  @default(false)
+  valorSobremesa  Decimal  @default(0.00)
+  qtdSobremesa    Int      @default(0)
+  tipoSobremesa   String?
+  subtotal        Decimal  @default(0.00)
+  valorTotal      Decimal  @default(0.00)
+  dataValidade    DateTime
+  observacoes     String?
+  status          String   @default("pendente")
+  pago            Boolean  @default(false)
+  formaPagamento  String?
+  dataCriacao     DateTime @default(now())
+  nomeCliente     String?
+  telefoneCliente String?
+  cpfCliente      String?
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@map("vouchers")
+}

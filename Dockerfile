@@ -3,17 +3,20 @@ FROM node:18
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos do projeto
+# Copiar dependências
 COPY package*.json ./
 
 # Instalar dependências
 RUN npm install
 
-# Copiar todo o código
+# Copiar o restante do código
 COPY . .
+
+# Gerar Prisma Client
+RUN npx prisma generate
 
 # Expor a porta
 EXPOSE 3001
 
-# Comando para iniciar o app
-CMD ["node", "server.js"]
+# Iniciar aplicação
+CMD ["npm", "start"]

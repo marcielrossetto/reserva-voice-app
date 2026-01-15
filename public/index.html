@@ -24,8 +24,24 @@
 </header>
 
 
+<!-- Botão para abrir o calendário -->
+<button id="openCalendarBtn" class="btn-calendar">📅 Ver Calendário</button>
 
-    </header>
+<!-- Modal do Calendário -->
+<div id="calendarModal" class="modal">
+  <div class="modal-content">
+    <span id="closeModal" class="close-btn">&times;</span>
+    <h2 id="calendarTitle">Calendário</h2>
+    <div class="calendar-controls">
+      <button id="prevMonth" class="btn-nav">Anterior</button>
+      <span id="totalMonth">TOTAL = 0</span>
+      <button id="nextMonth" class="btn-nav">Próximo</button>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+  </div>
+</div>
+
+
 
     <main class="container">
 
@@ -47,13 +63,15 @@
             </div>
 
             <!-- Card de Reserva por Texto -->
+             <div id="apiMessage" style="margin-top:10px; font-weight:600;"></div>
+
             <div class="card">
                 <h2>✏️ Opção 2: Reserva por Texto</h2>
                 <p>Cole ou digite a solicitação de reserva abaixo.</p>
                 <textarea 
                     id="textInputArea" 
                     rows="6" 
-                    placeholder="Ex: 'Reservar para Carlos, tel 21987654321, amanhã às 19h, 2 pessoas, aniversário.'"
+                    placeholder="Ex: 'Reservar para Marciel, tel 21987654321, amanhã às 19h, 25 pessoas, aniversário, deixar uma mesa na janela.'"
                 ></textarea>
                 <button id="submitTextBtn">Analisar e Salvar Reserva</button>
             </div>
@@ -64,6 +82,34 @@
             </div>
 
         </div>
+<div id="formEditar" style="display:none">
+  <h3>✏️ Conferir Reserva</h3>
+
+  <input id="nome" placeholder="Nome" />
+  <input id="telefone" placeholder="Telefone" />
+
+  <input type="date" id="data" />
+  <input type="time" id="horario" />
+
+  <input type="number" id="numPessoas" placeholder="Nº Pessoas" />
+
+  <select id="tipoEvento">
+    <option>Aniversário</option>
+    <option>Casamento</option>
+    <option>Formatura</option>
+    <option>Outro</option>
+  </select>
+
+  <select id="formaPagamento">
+    <option>Única</option>
+    <option>Individual</option>
+    <option>Outro</option>
+  </select>
+
+  <textarea id="observacoes"></textarea>
+
+  <button onclick="salvarReserva()">Salvar Reserva</button>
+</div>
 
         <!-- Coluna da Direita: Resultados e Filtros -->
         <div class="results-column">

@@ -264,6 +264,108 @@ textarea:focus, input[type="date"]:focus {
 #logoutBtn:hover {
   background: #dc2626;
 }
+/* MODAL */
+/* BOTÃO PARA ABRIR O CALENDÁRIO */
+.btn-calendar {
+  display: block;
+  margin: 20px auto;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.btn-calendar:hover {
+  background: #1d4ed8;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: slideUp 0.4s ease;
+}
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #333;
+}
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+.btn-nav {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-nav:hover {
+  background: #2563eb;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 15px;
+}
+.calendar-day {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.badgeA, .badgeJ {
+  font-size: 12px;
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+.badgeA { background: #2563eb; }  /* Azul almoço */
+.badgeJ { background: #ef4444; }  /* Vermelho jantar */
+
+/* ANIMAÇÕES */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 
 
 /* --- TABELA DE RESULTADOS --- */

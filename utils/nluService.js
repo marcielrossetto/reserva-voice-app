@@ -1,41 +1,18 @@
-// utils/nluService.js
+const { format } = require('date-fns');
+require('dotenv').config();
 
-const fetch = require('node-fetch');
-const { format } = require('date-fns'); // <<<<---- CORREÇÃO ESSENCIAL AQUI
-
-// Carregar variáveis de ambiente
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash-latest'; // Ou o modelo que você estiver usando
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 
 /**
- * Chama a API Gemini com o texto de prompt fornecido.
+ * Faz a chamada à API do Gemini
  */
 async function callGeminiAPI(promptText) {
     if (!GEMINI_API_KEY) {
-        console.error("Chave da API Gemini (GEMINI_API_KEY) não configurada no .env");
-        // É importante lançar um erro aqui para que a função chamadora saiba que algo deu errado.
-        throw new Error("Chave da API Gemini (GEMINI_API_KEY) não configurada no .env. Verifique suas variáveis de ambiente.");
+        throw new Error("Chave da API Gemini (GEMINI_API_KEY) não configurada no .env");
     }
 
-    const payload = {
-        contents: [{ parts: [{ text: promptText }] }],
-        // Adicionar configurações de segurança pode ser útil para evitar bloqueios,
-        // mas use com cautela e ajuste conforme a necessidade e as políticas da API.
-        // safetySettings: [
-        //   { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-        //   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-        //   { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-        //   { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-        // ],
-        // generationConfig: { // Opcional: para controlar a saída
-        //   temperature: 0.7, // Ajuste para mais criatividade vs mais determinismo
-        //   maxOutputTokens: 2048,
-        // }
-    };
+    const payload = { contents: [{ parts: [{ text: promptText }] }] };
 
     try {
-        console.log("Chamando API Gemini com payload:", JSON.stringify(payload.contents, null, 2)); // Log para depuração (sem a chave)
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -45,138 +22,88 @@ async function callGeminiAPI(promptText) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            console.error('Erro da API Gemini (payload):', JSON.stringify(payload, null, 2)); // Log do payload enviado
-            console.error('Erro da API Gemini (resposta):', JSON.stringify(responseData, null, 2)); // Log da resposta de erro
             const errorMessage = responseData.error?.message || `HTTP error! status: ${response.status}`;
-            // Lança um erro mais específico para o chamador tratar
-            throw new Error(`Gemini API Error (${response.status}): ${errorMessage}. Response: ${JSON.stringify(responseData.error)}`);
+            throw new Error(`Gemini API Error (${response.status}): ${errorMessage}`);
         }
 
         const candidate = responseData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        
-        if (candidate) {
-            // A limpeza do ```json ... ``` já será feita na função chamadora,
-            // mas podemos fazer uma limpeza básica aqui também se preferir.
-            // Por ora, retornaremos o texto como está, pois a função determineIntentAndExtractData já faz isso.
-            return candidate;
-        }
+        if (candidate) return candidate;
 
-        // Verifica se o prompt foi bloqueado
         if (responseData.promptFeedback?.blockReason) {
-            console.error('Prompt bloqueado pela API Gemini:', responseData.promptFeedback.blockReason, responseData.promptFeedback.safetyRatings);
-            throw new Error(`Prompt bloqueado pela API Gemini: ${responseData.promptFeedback.blockReason}. Detalhes: ${JSON.stringify(responseData.promptFeedback.safetyRatings)}`);
+            throw new Error(`Prompt bloqueado pela API Gemini: ${responseData.promptFeedback.blockReason}`);
         }
 
-        // Se não houver candidato e nem bloqueio, é uma resposta inesperada
-        console.warn('Resposta inesperada ou vazia da API Gemini:', JSON.stringify(responseData, null, 2));
         throw new Error('Resposta inesperada ou sem conteúdo da API Gemini.');
 
     } catch (error) {
-        // Captura erros de fetch (rede) ou erros lançados acima
-        console.error("Falha na chamada à API Gemini ou no processamento da resposta:", error);
-        // Relança o erro para que determineIntentAndExtractData possa capturá-lo
-        // e retornar um objeto de erro NLU apropriado.
+        console.error("[NLU] Erro na chamada à API Gemini:", error.message);
         throw error;
     }
 }
 
 /**
- * Determina a intenção e extrai dados do texto do usuário.
+ * Analisa texto e retorna JSON com intenção e dados extraídos
  */
 async function determineIntentAndExtractData(userInputText) {
-    const today = format(new Date(), "yyyy-MM-dd"); // Formato AAAA-MM-DD
+    const today = format(new Date(), "yyyy-MM-dd");
 
     const prompt = `
-        Você é um assistente de sistema de reservas de restaurante altamente preciso.
-        Sua tarefa é analisar o texto do usuário para identificar a intenção e extrair informações relevantes para uma reserva de restaurante.
-        A data de hoje é ${today}. Se o usuário mencionar "hoje", use esta data. Se mencionar "amanhã", calcule a data correspondente (some 1 dia a ${today}). Se mencionar uma data como "dia 15 do próximo mês", calcule corretamente. Se o ano não for especificado para uma data futura, assuma o ano atual ou o próximo, o que fizer mais sentido.
+Você é um assistente para um sistema de reservas de restaurante.
+Extraia as informações do texto do usuário e normalize as datas e horários corretamente.
 
-        O texto do usuário é: "${userInputText}"
+📌 Regras importantes para DATA:
+- Use sempre o formato AAAA-MM-DD (ex: 2025-05-23).
+- Considere a data atual: ${today}.
+- Se mencionar "hoje", use ${today}.
+- Se mencionar "amanhã", some 1 dia a ${today}.
+- Se mencionar "depois de amanhã", some 2 dias.
+- Se mencionar "próximo mês", calcule corretamente para o mesmo dia do próximo mês (se não houver, ajuste para o último dia).
+- Se mencionar "semana que vem", adicione 7 dias.
+- Se mencionar "mês que vem dia 10", ajuste corretamente.
+- Se o usuário fornecer uma data explícita (ex: "23-05-25", "23/05/2025"), converta para AAAA-MM-DD.
 
-        Instruções para extração:
-        1.  **Intenção (intent)**:
-            *   Se o texto claramente indicar um pedido para criar ou agendar uma reserva, defina 'intent' como "fazer_reserva".
-            *   Se o texto parecer uma consulta sobre disponibilidade, cardápio, endereço, etc., defina 'intent' como "consultar_informacao".
-            *   Se o texto for uma saudação, agradecimento, ou algo não relacionado a reservas ou consultas, defina 'intent' como "geral_dialogo".
-            *   Se não for possível determinar a intenção ou faltarem dados críticos para uma reserva (como nome, telefone, data, horário, numPessoas após uma tentativa de reserva), defina 'intent' como "intencao_incompleta" ou "intencao_desconhecida".
-            *   Por enquanto, o foco principal é "fazer_reserva".
+Texto do usuário: "${userInputText}"
 
-        2.  **Dados da Reserva (data)**: Extraia os seguintes campos para um objeto aninhado chamado 'data'.
-            *   **nome**: (String, Obrigatório para 'fazer_reserva') O nome da pessoa para a reserva.
-            *   **telefone**: (String, Obrigatório para 'fazer_reserva') O número de telefone principal do cliente. Extraia apenas os dígitos numéricos.
-            *   **data**: (String, Obrigatório para 'fazer_reserva') A data da reserva. Converta para o formato AAAA-MM-DD.
-                *   Exemplos de entrada: "dia 25 de dezembro", "25/12/2024", "amanhã", "hoje", "15 de janeiro".
-            *   **horario**: (String, Obrigatório para 'fazer_reserva') O horário da reserva. Tente formatar como HH:MM (ex: "18:00", "09:30", "meio-dia e trinta").
-                *   Exemplos de entrada: "às seis da tarde", "19h30", "para as 20 horas".
-            *   **numPessoas**: (Number, Obrigatório para 'fazer_reserva') O número de pessoas para a reserva. Se dito por extenso (ex: "duas"), converta para número.
-            *   **telefoneAlternativo**: (String, Opcional) Um número de telefone alternativo, se fornecido. Extraia apenas os dígitos numéricos.
-            *   **formaPagamento**: (String, Opcional) A forma de pagamento, se mencionada.
-            *   **tipoEvento**: (String, Opcional) O tipo de evento (ex: "aniversário", "confraternização"), se mencionado.
-            *   **valorRodizio**: (String, Opcional) Informações sobre valor do rodízio, se mencionado.
-            *   **numeroMesa**: (String, Opcional) Número da mesa específico, se solicitado.
-            *   **observacoes**: (String, Opcional) Quaisquer observações ou pedidos adicionais.
+Retorne APENAS um objeto JSON:
+{
+  "intent": "fazer_reserva|consultar_informacao|geral_dialogo|intencao_incompleta|intencao_desconhecida",
+  "data": {
+    "nome": "...",
+    "telefone": "...",
+    "data": "AAAA-MM-DD",
+    "horario": "HH:MM",
+    "numPessoas": ...,
+    "telefoneAlternativo": "...",
+    "formaPagamento": "...",
+    "tipoEvento": "...",
+    "valorRodizio": "...",
+    "numeroMesa": "...",
+    "observacoes": "..."
+  }
+}
+Se não encontrar algum campo, coloque null.
+`;
 
-        3.  **Formato de Saída**: Retorne EXCLUSIVAMENTE um objeto JSON bem formado. Não inclua explicações ou texto adicional fora do JSON.
-            O JSON deve ter a seguinte estrutura:
-            {
-              "intent": "...",
-              "data": {
-                "nome": "..." | null,
-                "telefone": "..." | null,
-                "data": "AAAA-MM-DD" | null,
-                "horario": "HH:MM" | null,
-                "numPessoas": ... | null,
-                "telefoneAlternativo": "..." | null,
-                "formaPagamento": "..." | null,
-                "tipoEvento": "..." | null,
-                "valorRodizio": "..." | null,
-                "numeroMesa": "..." | null,
-                "observacoes": "..." | null
-              }
-            }
-        4.  **Campos Não Encontrados**: Se um campo (obrigatório ou opcional) não for encontrado no texto, seu valor no JSON deve ser \`null\`.
-            A lógica do backend deverá tratar campos obrigatórios ausentes para a intenção 'fazer_reserva'.
-
-        Objeto JSON resultante:
-    `;
-
-    console.log("Enviando prompt para Gemini..."); // Log antes de chamar a API
     try {
         const rawJsonResponse = await callGeminiAPI(prompt);
-        console.log("Resposta bruta recebida do Gemini:", rawJsonResponse); // Log da resposta bruta
 
-        // Tenta limpar e parsear o JSON
-        let cleanJsonResponse = rawJsonResponse;
-        if (typeof cleanJsonResponse === 'string') {
-            if (cleanJsonResponse.startsWith('```json')) {
-                cleanJsonResponse = cleanJsonResponse.substring(7);
-            }
-            if (cleanJsonResponse.endsWith('```')) {
-                cleanJsonResponse = cleanJsonResponse.substring(0, cleanJsonResponse.length - 3);
-            }
-            cleanJsonResponse = cleanJsonResponse.trim();
-        } else {
-            // Se não for string, algo muito errado aconteceu ou a API retornou um objeto direto (improvável para este endpoint)
-            console.error("Resposta do Gemini não é uma string:", cleanJsonResponse);
-            return { intent: "ERROR_NLU_RESPONSE_TYPE", error: "Resposta da IA não é uma string JSON válida.", rawResponse: JSON.stringify(cleanJsonResponse), data: {} };
-        }
-        
+        let cleanJson = rawJsonResponse.replace(/```json|```/g, '').trim();
 
-        try {
-            const parsedJson = JSON.parse(cleanJsonResponse);
-            console.log("JSON parseado com sucesso:", parsedJson);
-            return parsedJson;
-        } catch (parseError) {
-            console.error("Erro ao parsear JSON da resposta Gemini:", parseError.message);
-            console.error("String que falhou no parse:", cleanJsonResponse); // Log da string que causou o erro de parse
-            return { intent: "ERROR_NLU_PARSE", error: "Erro ao interpretar resposta da IA: " + parseError.message, rawResponse: rawJsonResponse, data: {} };
+        const parsed = JSON.parse(cleanJson);
+
+        // ✅ Ajuste para garantir que a data seja interpretada corretamente no horário local
+        if (parsed.data?.data) {
+            const [year, month, day] = parsed.data.data.split('-').map(Number);
+            const safeDate = new Date(year, month - 1, day);
+            safeDate.setHours(12, 0, 0, 0); // ✅ Evita problema de timezone
+            parsed.data.data = format(safeDate, "yyyy-MM-dd");
         }
 
-    } catch (apiError) { // Captura erros de callGeminiAPI (incluindo chave, bloqueio, rede, etc.)
-        console.error("NLU error (determineIntentAndExtractData pegou erro da callGeminiAPI):", apiError.message);
-        // Retorna um objeto de erro padronizado
-        return { intent: "ERROR_NLU_API_CALL", error: apiError.message || "Falha na comunicação com a IA.", data: {} };
+        return parsed;
+    } catch (err) {
+        console.error("[NLU] Erro ao interpretar resposta Gemini:", err.message);
+        return { intent: "ERROR_NLU_PARSE", error: err.message, rawResponse: userInputText, data: {} };
     }
 }
 
-module.exports = { determineIntentAndExtractData, callGeminiAPI }; // Exporta callGeminiAPI se quiser testá-la separadamente
+module.exports = { determineIntentAndExtractData, callGeminiAPI };

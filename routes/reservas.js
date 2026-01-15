@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Reserva = require("../models/Reserva");
 const { determineIntentAndExtractData } = require("../utils/nluService");
-const { parseISO, isValid } = require("date-fns");
+const { isValid } = require("date-fns");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-// Todas as rotas abaixo exigem autenticação
+// ✅ Todas as rotas exigem autenticação
 router.use(authMiddleware);
 
 /**
@@ -41,23 +41,31 @@ router.post("/process-reservation", async (req, res) => {
       });
     }
 
-    const reservaDate = parseISO(data.data);
-    if (!isValid(reservaDate)) {
+    /**
+     * ✅ Corrigindo a data para evitar problemas de timezone
+     * - Ajustamos para meio-dia UTC para manter a data correta no MongoDB
+     */
+    const [year, month, day] = data.data.split("-").map(Number);
+    const safeDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)); // Sempre meio-dia UTC
+
+    if (!isValid(safeDate)) {
       return res.status(400).json({ message: `Data inválida: ${data.data}` });
     }
 
     const novaReserva = new Reserva({
       ...data,
-      data: reservaDate,
-      userId: req.userId // VINCULA AO USUÁRIO LOGADO
+      data: safeDate,
+      userId: req.userId
     });
 
     const reservaSalva = await novaReserva.save();
-    console.log("Reserva salva com ID:", reservaSalva._id);
 
     return res.status(201).json({
       message: "Reserva criada com sucesso!",
-      reservation: reservaSalva
+      reservation: {
+        ...reservaSalva.toObject(),
+        username: req.userName || "Usuário" // ✅ Garante nome
+      }
     });
 
   } catch (err) {
@@ -68,7 +76,6 @@ router.post("/process-reservation", async (req, res) => {
 
 /**
  * ✅ 2. Listar reservas do usuário logado
- * Endpoint: GET /api/reservas
  */
 router.get("/", async (req, res) => {
   try {
@@ -81,8 +88,47 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * ✅ 3. Filtrar reservas por intervalo de datas (somente do usuário)
- * Endpoint: GET /api/filter-reservations?start=2025-07-27&end=2025-07-30
+ * ✅ 3. Dados do calendário (agrupados por dia)
+ */
+router.get("/calendar-reservas", async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    if (!month || !year) {
+      return res.status(400).json({ message: "Mês e ano são obrigatórios." });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const reservas = await Reserva.find({
+      data: { $gte: startDate, $lte: endDate },
+      status: { $ne: 0 } // ignora canceladas
+    });
+
+    const dias = {};
+    reservas.forEach(r => {
+      const dia = new Date(r.data).getDate();
+      if (!dias[dia]) dias[dia] = { A: 0, J: 0 };
+
+      const horario = r.horario;
+      const pessoas = Number(r.numPessoas) || 0;
+
+      if (horario >= "10:00" && horario <= "17:59") {
+        dias[dia].A += pessoas;
+      } else if (horario >= "18:00" && horario <= "23:59") {
+        dias[dia].J += pessoas;
+      }
+    });
+
+    res.json(dias);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao buscar reservas." });
+  }
+});
+
+/**
+ * ✅ 4. Filtrar reservas por intervalo
  */
 router.get("/filter-reservations", async (req, res) => {
   try {
