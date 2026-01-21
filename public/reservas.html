@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Reservas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial; background: #f5f5f5; }
+    header {
+      background: #2563eb;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 24px; }
+    button { 
+      background: #d33; 
+      color: white; 
+      border: none; 
+      padding: 10px 20px; 
+      cursor: pointer; 
+      border-radius: 4px;
+    }
+    button:hover { background: #b00; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    button.primary {
+      background: #2563eb;
+      width: 100%;
+      padding: 12px;
+    }
+    button.primary:hover { background: #1e40af; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th { background: #f5f5f5; font-weight: bold; }
+    .message {
+      padding: 12px;
+      border-radius: 4px;
+      margin: 10px 0;
+      text-align: center;
+    }
+    .message.success { background: #d4edda; color: #155724; }
+    .message.error { background: #f8d7da; color: #721c24; }
+    .message.loading { background: #e7f3ff; color: #004085; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🍖 Sistema de Reservas</h1>
+  <div>
+    <span id="userName">Olá</span>
+    <button onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>✏️ Adicionar Reserva</h2>
+    <textarea id="textInputArea" rows="6" placeholder="Ex: João Silva, tel (11) 98765-4321, 14/01/2026 19:00, 4 pessoas, aniversário, mesa próxima da janela"></textarea>
+    <button class="primary" onclick="enviarReserva()">Analisar e Salvar</button>
+    <div id="apiMessage"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Reservas</h2>
+    <table id="reservasTable">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Data</th>
+          <th>Horário</th>
+          <th>Pessoas</th>
+          <th>Tipo</th>
+          <th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+
+  const username = localStorage.getItem("username");
+  if (username) {
+    document.getElementById("userName").textContent = `Olá, ${username}`;
+  }
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
+
+  function showMessage(text, type) {
+    const msg = document.getElementById("apiMessage");
+    msg.textContent = text;
+    msg.className = `message ${type}`;
+  }
+
+  async function enviarReserva() {
+    const texto = document.getElementById("textInputArea").value.trim();
+    if (!texto) {
+      showMessage("Escreva uma mensagem", "error");
+      return;
+    }
+
+    showMessage("Processando...", "loading");
+    const btn = event.target;
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("http://localhost:3001/api/reservas/process-reservation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ mensagem: texto })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage(`❌ ${data.erro || data.message}`, "error");
+        btn.disabled = false;
+        return;
+      }
+
+      showMessage("✅ Reserva criada!", "success");
+      document.getElementById("textInputArea").value = "";
+      carregarReservas();
+
+    } catch (e) {
+      showMessage(`❌ Erro: ${e.message}`, "error");
+      btn.disabled = false;
+    }
+  }
+
+  async function carregarReservas() {
+    try {
+      const res = await fetch("http://localhost:3001/api/reservas", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      const tbody = document.querySelector("#reservasTable tbody");
+      tbody.innerHTML = "";
+
+      if (data.reservas && data.reservas.length > 0) {
+        data.reservas.forEach(r => {
+          const row = `
+            <tr>
+              <td>${r.nome}</td>
+              <td>${r.telefone}</td>
+              <td>${r.data}</td>
+              <td>${r.horario}</td>
+              <td>${r.numPessoas}</td>
+              <td>${r.tipoEvento || "-"}</td>
+              <td>${r.observacoes || "-"}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } else {
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Nenhuma reserva</td></tr>";
+      }
+    } catch (e) {
+      console.error("Erro:", e);
+    }
+  }
+
+  carregarReservas();
+</script>
+
+</body>
+</html>

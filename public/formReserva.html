@@ -1,0 +1,604 @@
+<!-- components/card-nova-reserva.html - Componente de Nova Reserva -->
+<div class="card">
+    <h2>✏️ Nova Reserva</h2>
+    
+    <!-- NAV TABS -->
+    <div class="card-tabs">
+        <button class="card-tab-btn active" onclick="abrirTabReserva('textarea')">
+            📝 Texto Rápido
+        </button>
+        <button class="card-tab-btn" onclick="abrirTabReserva('formulario')">
+            📋 Formulário Completo
+        </button>
+    </div>
+
+    <!-- TAB 1: TEXTAREA -->
+    <div class="card-tab-content active" id="tab-textarea">
+        <p>Cole ou digite a solicitação de reserva abaixo.</p>
+        <textarea 
+            id="textInputArea" 
+            rows="6" 
+            placeholder="Ex: 'Reservar para Marciel, tel 21987654321, amanhã às 19h, 25 pessoas, aniversário, deixar uma mesa na janela.'"
+        ></textarea>
+        <button id="submitTextBtn" class="btn-primary">Analisar e Salvar Reserva</button>
+        <div id="apiMessage" class="message-container"></div>
+    </div>
+
+    <!-- TAB 2: FORMULÁRIO COMPLETO -->
+    <div class="card-tab-content" id="tab-formulario">
+        <form id="formNovaReserva" onsubmit="event.preventDefault(); verificarEEnviarFormulario();">
+            
+            <!-- PERFIL DO CLIENTE (se encontrado) -->
+            <div id="card-perfil-cliente-form" class="profile-card-form" style="display: none; margin-bottom: var(--spacing-lg);">
+                <div class="profile-header-form">
+                    <div style="display: flex; gap: var(--spacing-md); flex: 1;">
+                        <div class="avatar-circle-form">👤</div>
+                        <div class="client-details-form">
+                            <h4 id="card-nome-form" style="margin: 0;">--</h4>
+                            <p id="card-telefone-form" style="margin: 4px 0 0; font-size: 0.85rem; color: #666;">--</p>
+                            <p style="font-size: 0.8rem; margin: 2px 0 0; color: #999;">
+                                <span id="card-tempo-form">--</span> | 
+                                <strong id="stat-reservas-form">0</strong> reservas
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-profile-action-form" onclick="trocarClienteFormulario()">
+                        Trocar
+                    </button>
+                </div>
+            </div>
+
+            <!-- GRID DE CAMPOS -->
+            <div class="form-grid-card">
+                <div class="form-group-card">
+                    <label>Telefone *</label>
+                    <input 
+                        type="text" 
+                        class="form-control-card" 
+                        id="tel-form"
+                        placeholder="(21) 98765-4321"
+                        onkeyup="maskPhoneForm(this)"
+                        onblur="buscarTelefoneFormulario()"
+                        required>
+                    <div class="form-check-card">
+                        <input type="checkbox" id="sem_telefone_form" onchange="toggleTelefoneFormulario(this)">
+                        <label for="sem_telefone_form" style="font-size: 0.8rem; color: #666;">
+                            Não possuo número
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group-card">
+                    <label>Nome *</label>
+                    <input type="text" class="form-control-card" id="nome-form" placeholder="João Silva" required>
+                </div>
+
+                <div class="form-group-card">
+                    <label>Data *</label>
+                    <input type="date" class="form-control-card" id="data-form" required>
+                </div>
+
+                <div class="form-group-card">
+                    <label>Horário *</label>
+                    <select class="form-control-card" id="horario-form" required>
+                        <option value="">Selecione</option>
+                        <optgroup label="Almoço">
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                        </optgroup>
+                        <optgroup label="Jantar">
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                            <option value="21:00">21:00</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group-card">
+                    <label>Nº de Pessoas *</label>
+                    <input type="number" class="form-control-card" id="pessoas-form" placeholder="4" min="1" required>
+                </div>
+
+                <div class="form-group-card">
+                    <label>Telefone Alt.</label>
+                    <input 
+                        type="text" 
+                        class="form-control-card" 
+                        id="telefone2-form"
+                        placeholder="(21) 98765-4322"
+                        onkeyup="maskPhoneForm(this)">
+                </div>
+            </div>
+
+            <!-- CAMPOS ADICIONAIS -->
+            <div class="form-group-card">
+                <label>Tipo de Evento</label>
+                <select class="form-control-card" id="tipo-evento-form">
+                    <option value="">Selecione</option>
+                    <option value="Aniversario">Aniversário</option>
+                    <option value="Confraternizacao">Confraternização</option>
+                    <option value="Formatura">Formatura</option>
+                    <option value="Casamento">Casamento</option>
+                    <option value="Corporativo">Corporativo</option>
+                </select>
+            </div>
+
+            <div class="form-group-card">
+                <label>Forma de Pagamento</label>
+                <select class="form-control-card" id="pagamento-form">
+                    <option value="">Selecione</option>
+                    <option value="unica">Única</option>
+                    <option value="individual">Individual</option>
+                    <option value="U (rod) I (beb)">Única (rod) Individual (beb)</option>
+                    <option value="outros">Outros</option>
+                </select>
+            </div>
+
+            <div class="form-group-card">
+                <label>Observações</label>
+                <textarea 
+                    class="form-control-card" 
+                    id="obs-form"
+                    rows="3" 
+                    placeholder="Alguma observação especial?"></textarea>
+            </div>
+
+            <!-- CHECKBOXES -->
+            <div class="checkbox-area-card">
+                <div class="form-check-card">
+                    <input type="checkbox" id="torta-form">
+                    <label for="torta-form">Ciente torta, Termo e vela</label>
+                </div>
+                <div class="form-check-card">
+                    <input type="checkbox" id="churras-form">
+                    <label for="churras-form">Churrascaria</label>
+                </div>
+                <div class="form-check-card">
+                    <input type="checkbox" id="exec-form">
+                    <label for="exec-form">Executivo</label>
+                </div>
+            </div>
+
+            <!-- BOTÕES -->
+            <div class="form-actions-card">
+                <button type="submit" class="btn-primary" id="btn-submit-form">
+                    Cadastrar Reserva
+                </button>
+                <button type="reset" class="btn-secondary">
+                    Limpar Formulário
+                </button>
+            </div>
+
+            <div id="formMessage" class="message-container"></div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* ==================== CARD TABS ==================== */
+    .card-tabs {
+        display: flex;
+        gap: 0;
+        margin: 0 -20px 20px -20px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .card-tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #6b7280;
+        border-bottom: 3px solid transparent;
+        transition: all 0.15s;
+        font-size: 0.9rem;
+    }
+
+    .card-tab-btn:hover {
+        color: #0066cc;
+        background: white;
+    }
+
+    .card-tab-btn.active {
+        color: #0066cc;
+        border-bottom-color: #0066cc;
+        background: white;
+    }
+
+    .card-tab-content {
+        display: none;
+    }
+
+    .card-tab-content.active {
+        display: block;
+        animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* ==================== FORMULÁRIO ==================== */
+    .form-grid-card {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .form-group-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group-card label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+
+    .form-control-card {
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        background: white;
+        transition: all 0.15s;
+    }
+
+    .form-control-card:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        background: white;
+    }
+
+    .form-control-card::placeholder {
+        color: #9ca3af;
+    }
+
+    /* ==================== PROFILE CARD ==================== */
+    .profile-card-form {
+        border: 2px solid #22c55e;
+        background: #f0fdf4;
+        padding: 16px;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .profile-header-form {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .avatar-circle-form {
+        width: 50px;
+        height: 50px;
+        background: #22c55e;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .client-details-form {
+        flex: 1;
+    }
+
+    .btn-profile-action-form {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-profile-action-form:hover {
+        border-color: #22c55e;
+        background: #f0fdf4;
+    }
+
+    /* ==================== CHECKBOXES ==================== */
+    .checkbox-area-card {
+        background: #f8f9fa;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-check-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-check-card input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .form-check-card label {
+        margin: 0;
+        cursor: pointer;
+        font-weight: 400;
+    }
+
+    /* ==================== BOTÕES ==================== */
+    .form-actions-card {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn-primary {
+        background: #0066cc;
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+        transition: all 0.15s;
+    }
+
+    .btn-primary:hover {
+        background: #004a99;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+        transition: all 0.15s;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+    }
+
+    /* ==================== MENSAGENS ==================== */
+    .message-container {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        display: none;
+        animation: slideDown 0.3s ease;
+    }
+
+    .message-container.show {
+        display: block;
+    }
+
+    .message-container.success {
+        background: #f0fdf4;
+        border: 1px solid #22c55e;
+        color: #16a34a;
+    }
+
+    .message-container.error {
+        background: #fef2f2;
+        border: 1px solid #ef4444;
+        color: #dc2626;
+    }
+
+    .message-container.warning {
+        background: #fffbeb;
+        border: 1px solid #f59e0b;
+        color: #d97706;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ==================== RESPONSIVO ==================== */
+    @media (max-width: 768px) {
+        .form-grid-card {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions-card {
+            flex-direction: column;
+        }
+
+        .checkbox-area-card {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // ======================== TABS ========================
+    function abrirTabReserva(tabName) {
+        document.querySelectorAll('.card-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.card-tab-content').forEach(el => el.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    // ======================== MÁSCARA TELEFONE ========================
+    function maskPhoneForm(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length > 11) v = v.slice(0, 11);
+
+        if (v.length <= 10) {
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        } else {
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        }
+        input.value = v;
+    }
+
+    // ======================== TOGGLE TELEFONE ========================
+    function toggleTelefoneFormulario(checkbox) {
+        const telInput = document.getElementById('tel-form');
+        if (checkbox.checked) {
+            telInput.required = false;
+            telInput.value = '';
+            telInput.disabled = true;
+            telInput.style.backgroundColor = '#e9ecef';
+        } else {
+            telInput.required = true;
+            telInput.disabled = false;
+            telInput.style.backgroundColor = 'white';
+        }
+    }
+
+    // ======================== BUSCAR CLIENTE ========================
+    function buscarTelefoneFormulario() {
+        const telefone = document.getElementById('tel-form').value.replace(/\D/g, '');
+        if (telefone.length < 10) return;
+
+        fetch(`/api/clientes/perfil?telefone=${telefone}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.encontrado) {
+                    const p = data.perfil;
+                    document.getElementById('card-nome-form').innerText = p.nome;
+                    document.getElementById('card-telefone-form').innerText = document.getElementById('tel-form').value;
+                    document.getElementById('card-tempo-form').innerText = p.tempo_atras;
+                    document.getElementById('stat-reservas-form').innerText = p.total_reservas;
+                    
+                    document.getElementById('nome-form').value = p.nome;
+                    document.getElementById('card-perfil-cliente-form').style.display = 'block';
+                } else {
+                    document.getElementById('card-perfil-cliente-form').style.display = 'none';
+                }
+            })
+            .catch(err => {
+                console.error('Erro:', err);
+                document.getElementById('card-perfil-cliente-form').style.display = 'none';
+            });
+    }
+
+    function trocarClienteFormulario() {
+        document.getElementById('tel-form').value = '';
+        document.getElementById('nome-form').value = '';
+        document.getElementById('card-perfil-cliente-form').style.display = 'none';
+    }
+
+    // ======================== VALIDAR E ENVIAR ========================
+    function verificarEEnviarFormulario() {
+        const nome = document.getElementById('nome-form').value.trim();
+        const data = document.getElementById('data-form').value;
+        const telefone = document.getElementById('tel-form').value.replace(/\D/g, '');
+        const semTel = document.getElementById('sem_telefone_form').checked;
+        const btn = document.getElementById('btn-submit-form');
+
+        // Validações
+        const hoje = new Date().toISOString().split('T')[0];
+        if (data && data < hoje) {
+            mostrarMensagem('A data não pode ser anterior a hoje', 'error');
+            return;
+        }
+
+        if (!semTel && telefone.length < 10) {
+            mostrarMensagem('Insira um telefone válido', 'error');
+            return;
+        }
+
+        if (!nome || !data) {
+            mostrarMensagem('Preencha os campos obrigatórios', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Salvando...";
+
+        // Enviar
+        const fd = new FormData();
+        fd.append('nome', nome);
+        fd.append('telefone', telefone || null);
+        fd.append('data', data);
+        fd.append('horario', document.getElementById('horario-form').value);
+        fd.append('num_pessoas', document.getElementById('pessoas-form').value);
+        fd.append('telefone2', document.getElementById('telefone2-form').value.replace(/\D/g, '') || null);
+        fd.append('tipo_evento', document.getElementById('tipo-evento-form').value);
+        fd.append('forma_pagamento', document.getElementById('pagamento-form').value);
+        fd.append('observacoes', document.getElementById('obs-form').value);
+        fd.append('torta_termo_vela', document.getElementById('torta-form').checked);
+        fd.append('churrascaria', document.getElementById('churras-form').checked);
+        fd.append('executivo', document.getElementById('exec-form').checked);
+
+        fetch('/api/clientes/criar', {
+            method: 'POST',
+            body: fd
+        })
+            .then(r => r.json())
+            .then(res => {
+                btn.disabled = false;
+                btn.innerText = "Cadastrar Reserva";
+
+                if (res.success) {
+                    mostrarMensagem('✅ Reserva cadastrada com sucesso!', 'success');
+                    document.getElementById('formNovaReserva').reset();
+                    
+                    if (res.link_wpp) {
+                        setTimeout(() => {
+                            if (confirm('Deseja enviar confirmação via WhatsApp?')) {
+                                window.open(res.link_wpp, '_blank');
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    mostrarMensagem(`❌ ${res.message}`, 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerText = "Cadastrar Reserva";
+                mostrarMensagem('❌ Erro de conexão', 'error');
+                console.error(err);
+            });
+    }
+
+    function mostrarMensagem(texto, tipo) {
+        const msgEl = document.getElementById('formMessage');
+        msgEl.className = `message-container show ${tipo}`;
+        msgEl.innerText = texto;
+        
+        setTimeout(() => {
+            msgEl.classList.remove('show');
+        }, 5000);
+    }
+</script>

@@ -15,7 +15,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      background: linear-gradient(135deg, #1e3a8a, #bb1136);
     }
     .container {
       width: 100%;
@@ -80,10 +80,8 @@
   <p id="subtitle">Acesse sua conta</p>
 
   <!-- CAMPOS DE CADASTRO -->
-  <input id="empresa" placeholder="Nome da empresa" class="hidden">
-  <input id="cnpj" placeholder="CNPJ" class="hidden">
-  <input id="telefone" placeholder="Telefone" class="hidden">
   <input id="nome" placeholder="Seu nome" class="hidden">
+  <input id="empresa" placeholder="Nome da empresa" class="hidden">
 
   <!-- CAMPOS COMUNS -->
   <input id="email" placeholder="E-mail">
@@ -91,63 +89,81 @@
 
   <button onclick="submitForm()">Entrar</button>
 
-  <div class="toggle" onclick="toggleForm()">Criar conta grátis (7 dias)</div>
+  <div class="toggle" onclick="toggleForm()">Criar conta grátis</div>
   <div class="msg" id="msg"></div>
 </div>
 
 <script>
+  // Se já tem token, vai pro dashboard
+  const token = localStorage.getItem("token");
+  if (token) {
+    setTimeout(() => {
+      window.location.href = "index.html";  // ← MUDE AQUI
+    }, 500);
+  }
+
   let isRegister = false;
 
   function toggleForm() {
     isRegister = !isRegister;
-
-    document.getElementById("empresa").classList.toggle("hidden");
-    document.getElementById("cnpj").classList.toggle("hidden");
-    document.getElementById("telefone").classList.toggle("hidden");
     document.getElementById("nome").classList.toggle("hidden");
-
-    document.getElementById("title").innerText = isRegister ? "Teste grátis 7 dias" : "Entrar";
-    document.getElementById("subtitle").innerText = isRegister
-      ? "Crie sua empresa e teste o sistema"
-      : "Acesse sua conta";
-
-    document.querySelector("button").innerText = isRegister ? "Criar conta" : "Entrar";
-    document.querySelector(".toggle").innerText = isRegister
-      ? "Já tenho conta"
-      : "Criar conta grátis (7 dias)";
+    document.getElementById("empresa").classList.toggle("hidden");
+    document.getElementById("title").innerText = isRegister ? "Criar conta" : "Entrar";
+    document.getElementById("subtitle").innerText = isRegister ? "Crie sua conta no sistema" : "Acesse sua conta";
+    document.querySelector("button").innerText = isRegister ? "Cadastrar" : "Entrar";
+    document.querySelector(".toggle").innerText = isRegister ? "Já tenho conta" : "Criar conta grátis";
   }
 
   async function submitForm() {
-    const payload = {
-      empresa: empresa.value,
-      cnpj: cnpj.value,
-      telefone: telefone.value,
-      nome: nome.value,
-      email: email.value,
-      senha: senha.value
-    };
+    const btn = document.querySelector("button");
+    btn.disabled = true;
 
-    const url = isRegister ? "/api/auth/register" : "/api/auth/login";
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+    const nome = document.getElementById("nome").value.trim();
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    const msg = document.getElementById("msg");
-
-    if (!res.ok) {
-      msg.style.color = "red";
-      msg.innerText = data.message || "Erro ao processar";
+    if (!email || !senha) {
+      document.getElementById("msg").style.color = "red";
+      document.getElementById("msg").innerText = "Preencha email e senha";
+      btn.disabled = false;
       return;
     }
 
-    localStorage.setItem("token", data.token);
-    window.location.href = "/";
+    const payload = { nome, email, senha };
+    const url = isRegister 
+      ? "http://localhost:3001/api/auth/register" 
+      : "http://localhost:3001/api/auth/login";
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        document.getElementById("msg").style.color = "red";
+        document.getElementById("msg").innerText = data.message || "Erro ao processar";
+        btn.disabled = false;
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("username", data.user.nome);
+
+      // Aguarda um pouco antes de redirecionar
+      setTimeout(() => {
+        window.location.href = "index.html";  // ← MUDE AQUI
+      }, 300);
+
+    } catch (e) {
+      document.getElementById("msg").style.color = "red";
+      document.getElementById("msg").innerText = "Erro de conexão: " + e.message;
+      btn.disabled = false;
+    }
   }
 </script>
-
 </body>
 </html>

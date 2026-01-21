@@ -1,0 +1,359 @@
+<!-- components/header.html - Componente Header -->
+<header class="header">
+    <div class="header-left">
+        <h1 class="page-title">Dashboard</h1>
+    </div>
+
+    <div class="header-right">
+        <button class="btn-icon" title="Notificações" onclick="toggleNotificacoes()">
+            <span class="material-icons">notifications</span>
+            <span class="badge" id="badge-notificacoes">3</span>
+        </button>
+
+        <!-- Dropdown Notificações -->
+        <div class="dropdown-menu" id="dropdown-notificacoes" style="display: none;">
+            <div class="dropdown-header">
+                <span>Notificações</span>
+                <button class="btn-close" onclick="toggleNotificacoes()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="dropdown-content">
+                <div class="notification-item">
+                    <div class="notification-icon">📅</div>
+                    <div class="notification-text">
+                        <span class="notification-title">Nova Reserva</span>
+                        <span class="notification-time">há 5 minutos</span>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon">👤</div>
+                    <div class="notification-text">
+                        <span class="notification-title">Cliente confirmou</span>
+                        <span class="notification-time">há 15 minutos</span>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon">❌</div>
+                    <div class="notification-text">
+                        <span class="notification-title">Reserva cancelada</span>
+                        <span class="notification-time">há 1 hora</span>
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-footer">
+                <a href="#" class="link-small">Ver todas as notificações</a>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="abrirModalReserva()">
+            <span class="material-icons">add</span>
+            Nova Reserva
+        </button>
+
+        <!-- Dropdown Menu Usuário -->
+        <div class="user-menu">
+            <button class="user-menu-btn" onclick="toggleUserMenu()">
+                <div class="user-avatar-small">M</div>
+                <span class="material-icons">expand_more</span>
+            </button>
+            
+            <div class="dropdown-menu dropdown-user" id="dropdown-user" style="display: none;">
+                <div class="dropdown-header">
+                    <div class="user-info-dropdown">
+                        <div class="user-avatar-large">M</div>
+                        <div>
+                            <span class="user-name">Marciel Rossetto</span>
+                            <span class="user-email">marciel@restaurant.com</span>
+                        </div>
+                    </div>
+                </div>
+                <hr style="margin: var(--spacing-md) 0; border: none; border-top: 1px solid var(--color-gray-200);">
+                <div class="dropdown-content">
+                    <a href="#" class="dropdown-item" onclick="irParaPagina('configuracoes', event)">
+                        <span class="material-icons">settings</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="irParaPagina('perfil', event)">
+                        <span class="material-icons">person</span>
+                        Meu Perfil
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="material-icons">help</span>
+                        Ajuda e Suporte
+                    </a>
+                </div>
+                <hr style="margin: var(--spacing-md) 0; border: none; border-top: 1px solid var(--color-gray-200);">
+                <div class="dropdown-content">
+                    <button class="dropdown-item" onclick="logout()" style="width: 100%; text-align: left; color: var(--color-danger);">
+                        <span class="material-icons">logout</span>
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+    /* Header já está em styles/layout.css */
+    
+    /* ==================== DROPDOWN MENU ==================== */
+    .dropdown-menu {
+        position: absolute;
+        top: 60px;
+        right: 0;
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        min-width: 300px;
+        z-index: 1500;
+        animation: slideDown var(--transition-normal);
+    }
+
+    .dropdown-menu.dropdown-user {
+        min-width: 320px;
+    }
+
+    .dropdown-header {
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--color-gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .user-info-dropdown {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .user-avatar-large {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-info));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-lg);
+    }
+
+    .user-name {
+        display: block;
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-gray-900);
+    }
+
+    .user-email {
+        display: block;
+        font-size: var(--font-size-sm);
+        color: var(--color-gray-500);
+    }
+
+    .dropdown-content {
+        padding: var(--spacing-md) 0;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--color-gray-700);
+        text-decoration: none;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: var(--font-family);
+        font-size: var(--font-size-base);
+        transition: all var(--transition-fast);
+    }
+
+    .dropdown-item:hover {
+        background: var(--color-gray-50);
+        color: var(--color-primary);
+    }
+
+    .dropdown-item .material-icons {
+        font-size: 20px;
+    }
+
+    .dropdown-footer {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-top: 1px solid var(--color-gray-200);
+        text-align: center;
+    }
+
+    /* ==================== NOTIFICAÇÕES ==================== */
+    .notification-item {
+        display: flex;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        cursor: pointer;
+        transition: background var(--transition-fast);
+    }
+
+    .notification-item:hover {
+        background: var(--color-gray-50);
+    }
+
+    .notification-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .notification-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+    }
+
+    .notification-title {
+        display: block;
+        font-weight: var(--font-weight-medium);
+        color: var(--color-gray-900);
+        font-size: var(--font-size-sm);
+    }
+
+    .notification-time {
+        display: block;
+        font-size: var(--font-size-xs);
+        color: var(--color-gray-500);
+    }
+
+    /* ==================== USER MENU ==================== */
+    .user-menu {
+        position: relative;
+    }
+
+    .user-menu-btn {
+        background: white;
+        border: 1px solid var(--color-gray-300);
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        transition: all var(--transition-fast);
+    }
+
+    .user-menu-btn:hover {
+        border-color: var(--color-primary);
+        background: var(--color-primary-light);
+    }
+
+    .user-avatar-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-info));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-sm);
+    }
+
+    .user-menu-btn .material-icons {
+        font-size: 18px;
+        color: var(--color-gray-600);
+    }
+
+    /* ==================== RESPONSIVO ==================== */
+    @media (max-width: 768px) {
+        .header {
+            gap: var(--spacing-md);
+        }
+
+        .dropdown-menu {
+            position: fixed;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            min-width: unset;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .header-right {
+            gap: var(--spacing-sm);
+        }
+
+        .btn-primary span {
+            display: none;
+        }
+
+        .btn-primary {
+            padding: var(--spacing-sm);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // Fechar dropdowns ao clicar fora
+    document.addEventListener('click', (e) => {
+        const header = document.querySelector('.header');
+        if (header && !header.contains(e.target)) {
+            document.getElementById('dropdown-notificacoes').style.display = 'none';
+            document.getElementById('dropdown-user').style.display = 'none';
+        }
+    });
+
+    function toggleNotificacoes() {
+        const dropdown = document.getElementById('dropdown-notificacoes');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        
+        // Fechar menu usuário se abrir notificações
+        if (dropdown.style.display === 'block') {
+            document.getElementById('dropdown-user').style.display = 'none';
+        }
+    }
+
+    function toggleUserMenu() {
+        const dropdown = document.getElementById('dropdown-user');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        
+        // Fechar notificações se abrir menu
+        if (dropdown.style.display === 'block') {
+            document.getElementById('dropdown-notificacoes').style.display = 'none';
+        }
+    }
+
+    function logout() {
+        if (confirm('Deseja realmente sair?')) {
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login.html';
+                })
+                .catch(err => {
+                    console.error(err);
+                    window.location.href = '/login.html';
+                });
+        }
+    }
+
+    function irParaPagina(pageName, event) {
+        event.preventDefault();
+        document.getElementById('dropdown-user').style.display = 'none';
+        
+        // Simular clique na nav
+        const navItem = document.querySelector(`[data-page="${pageName}"]`);
+        if (navItem) {
+            navItem.click();
+        }
+    }
+</script>

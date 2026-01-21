@@ -4,12 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema Inteligente de Reservas</title>
-    <!-- Google Fonts para um visual mais moderno -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Arquivo de Estilos -->
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/calendar.css" />
 </head>
 <body>
 <header class="header">
@@ -23,140 +22,95 @@
   </div>
 </header>
 
-
-<!-- Botão para abrir o calendário -->
-<button id="openCalendarBtn" class="btn-calendar">📅 Ver Calendário</button>
-
-<!-- Modal do Calendário -->
-<div id="calendarModal" class="modal">
-  <div class="modal-content">
-    <span id="closeModal" class="close-btn">&times;</span>
-    <h2 id="calendarTitle">Calendário</h2>
-    <div class="calendar-controls">
-      <button id="prevMonth" class="btn-nav">Anterior</button>
-      <span id="totalMonth">TOTAL = 0</span>
-      <button id="nextMonth" class="btn-nav">Próximo</button>
+<!-- CALENDÁRIO FIXO NA LATERAL ESQUERDA -->
+<div id="calendarWrapper" class="calendar-wrapper">
+    <div class="card" style="margin-top: 0;">
+        <h2>📅 Calendário</h2>
+        <div class="calendar-controls">
+            <button id="prevMonth" class="btn-nav">◀</button>
+            <span id="monthYear"></span>
+            <button id="nextMonth" class="btn-nav">▶</button>
+        </div>
+        <div id="totalMonth"></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
     </div>
-    <div id="calendarGrid" class="calendar-grid"></div>
-  </div>
 </div>
 
+<!-- BOTÃO PARA ENCOLHER/EXPANDIR CALENDÁRIO -->
+<button id="toggleCalendarBtn" class="toggle-calendar-btn">←</button>
 
+<!-- MODAL DO DIA -->
+<div id="modalDia" class="modal-day"></div>
 
-    <main class="container">
-
-        <!-- Coluna da Esquerda: Entradas do Usuário -->
-        <div class="input-column">
-            
-            <!-- Card de Comando de Voz -->
-            <div class="card">
-                <h2>🎤 Opção 1: Comando por Voz</h2>
-                <p>Clique no botão e diga os detalhes da reserva.</p>
-                <button id="startVoiceCmdBtn">Iniciar Comando de Voz</button>
-                <div id="voiceStatusContainer">
-                    <span id="voiceStatus">Pronto para começar.</span>
-                </div>
-                <p class="transcribed-text-container">
-                    <strong>Você disse:</strong>
-                    <em id="transcribedText">...</em>
-                </p>
-            </div>
-
-            <!-- Card de Reserva por Texto -->
-             <div id="apiMessage" style="margin-top:10px; font-weight:600;"></div>
-
-            <div class="card">
-                <h2>✏️ Opção 2: Reserva por Texto</h2>
-                <p>Cole ou digite a solicitação de reserva abaixo.</p>
-                <textarea 
-                    id="textInputArea" 
-                    rows="6" 
-                    placeholder="Ex: 'Reservar para Marciel, tel 21987654321, amanhã às 19h, 25 pessoas, aniversário, deixar uma mesa na janela.'"
-                ></textarea>
-                <button id="submitTextBtn">Analisar e Salvar Reserva</button>
-            </div>
-            
-            <!-- Card para Mensagens da API -->
-            <div id="apiMessage" class="message-container">
-                <!-- Mensagens de sucesso ou erro aparecerão aqui -->
-            </div>
-
+<!-- CONTEÚDO PRINCIPAL -->
+<main id="mainContent" class="container">
+    <!-- Coluna da Esquerda: Entrada de Texto -->
+    <div class="input-column">
+        <!-- Card de Reserva por Texto -->
+        <div class="card">
+            <h2>✏️ Nova Reserva</h2>
+            <p>Cole ou digite a solicitação de reserva abaixo.</p>
+            <textarea 
+                id="textInputArea" 
+                rows="6" 
+                placeholder="Ex: 'Reservar para Marciel, tel 21987654321, amanhã às 19h, 25 pessoas, aniversário, deixar uma mesa na janela.'"
+            ></textarea>
+            <button id="submitTextBtn">Analisar e Salvar Reserva</button>
         </div>
-<div id="formEditar" style="display:none">
-  <h3>✏️ Conferir Reserva</h3>
+        
+        <!-- Mensagens da API -->
+        <div id="apiMessage" class="message-container"></div>
+    </div>
 
-  <input id="nome" placeholder="Nome" />
-  <input id="telefone" placeholder="Telefone" />
-
-  <input type="date" id="data" />
-  <input type="time" id="horario" />
-
-  <input type="number" id="numPessoas" placeholder="Nº Pessoas" />
-
-  <select id="tipoEvento">
-    <option>Aniversário</option>
-    <option>Casamento</option>
-    <option>Formatura</option>
-    <option>Outro</option>
-  </select>
-
-  <select id="formaPagamento">
-    <option>Única</option>
-    <option>Individual</option>
-    <option>Outro</option>
-  </select>
-
-  <textarea id="observacoes"></textarea>
-
-  <button onclick="salvarReserva()">Salvar Reserva</button>
-</div>
-
-        <!-- Coluna da Direita: Resultados e Filtros -->
-        <div class="results-column">
-
-            <div class="card">
-                <h2>📅 Filtrar Reservas</h2>
-                <div class="filter-controls">
-                    <div class="form-group">
-                        <label for="filterStartDate">Data Inicial:</label>
-                        <input type="date" id="filterStartDate" />
-                    </div>
-                    <div class="form-group">
-                        <label for="filterEndDate">Data Final:</label>
-                        <input type="date" id="filterEndDate" />
-                    </div>
-                    <button id="filterBtn">Filtrar</button>
-                    <button id="clearFilterBtn" class="secondary">Limpar</button>
+    <!-- Coluna da Direita: Filtros e Reservas -->
+    <div class="results-column">
+        <!-- Card de Filtros -->
+        <div class="card">
+            <h2>📅 Filtrar Reservas</h2>
+            <div class="filter-controls">
+                <div class="form-group">
+                    <label for="filterStartDate">Data Inicial:</label>
+                    <input type="date" id="filterStartDate" />
                 </div>
-            </div>
-
-            <div class="card">
-                <h2>📋 Reservas Confirmadas</h2>
-                <div class="table-wrapper">
-                    <table id="reservasTable">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Telefone</th>
-                                <th>Data</th>
-                                <th>Horário</th>
-                                <th>Pessoas</th>
-                                <th>Observações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- As reservas salvas aparecerão aqui -->
-                        </tbody>
-                    </table>
+                <div class="form-group">
+                    <label for="filterEndDate">Data Final:</label>
+                    <input type="date" id="filterEndDate" />
                 </div>
+                <button id="filterBtn">Filtrar</button>
+                <button id="clearFilterBtn" class="secondary">Limpar</button>
             </div>
         </div>
-    </main>
 
-    <footer>
-        <p>Desenvolvido Marciel Rossetto</p>
-    </footer>
+        <!-- Card de Reservas -->
+        <div class="card">
+            <h2>📋 Reservas Confirmadas</h2>
+            <div class="table-wrapper">
+                <table id="reservasTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Pessoas</th>
+                            <th>Tipo</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
 
-    <script src="script.js"></script>
+<footer>
+    <p>Desenvolvido Marciel Rossetto</p>
+</footer>
+
+<script src="js/calendar.js"></script>
+<script src="js/app.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
