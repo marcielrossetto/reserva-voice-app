@@ -1,159 +1,143 @@
-const token = localStorage.getItem("token");
-if (!token) {
-    window.location.href = "login.html";
-}
+/**
+ * public/js/app.js
+ * Lógica principal de Reservas e Filtros
+ */
 
-const username = localStorage.getItem("username");
-if (username) {
-    document.getElementById("userName").textContent = `Olá, ${username}`;
-}
+// Variáveis Globais
+const TOKEN = localStorage.getItem("token");
+const USERNAME = localStorage.getItem("username");
 
-// Inicializar calendário
-calendar = new Calendar(token);
+// 1. Função para gerenciar os botões de período (Ícones Sol/Lua)
+window.setPeriodo = function(valor, btn) {
+    // Remove classe ativa de todos e adiciona no clicado
+    document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    
+    // Atualiza o valor no input oculto
+    const periodoInput = document.getElementById('filterPeriodo');
+    if (periodoInput) {
+        periodoInput.value = valor;
+        window.carregarReservas(); // Recarrega a query
+    }
+};
 
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    window.location.href = "login.html";
-});
+// 2. Função principal para carregar as reservas (A Query)
+window.carregarReservas = async function() {
+    const dataInput = document.getElementById('filterStartDate');
+    const tbody = document.querySelector("#reservasTable tbody");
+    const totalAtivos = document.getElementById("totalAtivos");
+    const statusDataDisplay = document.getElementById('statusDataDisplay');
+    const buscaInput = document.getElementById('searchInput');
+    const periodoInput = document.getElementById('filterPeriodo');
 
-// Mensagens
-function showMessage(text, type) {
-    const msg = document.getElementById("apiMessage");
-    msg.textContent = text;
-    msg.className = `message-container message ${type}`;
-}
+    if (!tbody || !dataInput) return;
 
-// Enviar Reserva
-document.getElementById("submitTextBtn").addEventListener("click", async () => {
-    const texto = document.getElementById("textInputArea").value.trim();
-    if (!texto) {
-        showMessage("Escreva uma mensagem", "error");
-        return;
+    // --- RESET IMEDIATO (Evita congelamento de dados anteriores) ---
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Buscando...</td></tr>';
+    if (totalAtivos) totalAtivos.textContent = "0";
+
+    const dataValue = dataInput.value;
+    
+    // Atualiza o texto do display (Ex: 22/01)
+    if (statusDataDisplay && dataValue) {
+        const [ano, mes, dia] = dataValue.split('-');
+        statusDataDisplay.textContent = `${dia}/${mes}`;
     }
 
-    showMessage("Processando...", "loading");
-    const btn = event.target;
-    btn.disabled = true;
-
     try {
-        const res = await fetch("http://localhost:3001/api/reservas/process-reservation", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ mensagem: texto })
+        const res = await fetch(`http://localhost:3001/api/reservas?data=${dataValue}`, {
+            headers: { "Authorization": `Bearer ${TOKEN}` }
+        });
+        
+        if (!res.ok) throw new Error("Erro na requisição");
+        
+        const data = await res.json();
+        const reservas = data.reservas || [];
+
+        // --- FILTRAGEM ---
+        const busca = buscaInput?.value.toLowerCase() || "";
+        const periodo = periodoInput?.value || "todos";
+
+        const filtradas = reservas.filter(r => {
+            const matchesBusca = r.nome.toLowerCase().includes(busca) || r.telefone.includes(busca);
+            const hora = parseInt(r.horario.split(':')[0]);
+            const matchesPeriodo = periodo === 'todos' || (periodo === 'almoco' ? hora < 18 : hora >= 18);
+            return matchesBusca && matchesPeriodo;
         });
 
-        const data = await res.json();
+        // --- ATUALIZAÇÃO DO CONTADOR REAL ---
+        if (totalAtivos) totalAtivos.textContent = filtradas.length;
 
-        if (!res.ok) {
-            showMessage(`❌ ${data.erro || data.message}`, "error");
-            btn.disabled = false;
+        // --- TRATAMENTO DE ESTADO VAZIO ---
+        if (filtradas.length === 0) {
+            const dataBr = dataValue.split('-').reverse().join('/');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-calendar-times d-block mb-3" style="font-size: 2.5rem; opacity:0.2;"></i>
+                            <h5 class="mb-1">Nenhuma reserva encontrada</h5>
+                            <p class="small">Para o dia ${dataBr}${periodo !== 'todos' ? ' neste período' : ''}</p>
+                        </div>
+                    </td>
+                </tr>`;
             return;
         }
 
-        showMessage("✅ Reserva criada!", "success");
-        document.getElementById("textInputArea").value = "";
-        carregarReservas();
-        calendar.render();
+        // --- RENDERIZAÇÃO ---
+        tbody.innerHTML = filtradas.map(r => {
+            const isAlmoco = parseInt(r.horario.split(':')[0]) < 18;
+            return `
+                <tr>
+                    <td style="border-left: 4px solid ${isAlmoco ? '#f1c40f' : '#3699ff'}"><b>${r.nome}</b></td>
+                    <td>${r.telefone}</td>
+                    <td><span class="badge ${isAlmoco ? 'badge-warning' : 'badge-primary'}">${r.horario}</span></td>
+                    <td>${r.numPessoas}</td>
+                    <td class="small text-muted">${r.observacoes || '-'}</td>
+                    <td class="text-center"><i class="fas fa-check-circle text-success"></i></td>
+                </tr>`;
+        }).join('');
 
     } catch (e) {
-        showMessage(`❌ Erro: ${e.message}`, "error");
-        btn.disabled = false;
+        console.error("Erro ao carregar reservas:", e);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro ao carregar dados do servidor.</td></tr>';
     }
-});
+};
 
-// Carregar Reservas
-async function carregarReservas() {
-    try {
-        const res = await fetch("http://localhost:3001/api/reservas", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        const data = await res.json();
-        const tbody = document.querySelector("#reservasTable tbody");
-        tbody.innerHTML = "";
-
-        if (data.reservas && data.reservas.length > 0) {
-            data.reservas.forEach(r => {
-                const row = `
-                    <tr>
-                        <td>${r.nome}</td>
-                        <td>${r.telefone}</td>
-                        <td>${r.data}</td>
-                        <td>${r.horario}</td>
-                        <td>${r.numPessoas}</td>
-                        <td>${r.tipoEvento || "-"}</td>
-                        <td>${r.observacoes || "-"}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        } else {
-            tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Nenhuma reserva</td></tr>";
-        }
-    } catch (e) {
-        console.error("Erro:", e);
-    }
-}
-
-// Filtrar Reservas
-document.getElementById("filterBtn").addEventListener("click", async () => {
-    const startDate = document.getElementById("filterStartDate").value;
-    const endDate = document.getElementById("filterEndDate").value;
-
-    if (!startDate || !endDate) {
-        showMessage("Selecione ambas as datas", "error");
+// 3. Inicialização ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+    // Verificação de Token
+    if (!TOKEN) {
+        window.location.href = "login.html";
         return;
     }
 
-    try {
-        const res = await fetch("http://localhost:3001/api/reservas", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        const data = await res.json();
-        const tbody = document.querySelector("#reservasTable tbody");
-        tbody.innerHTML = "";
-
-        const filtered = data.reservas.filter(r => {
-            const rData = new Date(r.data);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            return rData >= start && rData <= end;
-        });
-
-        if (filtered.length > 0) {
-            filtered.forEach(r => {
-                const row = `
-                    <tr>
-                        <td>${r.nome}</td>
-                        <td>${r.telefone}</td>
-                        <td>${r.data}</td>
-                        <td>${r.horario}</td>
-                        <td>${r.numPessoas}</td>
-                        <td>${r.tipoEvento || "-"}</td>
-                        <td>${r.observacoes || "-"}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        } else {
-            tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Nenhuma reserva no período</td></tr>";
-        }
-    } catch (e) {
-        console.error("Erro:", e);
+    // Inicializar Calendário
+    if (typeof Calendar === 'function') {
+        window.calendar = new Calendar(TOKEN);
     }
-});
 
-// Limpar Filtro
-document.getElementById("clearFilterBtn").addEventListener("click", () => {
-    document.getElementById("filterStartDate").value = "";
-    document.getElementById("filterEndDate").value = "";
-    carregarReservas();
-});
+    // Preencher nome do usuário
+    const userNameElem = document.getElementById("userName");
+    if (userNameElem && USERNAME) {
+        userNameElem.textContent = `Olá, ${USERNAME}`;
+    }
 
-carregarReservas();
+    // Listener para o campo de busca (tempo real)
+    document.getElementById("searchInput")?.addEventListener("keyup", window.carregarReservas);
+
+    // Logout
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "login.html";
+    });
+
+    // Configurar data inicial como hoje
+    const inputData = document.getElementById('filterStartDate');
+    if (inputData && !inputData.value) {
+        inputData.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Primeira carga da query
+    window.carregarReservas();
+});

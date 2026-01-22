@@ -1,359 +1,330 @@
-<!-- components/header.html - Componente Header -->
-<header class="header">
-    <div class="header-left">
-        <h1 class="page-title">Dashboard</h1>
-    </div>
+<!-- header.html -->
+<nav class="navbar navbar-expand-md navbar-dark fixed-top navbar-custom">
+    <div class="container-fluid">
 
-    <div class="header-right">
-        <button class="btn-icon" title="Notificações" onclick="toggleNotificacoes()">
-            <span class="material-icons">notifications</span>
-            <span class="badge" id="badge-notificacoes">3</span>
-        </button>
-
-        <!-- Dropdown Notificações -->
-        <div class="dropdown-menu" id="dropdown-notificacoes" style="display: none;">
-            <div class="dropdown-header">
-                <span>Notificações</span>
-                <button class="btn-close" onclick="toggleNotificacoes()">
-                    <span class="material-icons">close</span>
-                </button>
-            </div>
-            <div class="dropdown-content">
-                <div class="notification-item">
-                    <div class="notification-icon">📅</div>
-                    <div class="notification-text">
-                        <span class="notification-title">Nova Reserva</span>
-                        <span class="notification-time">há 5 minutos</span>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon">👤</div>
-                    <div class="notification-text">
-                        <span class="notification-title">Cliente confirmou</span>
-                        <span class="notification-time">há 15 minutos</span>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon">❌</div>
-                    <div class="notification-text">
-                        <span class="notification-title">Reserva cancelada</span>
-                        <span class="notification-time">há 1 hora</span>
-                    </div>
-                </div>
-            </div>
-            <div class="dropdown-footer">
-                <a href="#" class="link-small">Ver todas as notificações</a>
-            </div>
+        <div class="brand-area">
+            <img id="headerLogo" src="rossetto28.png" class="logo-img" onclick="document.getElementById('inputLogo').click();" title="Trocar Logo">
+            <a href="index.html" class="company-link" id="companyName">Empresa</a>
+            <form id="formLogo" action="/upload-logo" method="POST" enctype="multipart/form-data" style="display:none;">
+                <input type="file" name="nova_logo" id="inputLogo" accept="image/*" onchange="document.getElementById('formLogo').submit();">
+            </form>
         </div>
 
-        <button class="btn-primary" onclick="abrirModalReserva()">
-            <span class="material-icons">add</span>
-            Nova Reserva
-        </button>
-
-        <!-- Dropdown Menu Usuário -->
-        <div class="user-menu">
-            <button class="user-menu-btn" onclick="toggleUserMenu()">
-                <div class="user-avatar-small">M</div>
-                <span class="material-icons">expand_more</span>
+        <!-- MENU MOBILE -->
+        <div class="d-flex d-md-none align-items-center ml-auto">
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none" data-toggle="dropdown">
+                    <div class="text-right mr-2">
+                        <small class="d-block" style="color:var(--text-muted)">Olá, <span id="userNameMobile">Usuário</span></small>
+                    </div>
+                    <div class="user-avatar mr-2" id="avatarMobile">U</div>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right mt-1">
+                    <a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </div>
+            </div>
+            <button class="navbar-toggler border-0 ml-2" type="button" data-toggle="collapse" data-target="#menuPrincipal">
+                <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <div class="dropdown-menu dropdown-user" id="dropdown-user" style="display: none;">
-                <div class="dropdown-header">
-                    <div class="user-info-dropdown">
-                        <div class="user-avatar-large">M</div>
-                        <div>
-                            <span class="user-name">Marciel Rossetto</span>
-                            <span class="user-email">marciel@restaurant.com</span>
+        </div>
+
+        <!-- MENU PRINCIPAL -->
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav mr-auto ml-md-4">
+                <li class="nav-item"><a class="nav-link" href="index.html"><i class="material-icons-outlined">home</i> Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="fila.html"><i class="material-icons-outlined">groups</i> Fila</a></li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown"><i class="material-icons-outlined">search</i> Pesquisar</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="pesquisar.html"><i class="fas fa-search"></i> Pesquisa Geral</a>
+                        <a class="dropdown-item" href="ultimas-reservas.html"><i class="fas fa-history"></i> Reservas Criadas</a>
+                        <a class="dropdown-item" href="impressao-display.html"><i class="fas fa-th-large"></i> Ver Cards</a>
+                        <a class="dropdown-item" href="print-mural.html"><i class="fas fa-print"></i> Imprimir Mural</a>
+                        <a class="dropdown-item" href="print-salao.html"><i class="fas fa-print"></i> Imprimir Salão</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown" id="adminMenu" style="display: none;">
+                    <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown"><i class="material-icons-outlined">admin_panel_settings</i> Admin</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalNovoUsuario"><i class="fas fa-user-plus"></i> Novo Usuário</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalVerEquipe"><i class="fas fa-users"></i> Ver Equipe</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard BI</a>
+                        <a class="dropdown-item" href="cardapio.html"><i class="fas fa-utensils"></i> Cardápio</a>
+                        <a class="dropdown-item" href="config-cardapio.html"><i class="fas fa-cogs"></i> Configurar Cardápio</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalPrecoRodizio"><i class="fas fa-cogs"></i> Configurar Preço Rodízio</a>
+                        <a class="dropdown-item" href="gerenciar-vouchers.html"><i class="fas fa-ticket-alt"></i> Gerenciar Vouchers</a>
+                    </div>
+                </li>
+
+                <li class="nav-item"><a class="nav-link" href="privacidade.html"><i class="material-icons-outlined">gpp_maybe</i> Privacidade</a></li>
+            </ul>
+
+            <!-- MENU DESKTOP -->
+            <ul class="navbar-nav d-none d-md-flex align-items-center">
+                <li class="nav-item dropdown">
+                    <div class="d-flex align-items-center text-white" style="cursor:pointer" data-toggle="dropdown">
+                        <div class="mr-2 text-right">
+                            <small class="d-block" style="color:var(--text-muted)">Olá, <span id="userNameDesktop">Usuário</span></small>
+                        </div>
+                        <div class="user-avatar" id="avatarDesktop">U</div>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- MODAL: PREÇO RODÍZIO -->
+<div class="modal fade" id="modalPrecoRodizio" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="formPreco" method="POST">
+                <div class="modal-header">
+                    <h5 class="font-weight-bold">Configurar Preços Rodízio</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-6 form-group">
+                            <label class="form-label-header">Almoço (R$)</label>
+                            <input type="number" step="0.01" id="almoco" name="almoco" class="form-control border-0 bg-light" required>
+                        </div>
+                        <div class="col-6 form-group">
+                            <label class="form-label-header">Jantar (R$)</label>
+                            <input type="number" step="0.01" id="jantar" name="jantar" class="form-control border-0 bg-light" required>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-6 form-group">
+                            <label class="form-label-header">Dom. Almoço (R$)</label>
+                            <input type="number" step="0.01" id="domingo_almoco" name="domingo_almoco" class="form-control border-0 bg-light" required>
+                        </div>
+                        <div class="col-6 form-group">
+                            <label class="form-label-header">Outros (R$)</label>
+                            <input type="number" step="0.01" id="outros" name="outros" class="form-control border-0 bg-light" required>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <label class="form-label-header">Informação Manual 1</label>
+                        <input type="text" id="campo_manual_1" name="campo_manual_1" class="form-control border-0 bg-light" placeholder="Ex: Bebidas inclusas">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-header">Informação Manual 2</label>
+                        <input type="text" id="campo_manual_2" name="campo_manual_2" class="form-control border-0 bg-light" placeholder="Ex: Sobremesa à parte">
+                    </div>
                 </div>
-                <hr style="margin: var(--spacing-md) 0; border: none; border-top: 1px solid var(--color-gray-200);">
-                <div class="dropdown-content">
-                    <a href="#" class="dropdown-item" onclick="irParaPagina('configuracoes', event)">
-                        <span class="material-icons">settings</span>
-                        Configurações
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="irParaPagina('perfil', event)">
-                        <span class="material-icons">person</span>
-                        Meu Perfil
-                    </a>
-                    <a href="#" class="dropdown-item">
-                        <span class="material-icons">help</span>
-                        Ajuda e Suporte
-                    </a>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary btn-block py-3 font-weight-bold shadow-sm" onclick="salvarPreco()">ATUALIZAR TABELA</button>
                 </div>
-                <hr style="margin: var(--spacing-md) 0; border: none; border-top: 1px solid var(--color-gray-200);">
-                <div class="dropdown-content">
-                    <button class="dropdown-item" onclick="logout()" style="width: 100%; text-align: left; color: var(--color-danger);">
-                        <span class="material-icons">logout</span>
-                        Sair
-                    </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: NOVO USUÁRIO -->
+<div class="modal fade" id="modalNovoUsuario" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="formNovoUsuario" method="POST">
+                <div class="modal-header">
+                    <h5 class="font-weight-bold">Cadastrar Novo Usuário</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="form-group">
+                        <label class="form-label-header">Nome Completo</label>
+                        <input type="text" id="nomeUsuario" name="nome" class="form-control border-0 bg-light" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-header">E-mail (Login)</label>
+                        <input type="email" id="emailUsuario" name="email" class="form-control border-0 bg-light" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-header">Senha</label>
+                        <input type="password" id="senhaUsuario" name="senha" class="form-control border-0 bg-light" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-header">Nível de Permissão</label>
+                        <select id="nivelUsuario" name="nivel" class="form-control border-0 bg-light">
+                            <option value="operacional">Operacional (Faz Reservas)</option>
+                            <option value="master">Master (Administrador)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary btn-block py-3 font-weight-bold shadow-sm" onclick="salvarUsuario()">SALVAR ACESSO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VER EQUIPE -->
+<div class="modal fade" id="modalVerEquipe" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="font-weight-bold">Equipe da Empresa</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="equipeTable">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>NOME</th>
+                                <th>E-MAIL</th>
+                                <th>CARGO</th>
+                                <th class="text-right">AÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipeBody">
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</header>
+</div>
+
+<!-- FAB BUTTON -->
+<a href="adicionar-reserva.html" class="fab-reserva" title="Nova Reserva"><i class="fas fa-plus"></i></a>
 
 <style>
-    /* Header já está em styles/layout.css */
-    
-    /* ==================== DROPDOWN MENU ==================== */
-    .dropdown-menu {
-        position: absolute;
-        top: 60px;
-        right: 0;
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-lg);
-        min-width: 300px;
-        z-index: 1500;
-        animation: slideDown var(--transition-normal);
+    :root {
+        --primary-bg: #1e1e2d;
+        --active-color: #3699ff;
+        --text-muted: #a2a3b7;
     }
 
-    .dropdown-menu.dropdown-user {
-        min-width: 320px;
+    .navbar-custom {
+        background-color: var(--primary-bg);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        min-height: 50px;
+        border-bottom: 2px solid var(--active-color);
     }
 
-    .dropdown-header {
-        padding: var(--spacing-lg);
-        border-bottom: 1px solid var(--color-gray-200);
+    .brand-area {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .user-info-dropdown {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-    }
-
-    .user-avatar-large {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-info));
-        color: white;
-        display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-lg);
+        line-height: 1;
     }
 
-    .user-name {
-        display: block;
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-gray-900);
+    .logo-img {
+        height: 25px;
+        width: 80px;
+        max-width: 150px;
+        border-radius: 6px;
+        object-fit: contain;
+        cursor: pointer;
+        background: white;
+        padding: 2px;
+        border: 1px solid var(--active-color);
     }
 
-    .user-email {
-        display: block;
-        font-size: var(--font-size-sm);
-        color: var(--color-gray-500);
+    .company-link {
+        color: white !important;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-top: 4px;
+        margin-left: 0 !important;
+        text-decoration: none !important;
+        text-align: center;
+        white-space: nowrap;
     }
 
-    .dropdown-content {
-        padding: var(--spacing-md) 0;
+    .nav-link, .dropdown-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px;
+        color: var(--text-muted) !important;
+        font-weight: 500;
+    }
+
+    .nav-link i, .dropdown-item i {
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .nav-link:hover, .dropdown-item:hover {
+        color: white !important;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .dropdown-menu {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
 
     .dropdown-item {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        padding: var(--spacing-md) var(--spacing-lg);
-        color: var(--color-gray-700);
-        text-decoration: none;
-        cursor: pointer;
-        background: none;
-        border: none;
-        font-family: var(--font-family);
-        font-size: var(--font-size-base);
-        transition: all var(--transition-fast);
+        color: #3f4254 !important;
+        padding: 12px 20px;
     }
 
-    .dropdown-item:hover {
-        background: var(--color-gray-50);
-        color: var(--color-primary);
-    }
-
-    .dropdown-item .material-icons {
-        font-size: 20px;
-    }
-
-    .dropdown-footer {
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-top: 1px solid var(--color-gray-200);
-        text-align: center;
-    }
-
-    /* ==================== NOTIFICAÇÕES ==================== */
-    .notification-item {
-        display: flex;
-        gap: var(--spacing-md);
-        padding: var(--spacing-md);
-        cursor: pointer;
-        transition: background var(--transition-fast);
-    }
-
-    .notification-item:hover {
-        background: var(--color-gray-50);
-    }
-
-    .notification-icon {
-        font-size: 24px;
-        flex-shrink: 0;
-    }
-
-    .notification-text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        flex: 1;
-    }
-
-    .notification-title {
-        display: block;
-        font-weight: var(--font-weight-medium);
-        color: var(--color-gray-900);
-        font-size: var(--font-size-sm);
-    }
-
-    .notification-time {
-        display: block;
-        font-size: var(--font-size-xs);
-        color: var(--color-gray-500);
-    }
-
-    /* ==================== USER MENU ==================== */
-    .user-menu {
-        position: relative;
-    }
-
-    .user-menu-btn {
-        background: white;
-        border: 1px solid var(--color-gray-300);
-        padding: var(--spacing-sm);
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-fast);
-    }
-
-    .user-menu-btn:hover {
-        border-color: var(--color-primary);
-        background: var(--color-primary-light);
-    }
-
-    .user-avatar-small {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-info));
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: var(--active-color);
         color: white;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-sm);
+        font-weight: bold;
     }
 
-    .user-menu-btn .material-icons {
-        font-size: 18px;
-        color: var(--color-gray-600);
+    .modal-content {
+        border-radius: 20px;
+        border: none;
     }
 
-    /* ==================== RESPONSIVO ==================== */
-    @media (max-width: 768px) {
-        .header {
-            gap: var(--spacing-md);
-        }
+    .modal-header {
+        background: #f8f9fa;
+        border-radius: 20px 20px 0 0;
+        border-bottom: 1px solid #eee;
+    }
 
-        .dropdown-menu {
-            position: fixed;
-            top: auto;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            min-width: unset;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
+    .form-label-header {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #a2a3b7;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
 
-        .header-right {
-            gap: var(--spacing-sm);
-        }
+    .fab-reserva {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 60px;
+        height: 60px;
+        background-color: var(--active-color);
+        color: white !important;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 8px 20px rgba(54, 153, 255, 0.4);
+        z-index: 1050;
+        text-decoration: none;
+    }
 
-        .btn-primary span {
-            display: none;
-        }
-
-        .btn-primary {
-            padding: var(--spacing-sm);
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    @media (max-width: 501px) {
+        .navbar-collapse {
+            background: var(--primary-bg);
+            padding: 15px;
+            border-radius: 0 0 15px 15px;
         }
     }
 </style>
-
-<script>
-    // Fechar dropdowns ao clicar fora
-    document.addEventListener('click', (e) => {
-        const header = document.querySelector('.header');
-        if (header && !header.contains(e.target)) {
-            document.getElementById('dropdown-notificacoes').style.display = 'none';
-            document.getElementById('dropdown-user').style.display = 'none';
-        }
-    });
-
-    function toggleNotificacoes() {
-        const dropdown = document.getElementById('dropdown-notificacoes');
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        
-        // Fechar menu usuário se abrir notificações
-        if (dropdown.style.display === 'block') {
-            document.getElementById('dropdown-user').style.display = 'none';
-        }
-    }
-
-    function toggleUserMenu() {
-        const dropdown = document.getElementById('dropdown-user');
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        
-        // Fechar notificações se abrir menu
-        if (dropdown.style.display === 'block') {
-            document.getElementById('dropdown-notificacoes').style.display = 'none';
-        }
-    }
-
-    function logout() {
-        if (confirm('Deseja realmente sair?')) {
-            fetch('/api/auth/logout', { method: 'POST' })
-                .then(() => {
-                    window.location.href = '/login.html';
-                })
-                .catch(err => {
-                    console.error(err);
-                    window.location.href = '/login.html';
-                });
-        }
-    }
-
-    function irParaPagina(pageName, event) {
-        event.preventDefault();
-        document.getElementById('dropdown-user').style.display = 'none';
-        
-        // Simular clique na nav
-        const navItem = document.querySelector(`[data-page="${pageName}"]`);
-        if (navItem) {
-            navItem.click();
-        }
-    }
-</script>

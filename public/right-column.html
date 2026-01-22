@@ -1,0 +1,37 @@
+<!-- html/right-column.html -->
+<div class="right-column">
+    <div class="card">
+        <h2>📅 Filtros</h2>
+        <div class="filter-controls">
+            <div class="form-group">
+                <label>Data Inicial</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label>Data Final</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="btn-filter" onclick="filterReservas()">🔍 Filtrar</button>
+            <button class="btn-clear" onclick="clearFilter()">✕ Limpar</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📋 Reservas</h2>
+        <div class="table-wrapper">
+            <table id="reservasTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Pax</th>
+                        <th>Obs</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>

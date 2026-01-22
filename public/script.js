@@ -1,105 +1,121 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "login.html";
-  }
+/**
+ * Lógica Principal de Reservas
+ */
 
-  // Logout
-  const logoutBtn = document.createElement("button");
-  logoutBtn.textContent = "Sair";
-  logoutBtn.style = "position:fixed; top:10px; right:10px; background:#d33; color:white; padding:8px; border:none; cursor:pointer;";
-  document.body.appendChild(logoutBtn);
+// Função para gerenciar os botões de período (Ícones Sol/Lua)
+window.setPeriodo = function(valor, btn) {
+    // Remove classe ativa de todos e adiciona no clicado
+    document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Atualiza o valor no input oculto e recarrega
+    const hiddenInput = document.getElementById('filterPeriodo');
+    if (hiddenInput) {
+        hiddenInput.value = valor;
+        window.carregarReservas();
+    }
+};
 
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("token");
-    window.location.href = "login.html";
-  });
+window.carregarReservas = async function() {
+    const token = localStorage.getItem("token");
+    const dataInput = document.getElementById('filterStartDate');
+    const tbody = document.querySelector("#reservasTable tbody");
+    const totalAtivos = document.getElementById("totalAtivos");
+    const statusDataDisplay = document.getElementById('statusDataDisplay');
+    const buscaInput = document.getElementById('searchInput');
+    const periodoInput = document.getElementById('filterPeriodo');
 
-  // UI Elements
-  const submitTextBtn = document.getElementById("submitTextBtn");
-  const textInputArea = document.getElementById("textInputArea");
-  const apiMessage = document.getElementById("apiMessage");
-  const reservasTableBody = document.querySelector("#reservasTable tbody");
-  const userName = localStorage.getItem("username");
-  const userNameElem = document.getElementById("userName");
+    if (!tbody || !dataInput) return;
 
-  if (userNameElem && userName) {
-    userNameElem.textContent = `Olá, ${userName}`;
-  }
+    // --- 1. RESET IMEDIATO DO ESTADO (Resolve o bug do segundo clique) ---
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Buscando...</td></tr>';
+    if (totalAtivos) totalAtivos.textContent = "0";
 
-  function displayMessage(text, type) {
-    apiMessage.textContent = text;
-    apiMessage.className = `message ${type}`;
-  }
-
-  // Enviar reserva
-  submitTextBtn.addEventListener("click", async () => {
-    const texto = textInputArea.value.trim();
-    if (!texto) {
-      displayMessage("Escreva uma mensagem", "error");
-      return;
+    const dataValue = dataInput.value;
+    if (statusDataDisplay && dataValue) {
+        const [ano, mes, dia] = dataValue.split('-');
+        statusDataDisplay.textContent = `${dia}/${mes}`;
     }
 
-    displayMessage("Processando...", "loading");
-    submitTextBtn.disabled = true;
-
     try {
-      const res = await fetch("http://localhost:3001/api/reservas/process-reservation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ mensagem: texto })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        displayMessage(`❌ ${data.erro || data.message}`, "error");
-        return;
-      }
-
-      displayMessage("✅ Reserva criada!", "success");
-      textInputArea.value = "";
-      carregarReservas();
-
-    } catch (e) {
-      displayMessage(`❌ Erro: ${e.message}`, "error");
-    } finally {
-      submitTextBtn.disabled = false;
-    }
-  });
-
-  // Carregar reservas
-  async function carregarReservas() {
-    try {
-      const res = await fetch("http://localhost:3001/api/reservas", {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      const data = await res.json();
-
-      if (data.reservas) {
-        reservasTableBody.innerHTML = "";
-        data.reservas.forEach(r => {
-          const row = `
-            <tr>
-              <td>${r.nome}</td>
-              <td>${r.telefone}</td>
-              <td>${r.data}</td>
-              <td>${r.horario}</td>
-              <td>${r.numPessoas}</td>
-              <td>${r.observacoes || ""}</td>
-            </tr>
-          `;
-          reservasTableBody.innerHTML += row;
+        const res = await fetch(`http://localhost:3001/api/reservas?data=${dataValue}`, {
+            headers: { "Authorization": `Bearer ${token}` }
         });
-      }
-    } catch (e) {
-      console.error("Erro ao carregar:", e);
-    }
-  }
+        
+        if (!res.ok) throw new Error("Erro na requisição");
+        
+        const data = await res.json();
+        const reservas = data.reservas || [];
 
-  carregarReservas();
+        // --- 2. FILTRAGEM ---
+        const busca = buscaInput?.value.toLowerCase() || "";
+        const periodo = periodoInput?.value || "todos";
+
+        const filtradas = reservas.filter(r => {
+            const matchesBusca = r.nome.toLowerCase().includes(busca) || r.telefone.includes(busca);
+            const hora = parseInt(r.horario.split(':')[0]);
+            const matchesPeriodo = periodo === 'todos' || (periodo === 'almoco' ? hora < 18 : hora >= 18);
+            return matchesBusca && matchesPeriodo;
+        });
+
+        // --- 3. ATUALIZAÇÃO DO CONTADOR REAL ---
+        if (totalAtivos) totalAtivos.textContent = filtradas.length;
+
+        // --- 4. TRATAMENTO DE ESTADO VAZIO ---
+        if (filtradas.length === 0) {
+            const dataBr = dataValue.split('-').reverse().join('/');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-calendar-times d-block mb-3" style="font-size: 2.5rem; opacity:0.2;"></i>
+                            <h5 class="mb-1">Nenhuma reserva encontrada</h5>
+                            <p class="small">Para o dia ${dataBr}${periodo !== 'todos' ? ' no período selecionado' : ''}</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        // --- 5. RENDERIZAÇÃO ---
+        tbody.innerHTML = filtradas.map(r => {
+            const isAlmoco = parseInt(r.horario.split(':')[0]) < 18;
+            return `
+                <tr>
+                    <td style="border-left: 4px solid ${isAlmoco ? '#f1c40f' : '#3699ff'}"><b>${r.nome}</b></td>
+                    <td>${r.telefone}</td>
+                    <td><span class="badge ${isAlmoco ? 'badge-warning' : 'badge-primary'}">${r.horario}</span></td>
+                    <td>${r.numPessoas}</td>
+                    <td class="small text-muted">${r.observacoes || '-'}</td>
+                    <td class="text-center"><i class="fas fa-check-circle text-success"></i></td>
+                </tr>`;
+        }).join('');
+
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro ao carregar dados do servidor.</td></tr>';
+    }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+    if (!token) { window.location.href = "login.html"; return; }
+
+    // Inicialização
+    if (typeof Calendar === 'function') window.calendar = new Calendar(token);
+
+    // Eventos de Logout
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "login.html";
+    });
+
+    // Evento de busca em tempo real
+    document.getElementById("searchInput")?.addEventListener("keyup", window.carregarReservas);
+
+    // Carregamento Inicial
+    const inputData = document.getElementById('filterStartDate');
+    if (inputData && !inputData.value) {
+        inputData.value = new Date().toISOString().split('T')[0];
+    }
+    window.carregarReservas();
 });

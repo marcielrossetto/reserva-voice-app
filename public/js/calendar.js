@@ -1,242 +1,132 @@
 class Calendar {
     constructor(token) {
         this.token = token;
-        this.currentMonth = new Date().getMonth() + 1;
-        this.currentYear = new Date().getFullYear();
-        this.periodoSelecionado = 'todos';
+        this.currentDate = new Date();
+        this.selectedDate = new Date().toISOString().split('T')[0];
         this.isCollapsed = false;
         this.init();
     }
 
+    // Método seguro para pegar elementos e evitar o erro "null"
+    getElement(id) {
+        const el = document.getElementById(id);
+        if (!el) console.warn(`Elemento #${id} não encontrado no DOM.`);
+        return el;
+    }
+
     init() {
-        document.getElementById('prevMonth').addEventListener('click', () => this.prevMonth());
-        document.getElementById('nextMonth').addEventListener('click', () => this.nextMonth());
-        document.getElementById('toggleCalendarBtn').addEventListener('click', () => this.toggleCollapse());
+        const prev = this.getElement('prevMonth');
+        const next = this.getElement('nextMonth');
+        const toggle = this.getElement('toggleCalendarBtn');
+
+        if (prev) prev.onclick = () => this.changeMonth(-1);
+        if (next) next.onclick = () => this.changeMonth(1);
+        if (toggle) toggle.onclick = () => this.toggleCollapse();
+
         this.render();
     }
 
     toggleCollapse() {
         this.isCollapsed = !this.isCollapsed;
-        const wrapper = document.getElementById('calendarWrapper');
-        const mainContent = document.getElementById('mainContent');
-        const btn = document.getElementById('toggleCalendarBtn');
+        const wrapper = this.getElement('calendarWrapper');
+        const btn = this.getElement('toggleCalendarBtn');
         
-        wrapper.classList.toggle('collapsed');
-        mainContent.classList.toggle('full-width');
-        btn.textContent = this.isCollapsed ? '→' : '←';
+        if (wrapper) wrapper.classList.toggle('collapsed');
+        if (btn) {
+            btn.innerHTML = this.isCollapsed 
+                ? 'Exibir Calendário <i class="fas fa-chevron-down"></i>' 
+                : 'Esconder Calendário <i class="fas fa-chevron-up"></i>';
+        }
+    }
+
+    changeMonth(val) {
+        this.currentDate.setMonth(this.currentDate.getMonth() + val);
+        this.render();
     }
 
     async render() {
-        await this.carregarCalendario();
-    }
-
-    prevMonth() {
-        this.currentMonth--;
-        if (this.currentMonth < 1) {
-            this.currentMonth = 12;
-            this.currentYear--;
-        }
-        this.render();
-    }
-
-    nextMonth() {
-        this.currentMonth++;
-        if (this.currentMonth > 12) {
-            this.currentMonth = 1;
-            this.currentYear++;
-        }
-        this.render();
-    }
-
-    async carregarCalendario() {
+        const month = this.currentDate.getMonth() + 1;
+        const year = this.currentDate.getFullYear();
+        
         try {
-            console.log(`🔄 Carregando calendário: ${this.currentMonth}/${this.currentYear}`);
-            
-            const res = await fetch(
-                `http://localhost:3001/api/calendar/data?month=${this.currentMonth}&year=${this.currentYear}`,
-                { headers: { "Authorization": `Bearer ${this.token}` } }
-            );
-            
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}`);
-            }
-            
+            const res = await fetch(`http://localhost:3001/api/calendar/data?month=${month}&year=${year}`, {
+                headers: { "Authorization": `Bearer ${this.token}` }
+            });
             const { mapa, totalPax, totalRes } = await res.json();
-            
-            console.log("✅ Dados recebidos:", { totalPax, totalRes, dias: Object.keys(mapa).length });
 
-            const monthName = new Date(this.currentYear, this.currentMonth - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            document.getElementById('monthYear').textContent = monthName;
-            document.getElementById('totalMonth').innerHTML = `👥 ${totalPax} | 📋 ${totalRes}`;
+            const monthName = this.currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            const titleEl = this.getElement('monthYear');
+            const totalEl = this.getElement('totalMonth');
+
+            if (titleEl) titleEl.textContent = monthName;
+            if (totalEl) totalEl.innerHTML = `👥 Total Pax: ${totalPax} | 📋 Reservas: ${totalRes}`;
 
             this.renderGrid(mapa);
         } catch (err) {
-            console.error("❌ Erro ao carregar calendário:", err);
-            document.getElementById('totalMonth').innerHTML = '❌ Erro ao carregar';
+            console.error("Erro ao carregar mapa:", err);
         }
     }
 
     renderGrid(mapa) {
-        console.log("🎨 Renderizando grid com", Object.keys(mapa).length, "dias com dados");
+        const grid = this.getElement('calendarGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
         
-        const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1).getDay();
-        const daysInMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
-        const hoje = new Date().toISOString().split('T')[0];
+        const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay();
+        const daysInMonth = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate();
 
-        let html = '';
-        const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-
-        dias.forEach(d => {
-            html += `<div class="day-header">${d}</div>`;
+        // 1. Adiciona Cabeçalhos (Dom, Seg...)
+        ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].forEach(d => {
+            const h = document.createElement('div');
+            h.className = 'day-header';
+            h.textContent = d;
+            grid.appendChild(h);
         });
 
+        // 2. Adiciona Dias vazios do mês anterior
         for (let i = 0; i < firstDay; i++) {
-            html += '<div class="day-cell empty"></div>';
+            const empty = document.createElement('div');
+            empty.className = 'day-cell empty';
+            grid.appendChild(empty);
         }
 
+        const hoje = new Date().toISOString().split('T')[0];
+
+        // 3. Adiciona os dias do mês
         for (let day = 1; day <= daysInMonth; day++) {
-            const dataISO = `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dataISO = `${this.currentDate.getFullYear()}-${String(this.currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dados = mapa[dataISO] || { almoco: 0, jantar: 0 };
-            const isToday = dataISO === hoje;
-
-            html += `<div class="day-cell ${isToday ? 'today' : ''}" data-data="${dataISO}" onclick="calendar.selecionarData('${dataISO}')">
+            
+            const cell = document.createElement('div');
+            cell.className = `day-cell ${dataISO === hoje ? 'today' : ''} ${dataISO === this.selectedDate ? 'selected' : ''}`;
+            cell.dataset.data = dataISO;
+            
+            cell.innerHTML = `
                 <div class="day-num">${day}</div>
-                <button class="day-eye" onclick="calendar.verReservasDia('${dataISO}', event)">👁️</button>
-                <div class="day-pills">
-                    ${dados.almoco > 0 ? `<div class="pill pill-almoco">A:${dados.almoco}</div>` : ''}
-                    ${dados.jantar > 0 ? `<div class="pill pill-jantar">J:${dados.jantar}</div>` : ''}
+                <div class="pill-container">
+                    ${dados.almoco > 0 ? `<div class="pill pill-a">A: ${dados.almoco}</div>` : ''}
+                    ${dados.jantar > 0 ? `<div class="pill pill-j">J: ${dados.jantar}</div>` : ''}
                 </div>
-            </div>`;
-        }
+            `;
 
-        document.getElementById('calendarGrid').innerHTML = html;
-        console.log("✅ Grid renderizado");
+            cell.onclick = () => this.selecionarData(dataISO);
+            grid.appendChild(cell);
+        }
     }
 
     selecionarData(data) {
-        document.querySelectorAll('.day-cell.selected').forEach(el => el.classList.remove('selected'));
-        document.querySelector(`[data-data="${data}"]`).classList.add('selected');
-        document.getElementById('filterStartDate').value = data;
-        carregarReservas();
-    }
+    this.selectedDate = data;
+    
+    // Sincroniza o input de data
+    const input = document.getElementById('filterStartDate');
+    if (input) input.value = data;
 
-    async verReservasDia(data, e) {
-        e.stopPropagation();
-        const modal = document.getElementById('modalDia');
-        modal.classList.add('show');
+    // Força a limpeza visual de seleções anteriores
+    document.querySelectorAll('.day-cell').forEach(el => el.classList.remove('selected'));
+    const target = document.querySelector(`.day-cell[data-data="${data}"]`);
+    if (target) target.classList.add('selected');
 
-        const periodo = document.querySelector('.periodo-btn.active')?.dataset.periodo || 'todos';
-        
-        try {
-            console.log(`👁️ Abrindo reservas: ${data} (${periodo})`);
-            
-            const res = await fetch(
-                `http://localhost:3001/api/calendar/reservas-dia?data=${data}&periodo=${periodo}`,
-                { headers: { "Authorization": `Bearer ${this.token}` } }
-            );
-            const { reservas, resumo } = await res.json();
-
-            console.log("✅ Reservas carregadas:", reservas.length);
-
-            let html = `<div class="modal-day-content">
-                <div class="modal-day-header">
-                    <h3>Reservas - ${new Date(data).toLocaleDateString('pt-BR')}</h3>
-                    <button class="close-btn" onclick="fecharModalDia()">×</button>
-                </div>
-
-                <div class="periodo-selector">
-                    <button class="periodo-btn active" data-periodo="todos" onclick="calendar.filtrarPeriodo('todos', '${data}')">Todos</button>
-                    <button class="periodo-btn" data-periodo="almoco" onclick="calendar.filtrarPeriodo('almoco', '${data}')">🌞 Almoço</button>
-                    <button class="periodo-btn" data-periodo="jantar" onclick="calendar.filtrarPeriodo('jantar', '${data}')">🌙 Jantar</button>
-                </div>`;
-
-            if (reservas.length === 0) {
-                html += '<div style="text-align:center; padding:20px; color:#999;">Nenhuma reserva neste período</div>';
-            } else {
-                reservas.forEach(r => {
-                    const hora = new Date(r.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    html += `<div class="reserva-item-modal">
-                        <div class="reserva-info">
-                            <strong>${r.nome}</strong>
-                            <small>${r.numPessoas}p • ${hora}</small>
-                        </div>
-                        <button class="btn-edit-modal" onclick="abrirModalEditar(${r.id})">✏️</button>
-                    </div>`;
-                });
-            }
-
-            html += `<div class="modal-day-total">Total: ${resumo.total} pessoas</div>
-            <button class="btn-print-period" onclick="imprimirPeriodo('${data}', '${periodo}')">🖨️ Imprimir</button>
-            </div>`;
-
-            modal.innerHTML = html;
-        } catch (err) {
-            console.error("❌ Erro ao carregar reservas:", err);
-            modal.innerHTML = `<div class="modal-day-content"><p>Erro ao carregar reservas</p></div>`;
-        }
-    }
-
-    async filtrarPeriodo(periodo, data) {
-        document.querySelectorAll('.periodo-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const res = await fetch(
-            `http://localhost:3001/api/calendar/reservas-dia?data=${data}&periodo=${periodo}`,
-            { headers: { "Authorization": `Bearer ${this.token}` } }
-        );
-        const { reservas, resumo } = await res.json();
-
-        let html = '';
-        
-        if (reservas.length === 0) {
-            html += '<div style="text-align:center; padding:20px; color:#999;">Nenhuma reserva neste período</div>';
-        } else {
-            reservas.forEach(r => {
-                const hora = new Date(r.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                html += `<div class="reserva-item-modal">
-                    <div class="reserva-info">
-                        <strong>${r.nome}</strong>
-                        <small>${r.numPessoas}p • ${hora}</small>
-                    </div>
-                    <button class="btn-edit-modal" onclick="abrirModalEditar(${r.id})">✏️</button>
-                </div>`;
-            });
-        }
-
-        html += `<div class="modal-day-total">Total: ${resumo.total} pessoas</div>
-        <button class="btn-print-period" onclick="imprimirPeriodo('${data}', '${periodo}')">🖨️ Imprimir</button>`;
-
-        const modal = document.getElementById('modalDia');
-        modal.innerHTML = `<div class="modal-day-content">
-            <div class="modal-day-header">
-                <h3>Reservas - ${new Date(data).toLocaleDateString('pt-BR')}</h3>
-                <button class="close-btn" onclick="fecharModalDia()">×</button>
-            </div>
-            <div class="periodo-selector">
-                <button class="periodo-btn ${periodo === 'todos' ? 'active' : ''}" data-periodo="todos" onclick="calendar.filtrarPeriodo('todos', '${data}')">Todos</button>
-                <button class="periodo-btn ${periodo === 'almoco' ? 'active' : ''}" data-periodo="almoco" onclick="calendar.filtrarPeriodo('almoco', '${data}')">🌞 Almoço</button>
-                <button class="periodo-btn ${periodo === 'jantar' ? 'active' : ''}" data-periodo="jantar" onclick="calendar.filtrarPeriodo('jantar', '${data}')">🌙 Jantar</button>
-            </div>` + html + `</div>`;
-    }
+    this.render(); // Re-renderiza o calendário para aplicar classes
+    window.carregarReservas(); // Chama a query atualizada
 }
-
-function fecharModalDia() {
-    document.getElementById('modalDia').classList.remove('show');
 }
-
-function imprimirPeriodo(data, periodo) {
-    const conteudo = document.querySelector('.modal-day-content').innerHTML;
-    const w = window.open('', '', 'height=600,width=900');
-    w.document.write(`<html><head><title>Imprimir - ${data}</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        .modal-day-header, .periodo-selector, .btn-print-period { display: none; }
-        .reserva-item-modal { padding: 10px; border: 1px solid #000; margin: 5px 0; }
-        .modal-day-total { text-align: center; font-weight: bold; padding: 10px; border: 1px solid #000; }
-    </style>
-    </head><body>${conteudo}</body></html>`);
-    w.document.close();
-    w.print();
-}
-
-let calendar;

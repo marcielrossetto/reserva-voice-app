@@ -5,110 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema Inteligente de Reservas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="css/calendar.css" />
 </head>
 <body>
+
 <header class="header">
-  <div class="logo-title">
-    <h1>Sistema Inteligente de Reservas</h1>
-    <p>Crie e consulte suas reservas usando voz ou texto.</p>
-  </div>
-  <div class="user-info">
-    <span id="userName" class="username"></span>
-    <button id="logoutBtn">Sair</button>
-  </div>
+    <div class="logo-title">
+        <h1>Sistema Inteligente de Reservas</h1>
+        <p>Crie e consulte suas reservas usando voz ou texto.</p>
+    </div>
+    <div class="user-info">
+        <span id="userName" class="username">Carregando...</span>
+        <button id="logoutBtn">Sair</button>
+    </div>
 </header>
 
-<!-- CALENDÁRIO FIXO NA LATERAL ESQUERDA -->
-<div id="calendarWrapper" class="calendar-wrapper">
-    <div class="card" style="margin-top: 0;">
-        <h2>📅 Calendário</h2>
-        <div class="calendar-controls">
+<!-- SEÇÃO DO CALENDÁRIO -->
+<section id="calendarArea" class="container-fluid mt-2">
+    <div id="calendarWrapper" class="calendar-wrapper">
+        <div class="calendar-header-top">
             <button id="prevMonth" class="btn-nav">◀</button>
-            <span id="monthYear"></span>
+            <span id="monthYear">Janeiro de 2026</span>
             <button id="nextMonth" class="btn-nav">▶</button>
         </div>
-        <div id="totalMonth"></div>
+        <div id="totalMonth" class="text-center small text-muted mb-2"></div>
         <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
+    <button id="toggleCalendarBtn" class="toggle-calendar-btn">
+        Esconder Calendário <i class="fas fa-chevron-up"></i>
+    </button>
+</section>
+
+<!-- BARRA DE FILTROS HORIZONTAL -->
+<div class="container-fluid mt-3">
+    <div class="filter-bar-horizontal">
+        <!-- DATA -->
+        <div class="filter-item-date">
+            <input type="date" id="filterStartDate" class="form-control form-control-sm" onchange="carregarReservas()">
+        </div>
+
+        <!-- BUSCA -->
+        <div class="filter-item-search">
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar nome ou tel..." onkeyup="carregarReservas()">
+        </div>
+
+        <!-- ÍCONES DE PERÍODO -->
+        <div class="period-icons">
+            <button class="btn-period active" onclick="setPeriodo('todos', this)" title="Dia Completo">
+                <i class="fas fa-calendar-day"></i>
+            </button>
+            <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Almoço">
+                <i class="fas fa-sun"></i>
+            </button>
+            <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Jantar">
+                <i class="fas fa-moon"></i>
+            </button>
+            <!-- Campo oculto para guardar o valor do período -->
+            <input type="hidden" id="filterPeriodo" value="todos">
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="filter-actions">
+            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fas fa-print"></i></button>
+            <button class="btn btn-primary btn-sm" onclick="abrirNovoModal()"><i class="fas fa-plus"></i></button>
+        </div>
     </div>
 </div>
 
-<!-- BOTÃO PARA ENCOLHER/EXPANDIR CALENDÁRIO -->
-<button id="toggleCalendarBtn" class="toggle-calendar-btn">←</button>
-
-<!-- MODAL DO DIA -->
-<div id="modalDia" class="modal-day"></div>
-
-<!-- CONTEÚDO PRINCIPAL -->
-<main id="mainContent" class="container">
-    <!-- Coluna da Esquerda: Entrada de Texto -->
-    <div class="input-column">
-        <!-- Card de Reserva por Texto -->
-        <div class="card">
-            <h2>✏️ Nova Reserva</h2>
-            <p>Cole ou digite a solicitação de reserva abaixo.</p>
-            <textarea 
-                id="textInputArea" 
-                rows="6" 
-                placeholder="Ex: 'Reservar para Marciel, tel 21987654321, amanhã às 19h, 25 pessoas, aniversário, deixar uma mesa na janela.'"
-            ></textarea>
-            <button id="submitTextBtn">Analisar e Salvar Reserva</button>
-        </div>
-        
-        <!-- Mensagens da API -->
-        <div id="apiMessage" class="message-container"></div>
+<!-- RESULTADOS (QUERY) -->
+<div class="container-fluid mt-3" id="printArea">
+    <div class="status-row-info">
+        <span>📅 <strong id="statusDataDisplay">--/--</strong> - Dia Selecionado</span>
+        <span class="badge badge-dark">Ativos: <span id="totalAtivos">0</span></span>
     </div>
-
-    <!-- Coluna da Direita: Filtros e Reservas -->
-    <div class="results-column">
-        <!-- Card de Filtros -->
-        <div class="card">
-            <h2>📅 Filtrar Reservas</h2>
-            <div class="filter-controls">
-                <div class="form-group">
-                    <label for="filterStartDate">Data Inicial:</label>
-                    <input type="date" id="filterStartDate" />
-                </div>
-                <div class="form-group">
-                    <label for="filterEndDate">Data Final:</label>
-                    <input type="date" id="filterEndDate" />
-                </div>
-                <button id="filterBtn">Filtrar</button>
-                <button id="clearFilterBtn" class="secondary">Limpar</button>
-            </div>
-        </div>
-
-        <!-- Card de Reservas -->
-        <div class="card">
-            <h2>📋 Reservas Confirmadas</h2>
-            <div class="table-wrapper">
-                <table id="reservasTable">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Telefone</th>
-                            <th>Data</th>
-                            <th>Horário</th>
-                            <th>Pessoas</th>
-                            <th>Tipo</th>
-                            <th>Observações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    
+    <div class="table-responsive bg-white rounded shadow-sm p-3 mt-2">
+        <table id="reservasTable" class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Horário</th>
+                    <th>Pax</th>
+                    <th>Obs</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Preenchido pelo app.js -->
+            </tbody>
+        </table>
     </div>
-</main>
+</div>
 
-<footer>
-    <p>Desenvolvido Marciel Rossetto</p>
+<footer class="mt-5">
+    <p>Desenvolvido por Marciel Rossetto</p>
 </footer>
 
+<!-- SCRIPTS -->
 <script src="js/calendar.js"></script>
 <script src="js/app.js"></script>
 <script src="script.js"></script>
