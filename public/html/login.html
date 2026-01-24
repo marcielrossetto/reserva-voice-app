@@ -94,11 +94,20 @@
 </div>
 
 <script>
+  // ========================= DETECÇÃO AUTOMÁTICA DE AMBIENTE =========================
+  // Funciona tanto em localhost quanto no Render
+  const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001' 
+    : 'https://reserva-voice-app-1.onrender.com';
+
+  console.log('🔗 API Base URL:', API_BASE_URL);
+
+  // ========================= VERIFICAÇÃO DE TOKEN =========================
   // Se já tem token, vai pro dashboard
   const token = localStorage.getItem("token");
   if (token) {
     setTimeout(() => {
-      window.location.href = "index.html";  // ← MUDE AQUI
+      window.location.href = "index.html";
     }, 500);
   }
 
@@ -131,8 +140,10 @@
 
     const payload = { nome, email, senha };
     const url = isRegister 
-      ? "http://localhost:3001/api/auth/register" 
-      : "http://localhost:3001/api/auth/login";
+      ? `${API_BASE_URL}/api/auth/register` 
+      : `${API_BASE_URL}/api/auth/login`;
+
+    console.log('📤 Enviando requisição para:', url);
 
     try {
       const res = await fetch(url, {
@@ -155,12 +166,13 @@
 
       // Aguarda um pouco antes de redirecionar
       setTimeout(() => {
-        window.location.href = "index.html";  // ← MUDE AQUI
+        window.location.href = "index.html";
       }, 300);
 
     } catch (e) {
       document.getElementById("msg").style.color = "red";
       document.getElementById("msg").innerText = "Erro de conexão: " + e.message;
+      console.error('❌ Erro:', e);
       btn.disabled = false;
     }
   }
