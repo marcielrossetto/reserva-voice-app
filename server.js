@@ -6,9 +6,14 @@
 require("dotenv").config();
 const app = require("./app");
 
+//const PORT = process.env.PORT || 3001;
+//const HOST = process.env.HOST || "localhost";
 const PORT = process.env.PORT || 3001;
-const HOST = process.env.HOST || "localhost";
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
+});
 // ========================= INICIAR SERVIDOR =========================
 
 const server = app.listen(PORT, HOST, () => {
