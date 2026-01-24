@@ -1,0 +1,508 @@
+<!-- public/html/reservations_list.html -->
+<!-- Listagem de Reservas - Igual ao PHP -->
+
+<div class="reservations-list-wrapper">
+    
+    <!-- HEADER COM STATS -->
+    <div class="alert alert-secondary py-2 px-3 d-flex justify-content-between align-items-center mb-3 shadow-sm"
+        style="font-size:0.9rem; border-radius:8px; border:none; background:#e9ecef;">
+        <span>
+            <i class="fas fa-calendar-day text-primary"></i>
+            <strong id="statsDateDisplay">--/--</strong> - <span id="statsPeriodDisplay">Dia Completo</span>
+        </span>
+        <span class="badge bg-dark p-2">Total Ativos: <span id="statsTotalActive">0</span></span>
+    </div>
+
+    <!-- LISTA DE RESERVAS -->
+    <div class="lista-reservas-conteudo" id="reservasListContent">
+        <div class="text-center py-4 text-muted">
+            <i class="fas fa-hourglass-start"></i> Carregando...
+        </div>
+    </div>
+
+    <!-- TABELA PARA IMPRESSÃO (OCULTA) -->
+    <div id="print-data-hidden" style="display:none;">
+        <div class="print-header">
+            <h3>Lista de Reservas</h3>
+            <p id="printHeaderDate">--/--/---- | Dia Completo</p>
+        </div>
+        <table class="print-table" style="width:100%; border-collapse:collapse; font-size:10pt; font-family:Arial;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Qtd</th>
+                    <th>Hora</th>
+                    <th>Obs</th>
+                    <th>Mesa</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody">
+                <!-- Preenchido dinamicamente -->
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<style>
+/* ==================== RESERVATIONS LIST ==================== */
+
+.reservations-list-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* HEADER COM STATS */
+.reservations-header-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stats-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+    font-size: 0.95rem;
+}
+
+.stats-badge i {
+    font-size: 1.2rem;
+    color: #0d6efd;
+}
+
+.stats-data {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.stats-period {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+/* LISTAGEM DE RESERVAS */
+.reservations-list {
+    display: grid;
+    gap: 12px;
+}
+
+.reservation-item {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    border-left: 5px solid #ccc;
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+.reservation-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.reservation-item.status-confirmed {
+    border-left-color: #198754;
+}
+
+.reservation-item.status-pending {
+    border-left-color: #fd7e14;
+}
+
+.reservation-item.status-cancelled {
+    border-left-color: #dc3545;
+    background-color: #fff5f5;
+}
+
+.reservation-item.status-cancelled .reservation-name {
+    text-decoration: line-through;
+    color: #999;
+}
+
+/* BADGE ID */
+.reservation-badge-id {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #adb5bd;
+    z-index: 5;
+}
+
+/* BADGE STATUS */
+.reservation-badge-status {
+    position: absolute;
+    top: 6px;
+    right: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    z-index: 5;
+}
+
+.reservation-badge-status.confirmed {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.reservation-badge-status.pending {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.reservation-badge-status.cancelled {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* SEÇÃO: INFORMAÇÕES */
+.reservation-section-info {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 200px;
+    border-right: 1px solid #f0f0f0;
+}
+
+.reservation-name {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reservation-profile-link {
+    font-size: 0.75rem;
+    color: #0d6efd;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+
+.reservation-profile-link:hover {
+    color: #0b5ed7;
+    text-decoration: underline;
+}
+
+/* SEÇÃO: META (PAX, HORA, MESA) */
+.reservation-section-meta {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-width: 140px;
+    border-right: 1px solid #f0f0f0;
+}
+
+.reservation-meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.reservation-meta-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fd7e14;
+}
+
+.reservation-meta-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.reservation-meta-table {
+    font-size: 0.7rem;
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #555;
+    margin-top: 2px;
+}
+
+/* SEÇÃO: OBSERVAÇÕES */
+.reservation-section-obs {
+    flex: 1;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.reservation-obs-box {
+    background: #fcfcfc;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.reservation-obs-empty {
+    font-style: italic;
+    color: #999;
+}
+
+/* BOTÃO DE AÇÕES */
+.reservation-btn-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f8f9fa;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    z-index: 20;
+}
+
+.reservation-btn-actions:hover {
+    background: #e2e2e2;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* MENU iOS */
+.reservation-menu-ios {
+    position: absolute;
+    right: 50px;
+    top: 10px;
+    background: white;
+    border-radius: 12px;
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    width: 44px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+.reservation-menu-ios.show {
+    display: flex;
+    animation: slideInMenu 0.2s ease-out;
+}
+
+@keyframes slideInMenu {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.reservation-menu-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+}
+
+.reservation-menu-button:hover {
+    background: #f0f0f0;
+}
+
+.reservation-menu-button.whatsapp {
+    color: #25d366;
+}
+
+.reservation-menu-button.edit {
+    color: #0d6efd;
+}
+
+.reservation-menu-button.activate {
+    color: #198754;
+}
+
+.reservation-menu-button.cancel {
+    color: #dc3545;
+}
+
+/* MENSAGEM VAZIA */
+.reservations-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.reservations-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+/* PRINT */
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    font-family: Arial, sans-serif;
+}
+
+.print-table th,
+.print-table td {
+    border: 1px solid #000;
+    padding: 6px;
+    text-align: left;
+}
+
+.print-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+}
+
+.print-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.print-header h3 {
+    margin: 0 0 10px 0;
+}
+
+.print-header p {
+    margin: 0;
+    color: #666;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .reservation-section-info {
+        flex: 0 0 160px;
+        padding: 10px 12px;
+        min-width: 160px;
+    }
+
+    .reservation-name {
+        font-size: 0.95rem;
+    }
+
+    .reservation-section-meta {
+        flex: 0 0 120px;
+        gap: 15px;
+        padding: 10px 12px;
+    }
+
+    .reservation-meta-value {
+        font-size: 0.95rem;
+    }
+
+    .reservation-obs-box {
+        font-size: 0.75rem;
+        max-height: 50px;
+    }
+
+    .reservation-item {
+        padding-right: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reservation-section-info {
+        flex: 0 0 130px;
+        padding: 8px;
+    }
+
+    .reservation-name {
+        font-size: 0.85rem;
+        max-width: 100px;
+    }
+
+    .reservation-profile-link {
+        font-size: 0.7rem;
+    }
+
+    .reservation-section-meta {
+        flex: 0 0 100px;
+        gap: 10px;
+        padding: 8px;
+    }
+
+    .reservation-meta-value {
+        font-size: 0.85rem;
+    }
+
+    .reservation-obs-box {
+        font-size: 0.7rem;
+        padding: 6px 8px;
+        max-height: 45px;
+    }
+
+    .reservations-header-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .stats-badge {
+        padding: 10px 12px;
+    }
+}
+
+@media print {
+    .reservations-header-stats,
+    .reservation-btn-actions,
+    .reservation-menu-ios {
+        display: none !important;
+    }
+
+    .reservations-list-container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    #printDataHidden {
+        display: block !important;
+    }
+}
+</style>

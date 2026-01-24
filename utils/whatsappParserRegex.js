@@ -1,195 +1,187 @@
 /**
- * WhatsAppParser - Parser inteligente para mensagens de reserva.
- * Converte linguagem natural em dados estruturados para o sistema.
+ * Normaliza telefone brasileiro
+ * (11) 91122-3344 -> 11911223344
  */
-
-// Mapeamento de números para normalização global (Ordenado do maior para o menor)
-const NUMEROS_EXTENSOS = [
-  { txt: 'vinte e três', v: '23' }, { txt: 'vinte e trés', v: '23' },
-  { txt: 'vinte e dois', v: '22' }, { txt: 'vinte e um', v: '21' },
-  { txt: 'dezessete', v: '17' }, { txt: 'dezesseis', v: '16' },
-  { txt: 'quatorze', v: '14' }, { txt: 'quinze', v: '15' },
-  { txt: 'treze', v: '13' }, { txt: 'doze', v: '12' },
-  { txt: 'onze', v: '11' }, { txt: 'dez', v: '10' },
-  { txt: 'nove', v: '9' }, { txt: 'oito', v: '8' },
-  { txt: 'sete', v: '7' }, { txt: 'seis', v: '6' },
-  { txt: 'cinco', v: '5' }, { txt: 'quatro', v: '4' },
-  { txt: 'três', v: '3' }, { txt: 'trés', v: '3' },
-  { txt: 'dois', v: '2' }, { txt: 'duas', v: '2' },
-  { txt: 'um', v: '1' }, { txt: 'uma', v: '1' },
-  { txt: 'vinte', v: '20' }, { txt: 'trinta', v: '30' }
-];
-
-const MESES_MAP = {
-  janeiro: '01', fevereiro: '02', março: '03', abril: '04', maio: '05', junho: '06',
-  julho: '07', agosto: '08', setembro: '09', outubro: '10', novembro: '11', dezembro: '12'
-};
-
-class WhatsAppParser {
-  /**
-   * Ponto de entrada: Prepara o texto e extrai os campos.
-   */
-  static parse(textoRaw) {
-    if (!textoRaw) return null;
-
-    // Normalização inicial: números por extenso para dígitos
-    let text = textoRaw.toLowerCase().trim();
-    for (const item of NUMEROS_EXTENSOS) {
-      const regex = new RegExp(`\\b${item.txt}\\b`, 'gi');
-      text = text.replaceAll(regex, item.v);
-    }
-
-    return {
-      nome: this.extrairNome(text),
-      telefone: this.extrairTelefone(text),
-      data: this.extrairData(text),
-      horario: this.extrairHorario(text),
-      numPessoas: this.extrairPessoas(text),
-      tipoEvento: this.extrairEvento(text),
-      numeroMesa: this.extrairMesa(text),
-      observacoes: this.extrairObservacoes(textoRaw), // Obs mantém camelCase original
-    };
-  }
-
-  static validar(dados) {
-    const erros = [];
-    if (!dados.nome || dados.nome.length < 2) erros.push("Nome inválido");
-    if (!dados.telefone || dados.telefone.length < 10) erros.push("Telefone inválido");
-    if (!dados.data) erros.push("Data não encontrada");
-    if (!dados.horario) erros.push("Horário não encontrado");
-    if (!dados.numPessoas || dados.numPessoas < 1) erros.push("Número de pessoas inválido");
-
-    return { valido: erros.length === 0, erros };
-  }
-
-  static extrairNome(text) {
-    const patterns = [
-      /(?:sou|meu nome é|eu sou|nome:)\s+([a-záéíóúãõç]+(?:\s+[a-záéíóúãõç]+)?)/i,
-      /^([a-záéíóúãõç]+(?:\s+[a-záéíóúãõç]+)?)\s*[,.]?\s+(?:quero|gostaria|preciso)/i,
-      /(?:olá|oi|oiee|falar com)\s+([a-záéíóúãõç]+(?:\s+[a-záéíóúãõç]+)?)/i,
-    ];
-
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) return match[1].trim().replaceAll(/\s+/g, " ");
+function normalizePhone(phone) {
+    const cleaned = String(phone).replaceAll(/\D/g, '');
+    // Valida: 2 dígitos + 9 + 8 dígitos
+    if (/^[1-9]{2}9\d{8}$/.test(cleaned)) {
+        return cleaned;
     }
     return null;
-  }
-
-  static extrairTelefone(text) {
-    const cleanDigits = text.replaceAll(/\D/g, "");
-    // Busca padrão de 10 ou 11 dígitos (com ou sem 9)
-    const match = cleanDigits.match(/\d{10,11}/);
-    return match ? match[0].slice(-11) : null;
-  }
-
-  static extrairData(text) {
-    const hoje = new Date();
-
-    // 1. Datas Relativas
-    if (text.includes("hoje")) return this.formatDate(hoje);
-    if (text.includes("amanhã") || text.includes("amanha")) {
-      const d = new Date(); d.setDate(hoje.getDate() + 1);
-      return this.formatDate(d);
-    }
-    if (text.includes("depois de amanhã")) {
-      const d = new Date(); d.setDate(hoje.getDate() + 2);
-      return this.formatDate(d);
-    }
-
-    // 2. Formato DD/MM/YYYY ou DD/MM
-    const dateMatch = text.match(/(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?/);
-    if (dateMatch) {
-      const dia = dateMatch[1].padStart(2, "0");
-      const mes = dateMatch[2].padStart(2, "0");
-      const ano = dateMatch[3] 
-        ? (dateMatch[3].length === 2 ? `20${dateMatch[3]}` : dateMatch[3]) 
-        : hoje.getFullYear();
-      return `${ano}-${mes}-${dia}`;
-    }
-
-    // 3. Formato "25 de Maio"
-    const longDateMatch = text.match(/(\d{1,2})\s+(?:de\s+)?([a-zçãõáéíóú]+)/);
-    if (longDateMatch) {
-      const dia = longDateMatch[1].padStart(2, "0");
-      const mes = MESES_MAP[longDateMatch[2]];
-      if (mes) return `${hoje.getFullYear()}-${mes}-${dia}`;
-    }
-
-    return null;
-  }
-
-  static extrairHorario(text) {
-    // Procura padrões como "19:30", "19h30", "às 19", "às 7 da noite"
-    const patterns = [
-      /(\d{1,2})[:h\s](\d{2})/,             // 19:30, 19h30, 19 30
-      /(?:às|as|pelas)\s+(\d{1,2})(?![\d/])/, // às 19, às 7
-    ];
-
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        let hora = Number.parseInt(match[1], 10);
-        const min = match[2] ? match[2].padStart(2, "0") : "00";
-
-        // Lógica simples para PM/Noite (se o usuário disser 7 e for tarde)
-        if (hora < 12 && (text.includes("noite") || text.includes("tarde"))) {
-          hora += 12;
-        }
-
-        if (hora >= 0 && hora <= 23) {
-          return `${String(hora).padStart(2, "0")}:${min}`;
-        }
-      }
-    }
-    return null;
-  }
-
-  static extrairPessoas(text) {
-    const match = text.match(/(\d+)\s*(?:pessoas|pax|lugares|pess|pesss)/) || 
-                  text.match(/(?:para|somos|com)\s+(\d+)/);
-    
-    return match ? Number.parseInt(match[1], 10) : null;
-  }
-
-  static extrairEvento(text) {
-    const tipos = {
-      'Aniversário': /aniversário|niver|aniv|parabéns/i,
-      'Casamento': /casamento|bodas|noivado/i,
-      'Corporativo': /empresa|corporativo|reunião|trabalho/i,
-      'Confraternização': /confraternização|confra|amigo oculto/i,
-      'Família': /família|familiar/i
-    };
-
-    for (const [nome, regex] of Object.entries(tipos)) {
-      if (regex.test(text)) return nome;
-    }
-    return "Reserva Comum";
-  }
-
-  static extrairMesa(text) {
-    const match = text.match(/mesa\s*(?:n|n°|número)?\s*(\d+)/i);
-    return match ? match[1] : null;
-  }
-
-  static extrairObservacoes(text) {
-    const keywords = ["obs", "observação", "preferência", "alergia", "detalhe", "nota"];
-    const lowerText = text.toLowerCase();
-
-    for (const key of keywords) {
-      if (lowerText.includes(key)) {
-        // Pega tudo após a palavra-chave
-        const parts = text.split(new RegExp(key, 'i'));
-        return parts[1].replace(/^[:\-\s]+/, "").trim();
-      }
-    }
-    return "";
-  }
-
-  // Helper privado para formatar YYYY-MM-DD
-  static formatDate(date) {
-    return date.toISOString().split('T')[0];
-  }
 }
 
-module.exports = WhatsAppParser;
+/**
+ * Normaliza data para YYYY-MM-DD
+ * Aceita: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, hoje, amanha
+ */
+function normalizeDate(dateStr, hoje = new Date()) {
+    const lower = String(dateStr).toLowerCase().trim();
+    
+    if (lower === 'hoje') {
+        return hoje.toISOString().split('T')[0];
+    }
+    
+    if (lower === 'amanha' || lower === 'amanhã') {
+        const amanha = new Date(hoje);
+        amanha.setDate(amanha.getDate() + 1);
+        return amanha.toISOString().split('T')[0];
+    }
+    
+    // DD/MM/YYYY, DD-MM-YYYY ou DD.MM.YYYY (com ponto)
+    const match = dateStr.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+    if (match) {
+        let [, day, month, year] = match;
+        
+        day = String(day).padStart(2, '0');
+        month = String(month).padStart(2, '0');
+        
+        if (!year) {
+            year = hoje.getFullYear();
+        } else if (year.length === 2) {
+            year = '20' + year;
+        }
+        
+        return `${year}-${month}-${day}`;
+    }
+    
+    return null;
+}
+
+/**
+ * Normaliza horário para HH:MM
+ * Aceita: 19, 19:30, 19h30, 19h, 19 horas, 21 horas
+ */
+function normalizeHour(hourStr) {
+    const match = String(hourStr).match(/(\d{1,2})(?:[:.,](\d{2}))?/);
+    if (!match) return null;
+    
+    let hour = String(match[1]).padStart(2, '0');
+    let min = match[2] ? String(match[2]).padStart(2, '0') : '00';
+    
+    if (Number(hour) > 23) return null;
+    if (Number(min) > 59) return null;
+    
+    return `${hour}:${min}`;
+}
+
+/**
+ * Parse inteligente de reserva via WhatsApp
+ */
+function parseReserva(texto) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const resultado = {
+        nome: { value: null, score: 0 },
+        telefone: { value: null, score: 0 },
+        data: { value: null, score: 0 },
+        horario: { value: null, score: 0 },
+        pessoas: { value: null, score: 0 },
+        pagamento: { value: null, score: 0 },
+        mesa: { value: null, score: 0 },
+        observacoes: { value: null, score: 1 }
+    };
+    
+    const lower = texto.toLowerCase();
+    let textoLimpo = texto;
+    
+    // 👤 NOME - PRIMEIRO (antes de quebrar o texto)
+    const nomeMatch = texto.match(/^([a-záàâãéèêíïóôõöúçñ\s]+?)(?:\n|:)/i);
+    if (nomeMatch && nomeMatch[1].trim().length > 2) {
+        const nome = nomeMatch[1].trim();
+        resultado.nome.value = nome;
+        resultado.nome.score = 0.95;
+        textoLimpo = textoLimpo.replace(nome, '');
+    }
+    
+    // 📞 TELEFONE
+    const telMatch = texto.match(/Telefone:\s*([0-9\/\-\(\)\s]+)/i);
+    if (telMatch) {
+        const telRaw = telMatch[1].trim();
+        const telefone = normalizePhone(telRaw);
+        if (telefone) {
+            resultado.telefone.value = telefone;
+            resultado.telefone.score = 0.95;
+        }
+    }
+    
+    // 📅 DATA - FORMATO ESPECÍFICO
+    const dataMatch = texto.match(/Data:\s*(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/i);
+    if (dataMatch) {
+        const dataRaw = dataMatch[1].trim();
+        const data = normalizeDate(dataRaw, hoje);
+        if (data) {
+            resultado.data.value = data;
+            resultado.data.score = 0.95;
+        }
+    }
+    
+    // ⏰ HORÁRIO
+    const horaMatch = texto.match(/Horário:\s*(\d{1,2})\s*(?:h|horas)?/i);
+    if (horaMatch) {
+        const horaRaw = horaMatch[1];
+        const horario = normalizeHour(horaRaw + ':00');
+        if (horario) {
+            resultado.horario.value = horario;
+            resultado.horario.score = 0.95;
+        }
+    }
+    
+    // 👥 PESSOAS
+    const pessoasMatch = texto.match(/Pessoas:\s*(\d+)/i);
+    if (pessoasMatch) {
+        const num = Number(pessoasMatch[1]);
+        if (num > 0 && num <= 200) {
+            resultado.pessoas.value = num;
+            resultado.pessoas.score = 0.95;
+        }
+    }
+    
+    // 💳 PAGAMENTO
+    const pagamentoMatch = texto.match(/Pagamento:\s*([^\n]+)/i);
+    if (pagamentoMatch) {
+        const pag = pagamentoMatch[1].toLowerCase();
+        if (pag.includes('unica') || pag.includes('única')) {
+            resultado.pagamento.value = 'unica';
+        } else if (pag.includes('individual')) {
+            resultado.pagamento.value = 'individual';
+        } else {
+            resultado.pagamento.value = pag.trim();
+        }
+        resultado.pagamento.score = 0.9;
+    }
+    
+    // 🪑 MESA
+    const mesaMatch = texto.match(/Mesa:\s*(\d+|[a-z0-9\s]+)/i);
+    if (mesaMatch) {
+        resultado.mesa.value = mesaMatch[1].trim();
+        resultado.mesa.score = 0.9;
+    }
+    
+    // 📝 OBSERVAÇÕES
+    const obsMatch = texto.match(/Observações?:\s*([^\n]+)/i);
+    if (obsMatch) {
+        resultado.observacoes.value = obsMatch[1].trim();
+        resultado.observacoes.score = 0.9;
+    }
+    
+    return resultado;
+}
+    // 📝 OBSERVAÇÕES
+    resultado.observacoes.value = textoLimpo
+        .replace(/unica|única|individual/gi, '')
+        .replace(/mesa|salao|salão|pista/gi, '')
+        .replace(/pax|pessoas|para/gi, '')
+        .replace(/h(?:oras)?/gi, '')
+        .trim() || null;
+    
+    return resultado;
+}
+
+module.exports = {
+    normalizePhone,
+    normalizeDate,
+    normalizeHour,
+    parseReserva
+};
