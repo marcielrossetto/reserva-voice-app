@@ -1,67 +1,57 @@
 /**
- * header.js - Funções do header
+ * public/js/components/header.js
  */
+(function() {
+    const TOKEN = localStorage.getItem("token");
+    const USERNAME = localStorage.getItem("username");
 
-const TOKEN = localStorage.getItem("token");
-const USERNAME = localStorage.getItem("username");
-const USER_LEVEL = localStorage.getItem("userLevel") || "Admin";
-
-if (!TOKEN) {
-    window.location.href = "/login.html";
-}
-
-// Preencher dados do usuário
-document.addEventListener("DOMContentLoaded", () => {
-    if (USERNAME) {
-        document.getElementById("userName").textContent = `Olá, ${USERNAME}`;
+    // 1. SEGURANÇA: Se não estiver logado, expulsa antes de qualquer coisa
+    if (!TOKEN && !window.location.pathname.includes("login.html")) {
+        window.location.replace("/html/login.html");
+        return;
     }
-    document.getElementById("userLevel").textContent = USER_LEVEL;
-});
 
-// ========================= FUNÇÕES DO MENU =========================
+    /**
+     * Função para carregar o HTML do Header e preencher os dados
+     */
+    async function loadHeader() {
+        const headerContainer = document.getElementById('main-header');
+        if (!headerContainer) return;
 
-function novaReserva() {
-    console.log("📝 Nova reserva");
-    showMessage("Função em desenvolvimento", "info");
-}
+        try {
+            // Busca o arquivo HTML separado
+            const response = await fetch('/html/header.html');
+            if (!response.ok) throw new Error("Não foi possível carregar o header.html");
+            
+            const html = await response.text();
+            headerContainer.innerHTML = html;
 
-function relatorios() {
-    console.log("📊 Relatórios");
-    showMessage("Função em desenvolvimento", "info");
-}
-
-function configuracoes() {
-    console.log("⚙️ Configurações");
-    showMessage("Função em desenvolvimento", "info");
-}
-
-function logout() {
-    if (confirm("Deseja sair?")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        localStorage.removeItem("userLevel");
-        window.location.href = "/login.html";
+            // Após injetar o HTML, preenche o nome do usuário
+            const nameEl = document.getElementById("userName");
+            if (nameEl && USERNAME) {
+                nameEl.textContent = `Olá, ${USERNAME}`;
+            }
+            
+            console.log("✅ Header carregado e renderizado.");
+        } catch (error) {
+            console.error('❌ Erro ao carregar header:', error);
+        }
     }
-}
 
-// ========================= MENU MOBILE =========================
+    // ========================= FUNÇÕES GLOBAIS DO HEADER =========================
 
-function toggleMobileMenu() {
-    const headerCenter = document.querySelector(".header-center");
-    if (headerCenter) {
-        headerCenter.style.display = headerCenter.style.display === "flex" ? "none" : "flex";
-    }
-}
+    globalThis.logout = function() {
+        if (confirm("Deseja realmente sair?")) {
+            localStorage.clear();
+            window.location.replace("/html/login.html");
+        }
+    };
 
-// ========================= MOSTRAR MENSAGEM =========================
-
-function showMessage(text, type = "info") {
-    // Usar a função do main.js se disponível
-    if (typeof window.showMsg === 'function') {
-        window.showMsg(text, type);
+    // Inicializa o carregamento assim que o script rodar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadHeader);
     } else {
-        console.log(`[${type.toUpperCase()}] ${text}`);
+        loadHeader();
     }
-}
 
-console.log("✅ header.js carregado");
+})();

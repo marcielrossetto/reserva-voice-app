@@ -6,15 +6,33 @@
     padding: 0; 
 }
 
-body { 
-    font-family: 'Roboto', Arial, sans-serif; 
-    background: #f5f5f5;
+body {
+    /* Refatorado: Adicionada família genérica 'sans-serif' */
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Ajuste de contraste: Se o fundo for claro, use cores mais escuras que #999 */
+    color: #333; 
 }
 
+.text-muted {
+    /* Refatorado: #a2a3b7 costuma ter baixo contraste em fundo branco. 
+       Use uma cor um pouco mais escura para passar no WCAG */
+    color: #6c757d !important; 
+}
 /* ============================================
    HEADER
    ============================================ */
-
+.btn-add-reserva {
+    background: none;
+    border: none;
+    color: #25D366; /* Cor verde WhatsApp para destaque */
+    font-size: 1.8rem;
+    cursor: pointer;
+    margin-right: 15px;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+.btn-add-reserva:hover { transform: scale(1.1); color: #1da851; }
 header {
     background: linear-gradient(135deg, #3699ff 0%, #5b5fcf 100%);
     color: white;
