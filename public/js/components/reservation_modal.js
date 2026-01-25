@@ -1,6 +1,5 @@
 // ===== MÓDULO DE RESERVAS - v3.0 =====
 // Com parsing inteligente e modal de confirmação
-
 globalThis.maskPhone = function(input) {
     let v = input.value.replaceAll(/\D/g, "");
     if (v.length > 11) v = v.slice(0, 11);

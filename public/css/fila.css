@@ -1,0 +1,503 @@
+/* public/css/fila.css */
+
+* { 
+    box-sizing: border-box; 
+}
+
+body { 
+    background: #f2f2f7; 
+    font-size: 0.85rem; 
+    overflow-x: hidden; 
+}
+
+.page-wrapper { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 10px; 
+}
+
+.toolbar-min { 
+    background: #fff; 
+    padding: 15px; 
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+    margin-bottom: 15px; 
+}
+
+/* ===== CARDS DE FILA ===== */
+
+.fila-item { 
+    position: relative;
+    display: flex; 
+    align-items: center; 
+    padding: 8px 12px; 
+    background: #fff; 
+    border-radius: 10px; 
+    margin-bottom: 6px; 
+    border: 2px solid #111124ff;
+    transition: all 0.3s;
+    min-height: 60px;
+    overflow: hidden;
+}
+
+.fila-item.prioridade-idoso { 
+    background: #fff3cd; 
+    border-color: #ffc107; 
+}
+
+.fila-item.prioridade-colo { 
+    background: #d1ecf1; 
+    border-color: #17a2b8; 
+}
+
+.fila-item.prioridade-deficiente { 
+    background: #f3e5f5; 
+    border-color: #6f42c1; 
+}
+
+.fila-item.prioridade-gestante { 
+    background: #fce4ec; 
+    border-color: #e83e8c; 
+}
+
+.fila-item.desistencia { 
+    background: #fff5f5; 
+    border-color: #dc3545; 
+    opacity: 0.85; 
+}
+
+/* ===== POSIÇÃO NÚMERO ===== */
+
+.pos-num { 
+    width: 35px; 
+    border-right: 1px solid #eee; 
+    text-align: center; 
+    font-weight: 800; 
+    color: #8e8e93; 
+    font-size: 0.95rem; 
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.pos-num small { 
+    font-size: 8px; 
+    display: block; 
+}
+
+/* ===== NOME CONTAINER ===== */
+
+.nome-container { 
+    flex: 1; 
+    min-width: 0;
+    overflow: hidden;
+}
+
+.res-nome { 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    color: #1c1c1e; 
+    display: block; 
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== BADGE PRIORIDADE ===== */
+
+.badge-prioridade { 
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    height: 14px;
+    padding: 2px 8px;
+    border-radius: 4px; 
+    font-size: 9px; 
+    font-weight: 700;
+    z-index: 10;
+}
+
+.badge-prioridade.idoso { 
+    background: #ffc107; 
+    color: #000; 
+}
+
+.badge-prioridade.colo { 
+    background: #17a2b8; 
+    color: #fff; 
+}
+
+.badge-prioridade.deficiente { 
+    background: #6f42c1; 
+    color: #fff; 
+}
+
+.badge-prioridade.gestante { 
+    background: #e83e8c; 
+    color: #fff; 
+}
+
+/* ===== AÇÕES ===== */
+
+.acoes-sub { 
+    display: flex; 
+    gap: 6px; 
+    margin-top: 2px; 
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.btn-icon { 
+    border: none; 
+    background: #f2f2f7; 
+    color: #007aff; 
+    font-size: 0.7rem; 
+    padding: 2px 6px; 
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.btn-icon:hover { 
+    background: #e0e0e5; 
+}
+
+.btn-icon i { 
+    font-size: 16px; 
+}
+
+.btn-whatsapp { 
+    background: #25D366; 
+    color: white; 
+    border: none; 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-size: 11px; 
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.btn-whatsapp:hover { 
+    background: #128C7E; 
+    color: white; 
+}
+
+/* ===== TIMER ===== */
+
+.timer { 
+    font-weight: 800; 
+    color: #ff3b30; 
+    min-width: 55px; 
+    text-align: center; 
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* ===== PAX ===== */
+
+.pax-focus { 
+    text-align: center; 
+    min-width: 40px; 
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+.pax-focus strong { 
+    font-size: 1.4rem; 
+    display: block; 
+    line-height: 1; 
+    color: #000; 
+}
+
+.pax-focus small { 
+    font-size: 9px; 
+}
+
+/* ===== BOTÕES AÇÃO ===== */
+
+.btn-sentar-group { 
+    display: flex; 
+    gap: 6px; 
+    flex-shrink: 0; 
+}
+
+.btn-circle { 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border: none; 
+    color: white; 
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.btn-circle i { 
+    font-size: 18px; 
+}
+
+.btn-seat { 
+    background: #34c759; 
+}
+
+.btn-close { 
+    background: #f2f2f7; 
+    color: #ff3b30; 
+    border: 1px solid #ddd; 
+}
+
+/* ===== MESA BADGE ===== */
+
+.mesa-badge { 
+    border: 1.5px solid #ddd; 
+    border-radius: 8px; 
+    padding: 2px 8px; 
+    text-align: center; 
+    min-width: 45px; 
+    cursor: pointer; 
+    display: inline-block; 
+    transition: all 0.2s;
+}
+
+.mesa-badge:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+}
+
+/* ===== BEBIDAS TRIGGER ===== */
+
+.total-bebidas-trigger { 
+    cursor: pointer; 
+    background: #e5f1ff; 
+    color: #007aff; 
+    padding: 2px 6px;
+    border-radius: 4px; 
+    font-weight: 700; 
+    font-size: 9px; 
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0;
+    height: 24px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.total-bebidas-trigger:hover { 
+    background: #d0e7ff; 
+}
+
+/* ===== BADGES DE SEÇÃO ===== */
+
+.section-badge {
+    background: #007aff;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.section-badge.desistencia {
+    background: #dc3545;
+}
+
+.mesa-numero {
+    background: #007aff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.v-middle { 
+    vertical-align: middle; 
+}
+
+.config-numero {
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e5ea;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-numero input {
+    width: 70px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.historico-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+/* ===== LAYOUT DE COLUNAS ===== */
+
+.row-balanced {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.col-espera {
+    flex: 0 0 50%;
+    max-width: 50%;
+    min-width: 0;
+}
+
+.col-historico {
+    flex: 0 0 50%;
+    max-width: 50%;
+    min-width: 0;
+}
+
+.fila-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .row-balanced {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .col-espera {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    .col-historico {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 767px) {
+    .page-wrapper {
+        padding: 5px;
+    }
+    
+    .row-balanced {
+        flex-direction: column;
+    }
+    
+    .col-espera, .col-historico {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .fila-item {
+        flex-wrap: nowrap;
+        min-height: 60px;
+        max-height: 60px;
+        padding: 8px 12px;
+        overflow: hidden;
+    }
+    
+    .pos-num {
+        order: 1;
+        margin-right: 8px;
+    }
+    
+    .nome-container {
+        order: 2;
+        flex: 1;
+        min-width: 0;
+        margin-top: 0;
+    }
+    
+    .pax-focus {
+        order: 3;
+        margin: 0 5px;
+    }
+    
+    .timer {
+        order: 4;
+        margin-top: 0;
+    }
+    
+    .btn-sentar-group {
+        order: 5;
+        margin-left: auto;
+        margin-top: 0;
+    }
+    
+    .acoes-sub {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .badge-prioridade {
+        position: absolute;
+        top: 1px;
+        left: 4px;
+        height: 14px;
+    }
+    
+    .mesa-numero {
+        display: inline-block;
+        margin: 0 0 0 8px;
+    }
+    
+    .total-bebidas-trigger {
+        margin-top: 0;
+    }
+    
+    .toolbar-min .row {
+        row-gap: 8px;
+    }
+    
+    .toolbar-min .col-md-2,
+    .toolbar-min .col-md-1 {
+        width: 100% !important;
+        flex: 0 0 100%;
+    }
+    
+    .toolbar-min .col-md-4 {
+        width: 100% !important;
+        flex: 0 0 100%;
+    }
+    
+    .config-numero {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .section-badge {
+        margin-left: 4px;
+        margin-top: 5px;
+    }
+}

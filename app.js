@@ -33,6 +33,7 @@ app.use(express.static(PATHS.public));
  * 3. ROTAS DA API
  * ==========================================================================
  */
+app.use("/api/fila", require("./routes/fila.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/reservations", require("./routes/reservation.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes"));

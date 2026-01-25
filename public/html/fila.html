@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fila de Espera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/fila.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<nav class="navbar navbar-dark bg-dark sticky-top" style="padding: 12px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <h5 class="m-0 text-white fw-bold" style="font-size: 18px;">
+                <i class="material-icons" style="vertical-align: middle; font-size: 26px; margin-right: 8px;">people_alt</i>
+                Fila de Espera
+            </h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success" style="padding: 6px 10px; font-size: 11px;">
+                <i class="material-icons" style="font-size: 12px; vertical-align: middle;">fiber_manual_record</i>
+                Online
+            </span>
+            <button class="btn btn-outline-light btn-sm" onclick="location.reload()" title="Atualizar" style="padding: 5px 8px;">
+                <i class="material-icons" style="font-size: 16px;">refresh</i>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" style="padding: 5px 8px;">
+                    <i class="material-icons" style="font-size: 16px;">menu</i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/html/index.html"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">event</i>Reservas</a></li>
+                    <li><a class="dropdown-item" href="/html/fila.html"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">people</i>Fila</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">logout</i>Sair</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="page-wrapper" style="margin-top: 15px;">
+
+    <!-- TOOLBAR DE ENTRADA -->
+    <div class="toolbar-min">
+        <form id="formAddCliente" class="row g-2 align-items-end">
+            <div class="col-md-2 col-12">
+                <label class="form-label small mb-1">Nome</label>
+                <input type="text" id="nomePessoa" class="form-control form-control-sm" placeholder="Nome completo" required>
+            </div>
+            <div class="col-md-2 col-12">
+                <label class="form-label small mb-1">WhatsApp</label>
+                <input type="text" id="telefonePessoa" class="form-control form-control-sm" placeholder="(00) 00000-0000">
+            </div>
+            <div class="col-md-1 col-6">
+                <label class="form-label small mb-1">Pessoas</label>
+                <select id="qtdPessoas" class="form-select form-select-sm">
+                    <option value="1">1 Pax</option>
+                    <option value="2">2 Pax</option>
+                    <option value="3">3 Pax</option>
+                    <option value="4">4 Pax</option>
+                    <option value="5">5 Pax</option>
+                    <option value="6">6 Pax</option>
+                    <option value="7">7 Pax</option>
+                    <option value="8">8 Pax</option>
+                    <option value="9">9 Pax</option>
+                    <option value="10">10 Pax</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-6">
+                <label class="form-label small mb-1">Prioridade</label>
+                <select id="prioridade" class="form-select form-select-sm text-warning fw-bold">
+                    <option value="">Sem prioridade</option>
+                    <option value="Idoso">Idoso</option>
+                    <option value="Deficiente">Deficiente</option>
+                    <option value="Colo">Criança de Colo</option>
+                    <option value="Gestante">Gestante</option>
+                </select>
+            </div>
+            <div class="col-md-1 col-12">
+                <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold" title="Adicionar à fila">
+                    <i class="material-icons" style="font-size: 18px;">add_circle</i>
+                </button>
+            </div>
+            <div class="col-md-4 col-12 d-flex gap-2 flex-wrap justify-content-md-end">
+                <div class="config-numero">
+                    <label style="font-size: 11px; margin: 0; white-space: nowrap;">Nº Inicial:</label>
+                    <input type="number" id="numeroInicial" value="1" min="1">
+                    <button type="button" class="btn btn-sm btn-primary" id="btnSalvarNumero" style="padding: 2px 8px; font-size: 11px;">Salvar</button>
+                </div>
+                <input type="date" id="dataSelecionada" class="form-control form-control-sm" style="width: auto;">
+                <button type="button" onclick="location.reload()" class="btn btn-light btn-sm border"><i class="material-icons">sync</i></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="row-balanced">
+        <!-- COLUNA 1: ESPERANDO -->
+        <div class="col-espera">
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                <h6 class="m-0 fw-bold" style="font-size: 0.9rem;">
+                    <i class="material-icons v-middle" style="font-size: 20px;">groups</i> 
+                    ESPERANDO 
+                    <span id="totalPaxEspera" class="badge bg-primary">0 PAX</span>
+                </h6>
+                <div class="d-flex gap-1 flex-wrap" id="filtrosMesas">
+                    <!-- Preenchido por JavaScript -->
+                </div>
+            </div>
+            <div id="listaEspera" class="fila-container">
+                <!-- Preenchido por JavaScript -->
+            </div>
+        </div>
+
+        <!-- COLUNA 2: HISTÓRICO -->
+        <div class="col-historico">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <h6 class="m-0 fw-bold" style="font-size: 0.9rem;">
+                    <i class="material-icons v-middle" style="font-size: 20px;">history</i> 
+                    HISTÓRICO 
+                    <span id="totalPaxAtendidos" class="section-badge">0 PAX</span>
+                    <span id="totalDesistencias" class="section-badge desistencia">0 DESIST.</span>
+                </h6>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge bg-dark" style="cursor:pointer; padding: 8px; font-size: 11px;" id="totalBebidasBadge">🍹 0</span>
+                    <span class="badge bg-success" style="cursor:pointer; padding: 8px; font-size: 11px;" id="totalVendasBadge">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="historico-scroll" id="listaHistorico">
+                <!-- Preenchido por JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAIS -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px">
+            <div class="modal-body p-4">
+                <h6 class="fw-bold mb-3">Editar Cliente</h6>
+                <input type="text" id="edNome" class="form-control mb-2" placeholder="Nome">
+                <input type="text" id="edTel" class="form-control mb-2" placeholder="Telefone">
+                <input type="number" id="edPax" class="form-control mb-3" placeholder="Nº Pessoas">
+                <button class="btn btn-primary w-100" id="btnConfirmarEdicao">SALVAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAddBebida" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px">
+            <div class="modal-body p-4">
+                <h6 class="fw-bold mb-3">Servir Bebida</h6>
+                <input type="text" id="nomeBebida" class="form-control mb-2" placeholder="Nome da bebida">
+                <input type="number" id="precoBebida" class="form-control mb-3" placeholder="Preço" step="0.01">
+                <button class="btn btn-dark w-100" id="btnConfirmarBebida">ADICIONAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalFiltro" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius:20px">
+            <div class="modal-header border-0">
+                <h6 class="fw-bold m-0">Filtrados</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="corpoFiltro"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConsumo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px">
+            <div class="modal-body p-4">
+                <h6 class="fw-bold mb-3 text-center">Consumo Detalhado</h6>
+                <div id="corpoConsumo"></div>
+                <hr>
+                <div id="financeiroConsumo"></div>
+                <button class="btn btn-light w-100 mt-3" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/fila.js"></script>
+
+<script>
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/html/login.html';
+}
+</script>
+
+</body>
+</html>
