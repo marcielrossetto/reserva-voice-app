@@ -13,16 +13,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- CSS Local (Caminhos Absolutos) -->
+    <!-- CSS Local -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/css/calendar.css" />
     <link rel="stylesheet" href="/css/reservation_modal.css" />
+    <link rel="stylesheet" href="/css/reservationQuery.css" />
 </head>
 <body>
 
-<!-- No seu index.html, substitua o bloco <header> por este: -->
+<!-- HEADER -->
 <header id="main-header" class="header">
-    <!-- O conteúdo será injetado aqui pelo header.js -->
+    <!-- Injetado pelo header.js -->
 </header>
 
 <!-- SEÇÃO DO CALENDÁRIO -->
@@ -41,40 +42,45 @@
     </button>
 </section>
 
-<!-- BARRA DE FILTROS HORIZONTAL -->
+<!-- BARRA DE FILTROS -->
 <div class="container-fluid mt-3">
     <div class="filter-bar-horizontal">
         <!-- DATA -->
         <div class="filter-item-date">
-            <input type="date" id="filterStartDate" class="form-control form-control-sm" onchange="carregarReservas()">
+            <input type="date" id="filterData" class="form-control form-control-sm" onchange="loadReservations()">
         </div>
 
         <!-- BUSCA -->
         <div class="filter-item-search">
-            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar nome ou tel..." onkeyup="carregarReservas()">
+            <input type="text" id="filterBusca" class="form-control form-control-sm" placeholder="Buscar nome ou tel..." onkeyup="loadReservations()">
         </div>
 
-        <!-- ÍCONES DE PERÍODO -->
+        <!-- PERÍODO -->
         <div class="period-icons">
             <button class="btn-period active" onclick="setPeriodo('todos', this)" title="Dia Completo">
                 <i class="fas fa-calendar-day"></i>
             </button>
-            <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Almoço">
+            <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Almoço (11:00 - 17:59)">
                 <i class="fas fa-sun"></i>
             </button>
-            <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Jantar">
+            <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Jantar (18:00 - 23:59)">
                 <i class="fas fa-moon"></i>
             </button>
-            <!-- Campo oculto para guardar o valor do período -->
             <input type="hidden" id="filterPeriodo" value="todos">
+        </div>
+
+        <!-- CANCELADAS -->
+        <div class="filter-item-checkbox">
+            <label>
+                <input type="checkbox" id="incluirCanceladas" onchange="loadReservations()"> Canceladas
+            </label>
         </div>
 
         <!-- AÇÕES -->
         <div class="filter-actions">
-            <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Imprimir Lista">
+            <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Imprimir">
                 <i class="fas fa-print"></i>
             </button>
-            <!-- Botão Adicionar (Barra Filtro) -->
             <button class="btn btn-primary btn-sm" onclick="openReservationModal()" title="Nova Reserva">
                 <i class="fas fa-plus"></i>
             </button>
@@ -82,29 +88,19 @@
     </div>
 </div>
 
-<!-- RESULTADOS (QUERY) -->
-<div class="container-fluid mt-3" id="printArea">
-    <div class="status-row-info">
-        <span>📅 <strong id="statusDataDisplay">--/--</strong> - Dia Selecionado</span>
-        <span class="badge badge-dark">Ativos: <span id="totalAtivos">0</span></span>
+<!-- TOTAIS -->
+<div class="container-fluid">
+    <div class="totais-info">
+        <span id="totalStatus">📅 Hoje</span>
+        <span class="badge badge-dark">Ativos: <span id="totalAtivos">0</span> pax | <span id="totalQtd">0</span> res</span>
+        <span class="badge badge-warning" id="badgeCanceladas" style="display:none;">Canceladas: <span id="totalCanceladas">0</span></span>
     </div>
-    
-    <div class="table-responsive bg-white rounded shadow-sm p-3 mt-2">
-        <table id="reservasTable" class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Telefone</th>
-                    <th>Horário</th>
-                    <th>Pax</th>
-                    <th>Obs</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Preenchido pelo app.js ou reservas_modal.js -->
-            </tbody>
-        </table>
+</div>
+
+<!-- GRID DE CARDS -->
+<div class="container-fluid mt-3" id="printArea">
+    <div id="reservationsContainer" class="reservations-grid">
+        <!-- Cards inseridos via JS -->
     </div>
 </div>
 
@@ -112,21 +108,25 @@
     <p>Desenvolvido por Marciel Rossetto</p>
 </footer>
 
-<!-- DIV PARA INJEÇÃO DO MODAL (Não remova) -->
+<!-- Modal container -->
 <div id="modal-container"></div>
 
-<!-- SCRIPTS EXTERNOS (OBRIGATÓRIO NESTA ORDEM) -->
-<!-- 1º JQUERY -->
+<!-- SCRIPTS (ORDEM MUITO IMPORTANTE!) -->
+<!-- 1º: jQuery e Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- 2º POPPER E BOOTSTRAP JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- SCRIPTS LOCAIS (Caminhos Absolutos) -->
- <script src="/js/config.js"></script>
- <script src="/js/components/header.js"></script>
+<!-- 2º: Config e Header -->
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+
+<!-- 3º: Lógica de Reservas (ANTES do calendário!) -->
+<script src="/js/reservationQuery.js"></script>
+
+<!-- 4º: Calendário (depende de loadReservations) -->
 <script src="/js/calendar.js"></script>
-<script src="/js/app.js"></script>
-<!-- index.html -->
+
+<!-- 5º: Modal de Reserva -->
 <script src="/js/components/reservation_modal.js"></script>
 
 </body>
