@@ -35,7 +35,10 @@ router.get("/data", auth, async (req, res) => {
     const mapa = {};
     data.forEach(r => {
       const dataISO = r.data.toISOString().split('T')[0];
-      const hora = new Date(r.horario).getHours();
+      
+      // ===== CORRIGIR: horario é String "18:30:00" =====
+      const [hh, mm, ss] = r.horario.split(':');
+      const hora = parseInt(hh, 10);
       
       if (!mapa[dataISO]) {
         mapa[dataISO] = { almoco: 0, jantar: 0 };
@@ -84,14 +87,17 @@ router.get("/reservas-dia", auth, async (req, res) => {
       orderBy: { horario: 'asc' }
     });
 
+    // ===== CORRIGIR: horario é String "18:30:00" =====
     if (periodo === "almoco") {
       reservas = reservas.filter(r => {
-        const hora = new Date(r.horario).getHours();
+        const [hh] = r.horario.split(':');
+        const hora = parseInt(hh, 10);
         return hora < 18;
       });
     } else if (periodo === "jantar") {
       reservas = reservas.filter(r => {
-        const hora = new Date(r.horario).getHours();
+        const [hh] = r.horario.split(':');
+        const hora = parseInt(hh, 10);
         return hora >= 18;
       });
     }

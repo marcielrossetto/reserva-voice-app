@@ -144,6 +144,7 @@
       : `${API_BASE_URL}/api/auth/login`;
 
     console.log('📤 Enviando requisição para:', url);
+    console.log('📦 Payload:', payload);
 
     try {
       const res = await fetch(url, {
@@ -161,8 +162,14 @@
         return;
       }
 
+      // ========================= SALVAR DADOS NO LOCALSTORAGE =========================
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.user.nome);
+      localStorage.setItem("empresa_id", data.user.empresa_id || data.empresa_id || "1");
+
+      console.log('✅ Login realizado com sucesso');
+      console.log('👤 Usuário:', data.user.nome);
+      console.log('🏢 Empresa ID:', data.user.empresa_id || data.empresa_id || "1");
 
       // Aguarda um pouco antes de redirecionar
       setTimeout(() => {

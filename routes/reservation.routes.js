@@ -7,71 +7,52 @@ const prisma = new PrismaClient();
 
 // ========================= HELPER FUNCTIONS =========================
 
-/**
- * Valida formato de telefone brasileiro
- * Esperado: (XX) 9XXXX-XXXX ou 11911223344 ou variações
- */
 function validatePhone(phone) {
     if (!phone) return false;
     const tel = String(phone).replaceAll(/\D/g, "");
-    // Formato: 2 dígitos + 9 + 8 dígitos = 11 dígitos
     return /^[1-9]{2}9\d{8}$/.test(tel);
 }
 
-/**
- * Normaliza data para formato ISO (YYYY-MM-DD)
- * Aceita: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
- */
 function normalizeDateForDb(date) {
     if (!date) return "";
     
     const d = String(date).trim();
-    
-    // Se já está em ISO, retorna
     if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
     
-    // Trata separadores
-    const cleanDate = d.replaceAll("-", "/");
-    const parts = cleanDate.split("/");
+    const match = d.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+    if (!match) return "";
     
-    if (parts.length !== 3) return "";
-    
-    let [day, month, year] = parts;
-    
-    // Ajusta se for ano de 2 dígitos
+    let [, day, month, year] = match;
     if (year.length === 2) year = `20${year}`;
     
-    // Valida se é DD/MM/YYYY ou YY/MM/DD (depende do tamanho do primeiro)
-    let finalYear, finalMonth, finalDay;
-    
     if (year.length === 4) {
-        finalYear = year;
-        finalMonth = String(month).padStart(2, "0");
-        finalDay = String(day).padStart(2, "0");
-    } else {
-        return ""; // Formato inválido
+        const finalMonth = String(month).padStart(2, "0");
+        const finalDay = String(day).padStart(2, "0");
+        return `${year}-${finalMonth}-${finalDay}`;
     }
     
-    return `${finalYear}-${finalMonth}-${finalDay}`;
+    return "";
 }
 
-/**
- * Normaliza horário para HH:MM:SS
- * Aceita: 14:30, 14;30, 14.30 -> 14:30:00
- */
 function normalizeTimeForDb(time) {
-    const t = String(time).trim().replaceAll(/[;.]/g, ":");
+    let t = String(time).trim().toLowerCase();
     
-    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(t)) {
-        return "12:00:00"; // Fallback
+    t = t.replace(/\s*horas?\s*/g, '').trim();
+    t = t.replaceAll(/[;.]/g, ":");
+    
+    const match = t.match(/(\d{1,2}):?(\d{2})?/);
+    if (!match) return "12:00:00";
+    
+    let hour = String(match[1]).padStart(2, '0');
+    let min = match[2] ? String(match[2]).padStart(2, '0') : '00';
+    
+    if (Number(hour) > 23 || Number(min) > 59) {
+        return "12:00:00";
     }
     
-    return t.length === 5 ? `${t}:00` : t;
+    return `${hour}:${min}:00`;
 }
 
-/**
- * Valida se o horário está dentro do funcionamento
- */
 function validateBusinessHours(timeDb) {
     const start = "11:00:00";
     const end = "23:59:59";
@@ -79,30 +60,24 @@ function validateBusinessHours(timeDb) {
     if (timeDb < start || timeDb > end) {
         return {
             valid: false,
-            message: "Restaurante fechado neste horário (Funcionamento: 11:00 - 23:59)"
+            message: "Restaurante fechado neste horário (11:00 - 23:59)"
         };
     }
     
     return { valid: true };
 }
 
-/**
- * Valida estrutura de dados de reserva
- */
 function validateReservationData(data) {
     const errors = [];
     
-    // Nome obrigatório
     if (!data.nome || String(data.nome).trim() === "") {
         errors.push("Nome é obrigatório");
     }
     
-    // Data obrigatória
     if (!data.data || String(data.data).trim() === "") {
         errors.push("Data é obrigatória");
     }
     
-    // Número de pessoas obrigatório
     const numPessoas = Number.parseInt(data.numPessoas || data.num_pessoas || 0, 10);
     if (numPessoas <= 0) {
         errors.push("Número de pessoas deve ser maior que 0");
@@ -114,9 +89,6 @@ function validateReservationData(data) {
     };
 }
 
-/**
- * Calcula tempo decorrido desde uma data
- */
 function timeAgo(date) {
     const dt = new Date(date);
     const now = new Date();
@@ -135,9 +107,6 @@ function timeAgo(date) {
     return `${Math.floor(diff / 365)} anos atrás`;
 }
 
-/**
- * Formata histórico recente (últimas 4 datas)
- */
 function formatRecentHistory(reservations) {
     const dates = new Set();
     
@@ -153,7 +122,6 @@ function formatRecentHistory(reservations) {
 
 /**
  * 1. LIST RESERVATIONS
- * GET /api/reservations?date=YYYY-MM-DD
  */
 router.get("/", auth, async (req, res) => {
     try {
@@ -181,12 +149,6 @@ router.get("/", auth, async (req, res) => {
 
 /**
  * 2. CREATE RESERVATION (Manual/Modal)
- * POST /api/reservations
- * Body: {
- *   nome, telefone, data, horario, numPessoas,
- *   telefone2, formaPagamento, tipoEvento, valorRodizio,
- *   numMesa, observacoes, tortaTermoVela, churrascaria, executivo
- * }
  */
 router.post("/", auth, async (req, res) => {
     try {
@@ -194,14 +156,14 @@ router.post("/", auth, async (req, res) => {
         const empresaId = req.user.empresaId;
         const usuarioId = req.user.id;
         
-        // ===== NORMALIZAÇÃO DE INPUTS =====
         const nome = String(d.nome || "").trim();
         const telefone = String(d.telefone || "").replaceAll(/\D/g, "");
         const dataBruto = String(d.data || "").trim();
         const horarioBruto = String(d.horario || "").trim();
         const numPessoas = Number.parseInt(d.numPessoas || d.num_pessoas || 0, 10);
         
-        // ===== VALIDAÇÕES =====
+        console.log('📝 CREATE RESERVATION:', {dataBruto, horarioBruto, nome});
+        
         const dataValidation = validateReservationData({
             nome,
             data: dataBruto,
@@ -216,16 +178,15 @@ router.post("/", auth, async (req, res) => {
             });
         }
         
-        // Normaliza data
         const dataDb = normalizeDateForDb(dataBruto);
+        
         if (!dataDb) {
             return res.status(400).json({
                 success: false,
-                error: "Formato de data inválido. Use DD/MM/YYYY ou YYYY-MM-DD"
+                error: "Formato de data inválido"
             });
         }
         
-        // Valida se data não é anterior a hoje
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
         const dataSelecionada = new Date(dataDb);
@@ -238,10 +199,8 @@ router.post("/", auth, async (req, res) => {
             });
         }
         
-        // Normaliza horário
         const horarioDb = normalizeTimeForDb(horarioBruto);
         
-        // Valida horário de funcionamento
         const hourValidation = validateBusinessHours(horarioDb);
         if (!hourValidation.valid) {
             return res.status(400).json({
@@ -250,7 +209,6 @@ router.post("/", auth, async (req, res) => {
             });
         }
         
-        // Valida telefone se fornecido
         if (telefone && !validatePhone(telefone)) {
             return res.status(400).json({
                 success: false,
@@ -258,18 +216,16 @@ router.post("/", auth, async (req, res) => {
             });
         }
         
-        // ===== CRIAR DATA COMPLETA (data + horário) =====
-        const horarioCompleto = new Date(`${dataDb}T${horarioDb}`);
+        const dataObj = new Date(dataDb);
         
-        // ===== SALVAR NO BANCO =====
         const reservation = await prisma.cliente.create({
             data: {
                 empresaId,
                 usuarioId,
                 nome,
-                data: new Date(dataDb), // Apenas data
-                horario: horarioCompleto, // Data + Horário
-                numPessoas, // Campo EXATO do schema
+                data: dataObj,
+                horario: horarioDb,
+                numPessoas,
                 telefone: telefone || null,
                 telefone2: String(d.telefone2 || "").replaceAll(/\D/g, "") || null,
                 tipoEvento: String(d.tipoEvento || d.tipo_evento || "Manual").trim(),
@@ -278,12 +234,13 @@ router.post("/", auth, async (req, res) => {
                 numMesa: String(d.numMesa || d.num_mesa || "").trim(),
                 observacoes: String(d.observacoes || "").trim(),
                 tortaTermoVela: d.tortaTermoVela === true || d.torta_termo_vela === true,
-                churrascaria: d.churrascaria === true || d.churrascaria === true,
-                executivo: d.executivo === true || d.executivo === true
+                churrascaria: d.churrascaria === true,
+                executivo: d.executivo === true
             }
         });
         
-        // ===== GERAR LINK WHATSAPP =====
+        console.log(`✅ Salvo: data=${reservation.data}, horario=${reservation.horario}`);
+        
         let waLink = "";
         if (telefone) {
             const dataBr = new Date(dataDb).toLocaleDateString('pt-BR');
@@ -299,14 +256,13 @@ router.post("/", auth, async (req, res) => {
         });
         
     } catch (err) {
-        console.error("Erro ao criar reserva:", err);
+        console.error("❌ Erro ao criar reserva:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
 /**
- * 3. CLIENT PROFILE (History)
- * GET /api/reservations/profile/:phone
+ * 3. CLIENT PROFILE
  */
 router.get("/profile/:phone", auth, async (req, res) => {
     try {
@@ -339,7 +295,12 @@ router.get("/profile/:phone", auth, async (req, res) => {
                 historico_recente: formatRecentHistory(reservations),
                 total_reservas: reservations.length,
                 obs_cliente: last.obsCliente || last.observacoes || null,
-                canceladas: cancelledCount
+                canceladas: cancelledCount,
+                ultimas_reservas: reservations.slice(0, 5).map(r => ({
+                    data: new Date(r.data).toLocaleDateString('pt-BR'),
+                    horario: r.horario ? r.horario.substring(0, 5) : '--',
+                    numPessoas: r.numPessoas
+                }))
             }
         });
         
@@ -351,7 +312,6 @@ router.get("/profile/:phone", auth, async (req, res) => {
 
 /**
  * 4. CHECK DUPLICATE
- * GET /api/reservations/check-duplicate?phone=&date=&name=
  */
 router.get("/check-duplicate", auth, async (req, res) => {
     try {
@@ -366,7 +326,6 @@ router.get("/check-duplicate", auth, async (req, res) => {
             return res.json({ exists: false });
         }
         
-        // Valida se data não é anterior a hoje
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
         const dataSelecionada = new Date(dateDb);
@@ -398,8 +357,6 @@ router.get("/check-duplicate", auth, async (req, res) => {
 
 /**
  * 5. UPDATE CLIENT NAME
- * POST /api/reservations/update-client-name
- * Body: { telefone, nome }
  */
 router.post("/update-client-name", auth, async (req, res) => {
     try {
@@ -415,7 +372,6 @@ router.post("/update-client-name", auth, async (req, res) => {
         const telNormalizado = String(telefone).replaceAll(/\D/g, "");
         const nomeNormalizado = String(nome).trim();
         
-        // Atualiza todas as reservas deste cliente
         const updated = await prisma.cliente.updateMany({
             where: {
                 empresaId: req.user.empresaId,
@@ -438,69 +394,55 @@ router.post("/update-client-name", auth, async (req, res) => {
 });
 
 /**
- * 6. ANALYZE AND PROCESS WHATSAPP TEXT
- * POST /api/reservations/analyze-whatsapp
- * Body: { whatsText }
- * Retorna lista de reservas extraídas com validações
+ * 6. ANALYZE WHATSAPP
  */
 router.post("/analyze-whatsapp", auth, async (req, res) => {
     try {
         const { whatsText } = req.body;
         
+        console.log('🔍 Analisando WhatsApp');
+        
         if (!whatsText || whatsText.trim().length < 5) {
-            return res.status(400).json({
+            return res.json({
                 success: false,
-                error: "Texto vazio ou muito curto"
+                error: "Texto vazio"
             });
         }
         
-        // Divide por blocos iniciados com "Nome:"
-        const blocos = whatsText.split(/(?=Nome:)/i);
+        const blocos = whatsText.split(/\n\n+/).filter(b => b.trim());
+        const blocosParaProcessar = blocos.length > 1 ? blocos : [whatsText];
+        
         const listaProcessada = [];
         
-        for (const bloco of blocos) {
-            if (!bloco.trim()) continue;
-            
+        for (const bloco of blocosParaProcessar) {
             const linhas = bloco.split("\n");
             const dados = {};
             
-            // Parse das linhas
             for (const linha of linhas) {
-                const partes = linha.split(":");
-                if (partes.length < 2) continue;
+                if (!linha.includes(":")) continue;
                 
-                const chave = partes[0].trim().toLowerCase();
-                const valor = partes.slice(1).join(":").trim();
+                const [chave, ...resto] = linha.split(":");
+                const key = chave.trim().toLowerCase();
+                const val = resto.join(":").trim();
                 
-                dados[chave] = valor;
+                if (!val) continue;
+                dados[key] = val;
             }
             
             const nome = (dados.nome || "").trim();
             if (!nome) continue;
             
-            // Extrai e normaliza campos
-            const telefoneRaw = (dados.telefone || "").replaceAll(/\D/g, "");
-            const dataRaw = dados.data || "";
-            const horarioRaw = dados.horário || dados.horario || "";
-            const numPessoasRaw = dados["nº de pessoas"] || dados["nº pessoas"] || dados.pessoas || "0";
-            const telefone2Raw = (dados["telefone alternativo"] || "").replaceAll(/\D/g, "");
-            const tipoEvento = (dados["tipo de evento"] || "").trim();
-            const formaPagamento = dados["forma de pagamento"] || dados.pagamento || "";
-            const valorRodizio = (dados["valor do rodízio"] || "").trim();
-            const numMesa = (dados.mesa || "").trim();
-            const observacoes = dados.observações || dados.observacao || dados.obs || "";
+            const telefoneRaw = (dados.telefone || dados.tel || "").replaceAll(/\D/g, "");
+            const dataRaw = dados.data || dados.date || "";
+            const horarioRaw = dados.horário || dados.horario || dados.hora || "";
+            const numPessoasRaw = (dados.pessoas || dados.pax || dados["nº de pessoas"] || "0").replaceAll(/\D/g, "");
+            const numMesa = (dados.mesa || dados.salao || "").trim();
+            const observacoes = (dados.obs || dados.observação || dados.observacoes || "").trim();
             
-            // Validações
             const erros = [];
             let dataDb = null;
             let horarioDb = null;
             
-            // Valida telefone
-            if (!telefoneRaw || !validatePhone(telefoneRaw)) {
-                erros.push("Telefone inválido");
-            }
-            
-            // Valida data
             if (!dataRaw) {
                 erros.push("Data ausente");
             } else {
@@ -514,41 +456,48 @@ router.post("/analyze-whatsapp", auth, async (req, res) => {
                     dataSel.setHours(0, 0, 0, 0);
                     
                     if (dataSel < hoje) {
-                        erros.push("Data antiga (Anterior a hoje)");
+                        erros.push("Data anterior a hoje");
                     }
                 }
             }
             
-            // Valida horário
             if (!horarioRaw) {
                 erros.push("Horário ausente");
             } else {
                 horarioDb = normalizeTimeForDb(horarioRaw);
-                const hourCheck = validateBusinessHours(horarioDb);
-                if (!hourCheck.valid) {
-                    erros.push(hourCheck.message);
+                if (!/^\d{2}:\d{2}:\d{2}$/.test(horarioDb)) {
+                    erros.push("Horário inválido");
+                } else {
+                    const hourCheck = validateBusinessHours(horarioDb);
+                    if (!hourCheck.valid) {
+                        erros.push("Fora do horário");
+                    }
                 }
             }
             
-            // Valida número de pessoas
             const numPessoas = Number.parseInt(numPessoasRaw, 10);
             if (numPessoas <= 0) {
-                erros.push("Número de pessoas inválido");
+                erros.push("Nº pessoas inválido");
             }
             
-            // Verifica duplicidade
+            if (telefoneRaw && !validatePhone(telefoneRaw)) {
+                erros.push("Telefone inválido");
+            }
+            
             let duplicado = false;
-            if (erros.length === 0) {
-                duplicado = !!(await prisma.cliente.findFirst({
-                    where: {
-                        empresaId: req.user.empresaId,
-                        nome,
-                        data: new Date(dataDb),
-                        horario: new Date(`${dataDb}T${horarioDb}`),
-                        numPessoas,
-                        telefone: telefoneRaw
-                    }
-                }));
+            if (erros.length === 0 && dataDb && horarioDb) {
+                try {
+                    const existe = await prisma.cliente.findFirst({
+                        where: {
+                            empresaId: req.user.empresaId,
+                            nome,
+                            data: new Date(dataDb)
+                        }
+                    });
+                    duplicado = !!existe;
+                } catch (err) {
+                    console.warn("Erro ao verificar duplicidade:", err);
+                }
             }
             
             listaProcessada.push({
@@ -560,29 +509,36 @@ router.post("/analyze-whatsapp", auth, async (req, res) => {
                     data: dataDb,
                     horario: horarioDb,
                     numPessoas,
-                    telefone: telefoneRaw,
-                    telefone2: telefone2Raw || null,
-                    tipoEvento,
-                    formaPagamento,
-                    valorRodizio,
-                    numMesa,
-                    observacoes
+                    telefone: telefoneRaw || null,
+                    telefone2: null,
+                    tipoEvento: "WhatsApp",
+                    formaPagamento: "Não definido",
+                    valorRodizio: null,
+                    numMesa: numMesa || null,
+                    observacoes: observacoes || null
                 }
+            });
+        }
+        
+        console.log(`✅ ${listaProcessada.length} reserva(s) extraída(s)`);
+        
+        if (listaProcessada.length === 0) {
+            return res.json({ 
+                success: false, 
+                error: "Nenhuma reserva encontrada" 
             });
         }
         
         res.json({ success: true, lista: listaProcessada });
         
     } catch (err) {
-        console.error("Erro ao analisar WhatsApp:", err);
-        res.status(500).json({ success: false, error: err.message });
+        console.error("❌ Erro ao analisar WhatsApp:", err);
+        res.json({ success: false, error: err.message });
     }
 });
 
 /**
- * 7. SAVE FINAL LIST FROM WHATSAPP
- * POST /api/reservations/save-whatsapp-list
- * Body: { listaJson }
+ * 7. SAVE WHATSAPP LIST
  */
 router.post("/save-whatsapp-list", auth, async (req, res) => {
     try {
@@ -590,13 +546,22 @@ router.post("/save-whatsapp-list", auth, async (req, res) => {
         const empresaId = req.user.empresaId;
         const usuarioId = req.user.id;
         
+        console.log('💾 Salvando lista WhatsApp');
+        
         if (!listaJson) {
-            return res.status(400).json({ success: false, error: "Lista vazia" });
+            return res.json({ success: false, error: "Lista vazia" });
         }
         
-        const lista = JSON.parse(listaJson);
+        let lista;
+        try {
+            lista = JSON.parse(listaJson);
+        } catch (err) {
+            console.error('❌ Erro ao fazer parse do JSON:', err);
+            return res.json({ success: false, error: "JSON inválido" });
+        }
+        
         if (!Array.isArray(lista)) {
-            return res.status(400).json({ success: false, error: "Formato inválido" });
+            lista = [lista];
         }
         
         const sucessos = [];
@@ -604,38 +569,53 @@ router.post("/save-whatsapp-list", auth, async (req, res) => {
         
         for (const item of lista) {
             try {
-                const horarioCompleto = new Date(`${item.data}T${item.horario}`);
+                console.log(`📝 Processando: ${item.nome}, data=${item.data}, horario=${item.horario}`);
+                
+                if (!item.data || !item.horario) {
+                    erros.push({
+                        nome: item.nome,
+                        error: "Data ou horário faltando"
+                    });
+                    continue;
+                }
+                
+                const dataObj = new Date(item.data);
                 
                 const reservation = await prisma.cliente.create({
                     data: {
                         empresaId,
                         usuarioId,
                         nome: item.nome,
-                        data: new Date(item.data),
-                        horario: horarioCompleto,
-                        numPessoas: item.numPessoas,
+                        data: dataObj,
+                        horario: item.horario,
+                        numPessoas: parseInt(item.numPessoas, 10) || 1,
                         telefone: item.telefone || null,
                         telefone2: item.telefone2 || null,
                         tipoEvento: item.tipoEvento || "WhatsApp",
                         formaPagamento: item.formaPagamento || "Não definido",
-                        valorRodizio: item.valorRodizio ? Number.parseFloat(item.valorRodizio) : null,
-                        numMesa: item.numMesa || "",
+                        valorRodizio: item.valorRodizio ? parseFloat(item.valorRodizio) : null,
+                        numMesa: item.numMesa || null,
                         observacoes: item.observacoes || "Importado via WhatsApp"
                     }
                 });
                 
-                // Gera link WhatsApp
-                const dataBr = new Date(item.data).toLocaleDateString('pt-BR');
-                const horaCurta = item.horario.substring(0, 5);
-                const msg = `Olá, ${item.nome}. Sua reserva para ${dataBr} às ${horaCurta} para ${item.numPessoas} pessoas foi confirmada!`;
-                const waLink = `https://wa.me/55${item.telefone}?text=${encodeURIComponent(msg)}`;
+                console.log(`✅ Salvo: ID=${reservation.id}, horario=${reservation.horario}`);
+                
+                let link = null;
+                if (item.telefone) {
+                    const dataBr = new Date(item.data).toLocaleDateString('pt-BR');
+                    const horaCurta = item.horario.substring(0, 5);
+                    const msg = `Olá, ${item.nome}. Sua reserva para ${dataBr} às ${horaCurta} para ${item.numPessoas} pessoas foi confirmada!`;
+                    link = `https://wa.me/55${item.telefone}?text=${encodeURIComponent(msg)}`;
+                }
                 
                 sucessos.push({
                     nome: item.nome,
-                    link: waLink
+                    link: link
                 });
                 
             } catch (err) {
+                console.error(`❌ Erro ao salvar ${item.nome}:`, err.message);
                 erros.push({
                     nome: item.nome,
                     error: err.message
@@ -643,22 +623,23 @@ router.post("/save-whatsapp-list", auth, async (req, res) => {
             }
         }
         
+        console.log(`🎯 Total: ${sucessos.length} salvas, ${erros.length} erros`);
+        
         res.json({
-            success: true,
+            success: sucessos.length > 0,
             salvos: sucessos.length,
             erros: erros.length > 0 ? erros : undefined,
             links: sucessos
         });
         
     } catch (err) {
-        console.error("Erro ao salvar lista:", err);
-        res.status(500).json({ success: false, error: err.message });
+        console.error("❌ Erro geral ao salvar lista:", err);
+        res.json({ success: false, error: err.message });
     }
 });
 
 /**
- * 5B. CHECK TABLE - Verifica se mesa está ocupada na mesma data/hora
- * GET /api/reservations/check-table?table=&date=&time=
+ * 8. CHECK TABLE
  */
 router.get("/check-table", auth, async (req, res) => {
     try {
@@ -675,14 +656,12 @@ router.get("/check-table", auth, async (req, res) => {
             return res.json({ exists: false });
         }
         
-        const horarioCompleto = new Date(`${dateDb}T${timeDb}`);
-        
         const exists = await prisma.cliente.findFirst({
             where: {
                 empresaId: req.user.empresaId,
                 numMesa: String(table).trim(),
                 data: new Date(dateDb),
-                horario: horarioCompleto
+                horario: timeDb
             }
         });
         

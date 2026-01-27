@@ -1,4 +1,4 @@
-// ===== MÓDULO DE RESERVAS - v3.0 =====
+// ===== MÓDULO DE RESERVAS - v3.0 CORRIGIDO =====
 // Com parsing inteligente e modal de confirmação
 globalThis.maskPhone = function(input) {
     let v = input.value.replaceAll(/\D/g, "");
@@ -100,102 +100,144 @@ globalThis.validarMesa = async function(mesa, data, horario) {
 /**
  * VERIFICAR E ENVIAR - Formulário Manual
  */
-globalThis.verificarEEnviar = async function() {
-    const btn = document.getElementById('btnSalvarManual');
-    const semTel = document.getElementById('sem_telefone').checked;
-    const telefone = document.getElementById('res_telefone').value.replaceAll(/\D/g, "");
-    const data = document.getElementById('res_data').value;
-    const nome = document.getElementById('res_nome').value.trim();
-    const numPessoas = document.getElementById('res_num_pessoas').value;
-    const mesa = document.getElementById('res_num_mesa').value.trim();
-    const horario = document.getElementById('res_horario').value;
-    
-    const resetarBotao = () => {
-        btn.disabled = false;
-        btn.innerHTML = 'Salvar Reserva';
-    };
-    
-    // ===== VALIDAÇÕES =====
-    const hoje = new Date().toISOString().split('T')[0];
-    if (data < hoje) {
-        mostrarToast('Data não pode ser anterior a hoje', 'warning');
-        resetarBotao();
-        return;
+/**
+ * VERIFICAR E ENVIAR - VERSÃO ROBUSTA
+ * Funciona mesmo se o formulário não estiver carregado
+ */
+/**
+ * VERIFICAR E ENVIAR - Volta ao original com confirmação WhatsApp
+ */
+/**
+ * VERIFICAR E ENVIAR - COM DATA CORRIGIDA
+ */
+/**
+ * VERIFICAR E ENVIAR - COM INPUT TIME
+ */
+/**
+ * VERIFICAR E ENVIAR - COM DEBUG
+ */
+globalThis.verificarEEnviar = async function(event) {
+    if (event && event.preventDefault) {
+        event.preventDefault();
     }
-    
-    if (!semTel && telefone.length < 10) {
-        mostrarToast('Telefone inválido', 'warning');
-        resetarBotao();
-        return;
-    }
-    
-    if (!nome || !data || !numPessoas || !horario) {
-        mostrarToast('Preencha Nome, Data, Horário e Pessoas', 'warning');
-        resetarBotao();
-        return;
-    }
-    
-    const pax = Number.parseInt(numPessoas, 10);
-    if (pax <= 0) {
-        mostrarToast('Pessoas deve ser > 0', 'warning');
-        resetarBotao();
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
     
     try {
-        // ===== VALIDAR MESA =====
-        if (mesa && data && horario) {
-            const mesaCheck = await validarMesa(mesa, data, horario);
-            
-            if (mesaCheck.exists) {
-                const continua = confirm(`Mesa "${mesa}" já ocupada. Continuar?`);
-                if (!continua) {
-                    resetarBotao();
-                    return;
-                }
-            }
+        const btn = document.getElementById('btnSalvarManual');
+        const semTel = document.getElementById('sem_telefone').checked;
+        const telefone = document.getElementById('res_telefone').value.replaceAll(/\D/g, "");
+        const data = document.getElementById('res_data').value;
+        const nome = document.getElementById('res_nome').value.trim();
+        const numPessoas = document.getElementById('res_num_pessoas').value;
+        const mesa = document.getElementById('res_num_mesa').value.trim();
+        const horarioInput = document.getElementById('res_horario').value; // "18:00"
+        
+        console.log('========================================');
+        console.log('📝 VALORES DO FORMULÁRIO:');
+        console.log('========================================');
+        console.log(`Data (input): "${data}"`);
+        console.log(`Horário (input): "${horarioInput}"`);
+        console.log('========================================');
+        
+        const resetarBotao = () => {
+            btn.disabled = false;
+            btn.innerHTML = 'Cadastrar reserva';
+        };
+        
+        // Validações básicas
+        const hoje = new Date().toISOString().split('T')[0];
+        if (data < hoje) {
+            mostrarToast('Data não pode ser anterior a hoje', 'warning');
+            resetarBotao();
+            return;
         }
         
-        // ===== CHECAR DUPLICIDADE =====
-        if (!semTel && telefone) {
-            try {
-                const checkRes = await fetch(
-                    `/api/reservations/check-duplicate?phone=${telefone}&date=${data}&name=${encodeURIComponent(nome)}`,
-                    { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } }
-                );
-                const checkData = await checkRes.json();
-                
-                if (checkData.exists) {
-                    const confirma = confirm(`Reserva existe para ${nome} nesta data. Continuar?`);
-                    if (!confirma) {
-                        resetarBotao();
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.warn("Erro ao checar duplicidade:", err);
-                // Continua mesmo com erro
-            }
+        if (!data) {
+            mostrarToast('Data é obrigatória', 'warning');
+            resetarBotao();
+            return;
         }
         
-        // ===== PREPARAR PAYLOAD =====
-        const form = document.getElementById('formManual');
-        const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
+        if (!semTel && telefone.length < 10) {
+            mostrarToast('Telefone inválido', 'warning');
+            resetarBotao();
+            return;
+        }
         
-        payload.numPessoas = pax;
-        payload.tortaTermoVela = document.getElementById('torta')?.checked || false;
-        payload.churrascaria = document.getElementById('churras')?.checked || false;
-        payload.executivo = document.getElementById('exec')?.checked || false;
+        if (!nome) {
+            mostrarToast('Nome é obrigatório', 'warning');
+            resetarBotao();
+            return;
+        }
         
-        if (!payload.telefone) payload.telefone = null;
+        if (!numPessoas) {
+            mostrarToast('Número de pessoas é obrigatório', 'warning');
+            resetarBotao();
+            return;
+        }
+        
+        if (!horarioInput) {
+            mostrarToast('Horário é obrigatório', 'warning');
+            resetarBotao();
+            return;
+        }
+        
+        const pax = Number.parseInt(numPessoas, 10);
+        if (pax <= 0) {
+            mostrarToast('Pessoas deve ser > 0', 'warning');
+            resetarBotao();
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+        
+        // Validar horário (11:00 - 23:59)
+        const [hh, mm] = horarioInput.split(':');
+        const horarioNum = parseInt(hh) * 60 + parseInt(mm);
+        const inicio = 11 * 60;
+        const fim = 23 * 60 + 59;
+        
+        if (horarioNum < inicio || horarioNum > fim) {
+            mostrarToast('Restaurante funciona de 11:00 às 23:59', 'warning');
+            resetarBotao();
+            return;
+        }
+        
+        // Converter horário "18:00" → "18:00:00"
+        const horarioDb = horarioInput + ':00';
+        
+        console.log('========================================');
+        console.log('📤 PREPARANDO PAYLOAD:');
+        console.log('========================================');
+        console.log(`data a enviar: "${data}"`);
+        console.log(`horario a enviar: "${horarioDb}"`);
+        console.log('========================================');
+        
+        const payload = {
+            nome,
+            data,
+            horario: horarioDb,
+            numPessoas: pax,
+            telefone: telefone || null,
+            telefone2: (document.getElementById('res_telefone2').value.replaceAll(/\D/g, "")) || null,
+            formaPagamento: document.getElementById('res_forma_pagamento').value || 'Não definido',
+            numMesa: mesa || null,
+            tipoEvento: document.getElementById('res_tipo_evento').value || 'Manual',
+            valorRodizio: (document.getElementById('res_valor_rodizio').value) || null,
+            observacoes: (document.getElementById('res_observacoes').value) || null,
+            tortaTermoVela: document.getElementById('torta')?.checked || false,
+            churrascaria: document.getElementById('churras')?.checked || false,
+            executivo: document.getElementById('exec')?.checked || false
+        };
+        
+        console.log('========================================');
+        console.log('📋 PAYLOAD COMPLETO:');
+        console.log('========================================');
+        console.log(JSON.stringify(payload, null, 2));
+        console.log('========================================');
         
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
         
-        // ===== ENVIAR =====
         const saveRes = await fetch('/api/reservations', {
             method: 'POST',
             headers: {
@@ -205,44 +247,197 @@ globalThis.verificarEEnviar = async function() {
             body: JSON.stringify(payload)
         });
         
+        console.log(`📥 HTTP Status: ${saveRes.status}`);
+        
         if (!saveRes.ok) {
-            throw new Error(`HTTP ${saveRes.status}: ${saveRes.statusText}`);
+            throw new Error(`HTTP ${saveRes.status}`);
         }
         
         const result = await saveRes.json();
+        console.log('📥 Resposta do servidor:', result);
         
         if (result.success) {
-            mostrarToast(`✓ Reserva de ${nome} salva!`, 'success');
-            exibirSucesso(nome, result.waLink);
+            exibirConfirmacaoWhatsApp(nome, result.waLink);
+            
+            document.getElementById('formManual').reset();
+            if (globalThis.limparFormulario) globalThis.limparFormulario();
+            
+            try {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalReserva'));
+                if (modal) modal.hide();
+            } catch (err) {
+                console.warn('Modal não encontrado:', err);
+            }
+            
             if (globalThis.carregarReservas) globalThis.carregarReservas();
             if (globalThis.calendar) globalThis.calendar.render();
         } else {
-            throw new Error(result.error || result.message || "Erro desconhecido");
+            throw new Error(result.error || "Erro desconhecido");
         }
         
     } catch (err) {
-        console.error("Erro:", err);
+        console.error("❌ ERRO:", err);
         mostrarToast(`Erro: ${err.message}`, 'danger');
-        resetarBotao();
+        
+        const btn = document.getElementById('btnSalvarManual');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Cadastrar reserva';
+        }
     }
 };
+
+/**
+ * MODAL DE CONFIRMAÇÃO COM WHATSAPP
+ */
+function exibirConfirmacaoWhatsApp(nome, waLink) {
+    const html = `
+        <div id="modalConfirmacaoWA" class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 bg-light">
+                        <h5 class="modal-title fw-bold">✓ Reserva Salva</h5>
+                        <button type="button" class="btn-close" onclick="fecharConfirmacaoWA()"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <h6 class="text-success fw-bold mb-3">${nome}</h6>
+                        
+                        ${waLink ? `
+                            <a href="${waLink}" target="_blank" class="btn btn-success btn-lg w-100 mb-2">
+                                ✓ Enviar WhatsApp
+                            </a>
+                        ` : ''}
+                        
+                        <button 
+                            type="button" 
+                            class="btn btn-outline-secondary w-100"
+                            onclick="fecharConfirmacaoWA()"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+    mostrarToast(`✓ Reserva de ${nome} criada!`, 'success');
+}
+
+/**
+ * Fechar modal confirmação
+ */
+globalThis.fecharConfirmacaoWA = function() {
+    const modal = document.getElementById('modalConfirmacaoWA');
+    if (modal) modal.remove();
+};
+
+/**
+ * MODAL DE CONFIRMAÇÃO COM WHATSAPP
+ */
+function exibirConfirmacaoWhatsApp(nome, waLink) {
+    const html = `
+        <div id="modalConfirmacaoWA" class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 bg-light">
+                        <h5 class="modal-title fw-bold">✓ Reserva Salva</h5>
+                        <button type="button" class="btn-close" onclick="fecharConfirmacaoWA()"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <h6 class="text-success fw-bold mb-3">${nome}</h6>
+                        
+                        ${waLink ? `
+                            <a href="${waLink}" target="_blank" class="btn btn-success btn-lg w-100 mb-2">
+                                ✓ Enviar WhatsApp
+                            </a>
+                        ` : ''}
+                        
+                        <button 
+                            type="button" 
+                            class="btn btn-outline-secondary w-100"
+                            onclick="fecharConfirmacaoWA()"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+    
+    // Toast também
+    mostrarToast(`✓ Reserva de ${nome} criada!`, 'success');
+}
+
+/**
+ * Fechar modal confirmação
+ */
+globalThis.fecharConfirmacaoWA = function() {
+    const modal = document.getElementById('modalConfirmacaoWA');
+    if (modal) modal.remove();
+};
+
+/**
+ * MODAL DE CONFIRMAÇÃO COM WHATSAPP
+ */
+function exibirConfirmacaoWhatsApp(nome, waLink) {
+    const html = `
+        <div id="modalConfirmacaoWA" class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 bg-light">
+                        <h5 class="modal-title fw-bold">✓ Reserva Salva</h5>
+                        <button type="button" class="btn-close" onclick="fecharConfirmacaoWA()"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <h6 class="text-success fw-bold mb-3">${nome}</h6>
+                        
+                        ${waLink ? `
+                            <a href="${waLink}" target="_blank" class="btn btn-success btn-lg w-100 mb-2">
+                                ✓ Enviar WhatsApp
+                            </a>
+                        ` : ''}
+                        
+                        <button 
+                            type="button" 
+                            class="btn btn-outline-secondary w-100"
+                            onclick="fecharConfirmacaoWA()"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+    
+    // Toast também
+    mostrarToast(`✓ Reserva de ${nome} criada!`, 'success');
+}
+
+/**
+ * Fechar modal confirmação
+ */
+globalThis.fecharConfirmacaoWA = function() {
+    const modal = document.getElementById('modalConfirmacaoWA');
+    if (modal) modal.remove();
+};
+
 /**
  * Exibir modal de sucesso
  */
 function exibirSucesso(nome, waLink) {
-    // Fechar modal de reserva SEM usar Bootstrap
     const modalReserva = document.getElementById('modalReserva');
     if (modalReserva) {
-        // Remove a classe show e backdrop
         modalReserva.classList.remove('show');
         modalReserva.style.display = 'none';
-        
-        // Remove backdrop se existir
         const backdrop = document.querySelector('.modal-backdrop');
         if (backdrop) backdrop.remove();
     }
     
-    // Mostrar modal de sucesso
     setTimeout(() => {
         const btnZap = waLink 
             ? `<button class="btn btn-success w-100 mb-2" onclick="window.open('${waLink}', '_blank')">✓ WhatsApp</button>` 
@@ -265,6 +460,7 @@ function exibirSucesso(nome, waLink) {
         document.body.insertAdjacentHTML('beforeend', html);
     }, 300);
 }
+
 /**
  * Fechar modal de sucesso
  */
@@ -272,14 +468,15 @@ globalThis.fecharModalSucesso = function() {
     const modal = document.getElementById('modalSucesso');
     if (modal) modal.remove();
     
-    // Atualizar dados
     if (globalThis.carregarReservas) globalThis.carregarReservas();
     if (globalThis.calendar) globalThis.calendar.render();
     
     mostrarToast('✓ Reserva criada!', 'success');
 };
+
 /**
- * Importar WhatsApp para formulário
+ * Importar WhatsApp para formulário - CORRIGIDO
+ * Agora suporta: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
  */
 globalThis.importarWhatsParaFormulario = function() {
     const texto = document.getElementById('whats_dados').value;
@@ -299,9 +496,14 @@ globalThis.importarWhatsParaFormulario = function() {
             maskPhone(document.getElementById('res_telefone'));
             buscarTelefone();
         }
+        // ===== DATA - FIX: Suporta /, -, e .
         if (k.includes('data')) {
-            if (v.includes('/')) {
-                const [d, m, a] = v.split('/');
+            let match = v.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+            if (match) {
+                let [, d, m, a] = match;
+                d = String(d).padStart(2, '0');
+                m = String(m).padStart(2, '0');
+                if (a.length === 2) a = '20' + a;
                 document.getElementById('res_data').value = `${a}-${m}-${d}`;
             }
         }
@@ -335,8 +537,6 @@ globalThis.analisarSalvarDireto = async function() {
     btn.disabled = true;
     
     try {
-        // Parse local (sem backend por enquanto)
-        // Você pode integrar parseReserva aqui depois
         const analyzeRes = await fetch('/api/reservations/analyze-whatsapp', {
             method: 'POST',
             headers: {
@@ -355,7 +555,6 @@ globalThis.analisarSalvarDireto = async function() {
             return;
         }
         
-        // Exibir modal de confirmação com dados extraídos
         await exibirModalConfirmacao(analyzeData.lista);
         
     } catch (err) {
@@ -367,11 +566,9 @@ globalThis.analisarSalvarDireto = async function() {
 };
 
 /**
- * MODAL DE CONFIRMAÇÃO - Mostra dados extraídos antes de salvar
+ * MODAL DE CONFIRMAÇÃO
  */
 async function exibirModalConfirmacao(listaItems) {
-    let itemSelecionado = -1;
-    
     const cardsHtml = listaItems.map((item, idx) => {
         const erros = item.erros.map(e => `<span class="badge bg-danger">${e}</span>`).join(' ');
         const classes = item.valido 
@@ -406,9 +603,7 @@ async function exibirModalConfirmacao(listaItems) {
                         <button type="button" class="btn-close" onclick="fecharConfirmacao()"></button>
                     </div>
                     <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-                        <div class="confirmation-list">
-                            ${cardsHtml}
-                        </div>
+                        <div class="confirmation-list">${cardsHtml}</div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" onclick="fecharConfirmacao()">Cancelar</button>
@@ -420,71 +615,21 @@ async function exibirModalConfirmacao(listaItems) {
             </div>
         </div>
         <style>
-            .confirmation-list {
-                display: grid;
-                gap: 1rem;
-            }
-            
-            .confirmation-item {
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                padding: 1rem;
-                cursor: pointer;
-                transition: all 0.3s;
-            }
-            
-            .confirmation-item:hover {
-                border-color: #007bff;
-                background: #f0f7ff;
-            }
-            
-            .confirmation-item.item-valido {
-                border-left: 4px solid #28a745;
-            }
-            
-            .confirmation-item.item-duplicado {
-                border-left: 4px solid #ffc107;
-                opacity: 0.8;
-            }
-            
-            .confirmation-item.item-invalido {
-                border-left: 4px solid #dc3545;
-                opacity: 0.6;
-            }
-            
-            .item-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 0.75rem;
-                padding-bottom: 0.75rem;
-                border-bottom: 1px solid #dee2e6;
-            }
-            
-            .item-header h6 {
-                margin: 0;
-                font-weight: 700;
-            }
-            
-            .item-data {
-                font-size: 0.9rem;
-                color: #666;
-            }
-            
-            .item-data p {
-                margin: 0.25rem 0;
-            }
-            
-            .item-errors {
-                margin-top: 0.75rem;
-                padding-top: 0.75rem;
-                border-top: 1px solid #fee;
-            }
+            .confirmation-list { display: grid; gap: 1rem; }
+            .confirmation-item { border: 2px solid #dee2e6; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
+            .confirmation-item:hover { border-color: #007bff; background: #f0f7ff; }
+            .confirmation-item.item-valido { border-left: 4px solid #28a745; }
+            .confirmation-item.item-duplicado { border-left: 4px solid #ffc107; opacity: 0.8; }
+            .confirmation-item.item-invalido { border-left: 4px solid #dc3545; opacity: 0.6; }
+            .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #dee2e6; }
+            .item-header h6 { margin: 0; font-weight: 700; }
+            .item-data { font-size: 0.9rem; color: #666; }
+            .item-data p { margin: 0.25rem 0; }
+            .item-errors { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #fee; }
         </style>`;
     
     document.body.insertAdjacentHTML('beforeend', html);
     
-    // Função global para selecionar item
     window.selecionarItem = function(idx) {
         const items = document.querySelectorAll('.confirmation-item');
         items.forEach((item, i) => {
@@ -504,22 +649,31 @@ globalThis.fecharConfirmacao = function() {
 /**
  * Confirmar e salvar reservas
  */
+/**
+ * Confirmar e salvar reservas - CORRIGIDO
+ */
 globalThis.confirmarESalvar = async function(listaItems) {
-    // Filtrar válidas e não inválidas
-    const listaParaSalvar = listaItems.filter(item => item.valido);
+    console.log('🔍 Lista recebida para salvar:', listaItems);
+    
+    // Extrair apenas os dados (não o wrapper)
+    const listaParaSalvar = listaItems
+        .filter(item => item.valido === true)
+        .map(item => item.dados); // AQUI! Extrai apenas .dados
+    
+    console.log('✅ Dados extraídos:', listaParaSalvar);
     
     if (listaParaSalvar.length === 0) {
-        alert("Nenhuma reserva válida para salvar.");
+        mostrarToast("Nenhuma reserva válida para salvar.", 'warning');
         return;
     }
     
     // Validar mesas
     for (const item of listaParaSalvar) {
-        if (item.dados.numMesa && item.dados.data && item.dados.horario) {
-            const mesaCheck = await validarMesa(item.dados.numMesa, item.dados.data, item.dados.horario);
+        if (item.numMesa && item.data && item.horario) {
+            const mesaCheck = await validarMesa(item.numMesa, item.data, item.horario);
             
             if (mesaCheck.exists) {
-                const continua = confirm(`Mesa "${item.dados.numMesa}" já está ocupada em ${item.dados.data} ${item.dados.horario}. Salvar mesmo assim?`);
+                const continua = confirm(`⚠️ Mesa "${item.numMesa}" já ocupada. Continuar?`);
                 if (!continua) {
                     fecharConfirmacao();
                     return;
@@ -528,39 +682,52 @@ globalThis.confirmarESalvar = async function(listaItems) {
         }
     }
     
-    // Salvar
     await salvarListaFinal(listaParaSalvar);
     fecharConfirmacao();
 };
 
 /**
- * Salvar lista final
+ * Salvar lista final - COM DEBUG
  */
 async function salvarListaFinal(lista) {
     try {
+        console.log('📤 Enviando para salvar:', lista);
+        
+        const payload = { listaJson: JSON.stringify(lista) };
+        console.log('📤 Payload:', payload);
+        
         const saveRes = await fetch('/api/reservations/save-whatsapp-list', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem("token")}`
             },
-            body: JSON.stringify({ listaJson: JSON.stringify(lista) })
+            body: JSON.stringify(payload)
         });
         
+        console.log('📥 Status:', saveRes.status);
+        
         const result = await saveRes.json();
+        console.log('📥 Resultado:', result);
         
         if (result.success) {
-            exibirResultado(result.salvos, result.links);
-            if (globalThis.carregarReservas) globalThis.carregarReservas();
+            mostrarToast(`✅ ${result.salvos} reserva(s) criada(s)!`, 'success');
+            exibirResultado(result.salvos, result.links || []);
+            
+            if (globalThis.carregarReservas) {
+                globalThis.carregarReservas();
+            }
+            if (globalThis.calendar) {
+                globalThis.calendar.render();
+            }
         } else {
-            alert("Erro: " + result.error);
+            mostrarToast("Erro: " + (result.error || 'Desconhecido'), 'danger');
         }
     } catch (err) {
-        console.error("Erro ao salvar:", err);
-        alert("Erro de conexão.");
+        console.error("❌ Erro ao salvar:", err);
+        mostrarToast("Erro de conexão: " + err.message, 'danger');
     }
 }
-
 /**
  * Exibir resultado
  */
@@ -605,10 +772,9 @@ globalThis.openReservationModal = async function() {
     const myModal = new bootstrap.Modal(document.getElementById('modalReserva'));
     myModal.show();
 };
-// No final do arquivo modal-reservation-v3.js
 
 /**
- * Toast moderno - Notificação flutuante
+ * Toast moderno
  */
 function mostrarToast(mensagem, tipo = 'info') {
     const toastId = 'toast-' + Date.now();
@@ -658,234 +824,39 @@ function mostrarToast(mensagem, tipo = 'info') {
                 from { transform: translateX(400px); opacity: 0; }
                 to { transform: translateX(0); opacity: 1; }
             }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(400px); opacity: 0; }
-            }
         </style>`;
     
     document.body.insertAdjacentHTML('beforeend', html);
     setTimeout(() => {
         const toast = document.getElementById(toastId);
-        if (toast) {
-            toast.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }
+        if (toast) toast.remove();
     }, 4000);
 }
 
-globalThis.fecharModalSucesso = function() {
-    const modal = document.getElementById('modalSucesso');
-    if (modal) modal.remove();
-    
-    // Atualizar dados
-    if (globalThis.carregarReservas) globalThis.carregarReservas();
-    if (globalThis.calendar) globalThis.calendar.render();
-    
-    mostrarToast('✓ Reserva criada com sucesso!', 'success');
-};
-
-/**
- * Limpar form após salvar
- */
-/**
- * Limpar form após salvar
- */
 globalThis.limparFormulario = function() {
     const form = document.getElementById('formManual');
     if (form) form.reset();
     
-    // Resetar campos visuais - com verificação
     const cardPerfil = document.getElementById('card-perfil-cliente');
     const divNome = document.getElementById('div-input-nome');
     const telInput = document.getElementById('res_telefone');
     const semTel = document.getElementById('sem_telefone');
-    const mesaWarning = document.getElementById('mesa-warning');
     const whatsArea = document.getElementById('whats_dados');
     
     if (cardPerfil) cardPerfil.style.display = 'none';
     if (divNome) divNome.style.display = 'block';
     if (telInput) telInput.disabled = false;
     if (semTel) semTel.checked = false;
-    if (mesaWarning) mesaWarning.style.display = 'none';
     if (whatsArea) whatsArea.value = '';
 };
 
-/**
- * Fechar modal de sucesso com limpeza
- */
-globalThis.fecharModalSucesso = function() {
-    const modal = document.getElementById('modalSucesso');
-    if (modal) modal.remove();
-    
-    // Limpar formulário com segurança
-    try {
-        limparFormulario();
-    } catch (err) {
-        console.warn("Erro ao limpar formulário:", err);
-    }
-    
-    // Fechar modal de reserva
-    const modalReserva = document.getElementById('modalReserva');
-    if (modalReserva) {
-        modalReserva.classList.remove('show');
-        modalReserva.style.display = 'none';
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) backdrop.remove();
-    }
-    
-    // Atualizar dados
-    if (globalThis.carregarReservas) {
-        try {
-            globalThis.carregarReservas();
-        } catch (err) {
-            console.warn("Erro ao carregar reservas:", err);
-        }
-    }
-    if (globalThis.calendar) {
-        try {
-            globalThis.calendar.render();
-        } catch (err) {
-            console.warn("Erro ao renderizar calendário:", err);
-        }
-    }
-    
-    mostrarToast('✓ Pronto para nova reserva!', 'success');
-};
-/**
- * Modal de confirmação melhorado - Mostra dados extraídos
- */
-async function exibirModalConfirmacao(listaItems) {
-    const cardsHtml = listaItems.map((item, idx) => {
-        const erros = item.erros.map(e => `<span class="badge bg-danger">${e}</span>`).join(' ');
-        const classes = item.valido 
-            ? (item.duplicado ? 'item-duplicado' : 'item-valido')
-            : 'item-invalido';
-        
-        // Botões condicionales
-        let botoes = '';
-        if (!item.valido) {
-            // Se inválido - mostrar opções de editar/transferir
-            botoes = `
-                <div class="mt-2 d-flex gap-2">
-                    <button class="btn btn-sm btn-warning flex-grow-1" onclick="transferirParaFormulario(${idx})">
-                        📋 Transferir p/ Formulário
-                    </button>
-                    <button class="btn btn-sm btn-info flex-grow-1" onclick="editarItem(${idx})">
-                        ✏️ Editar
-                    </button>
-                </div>`;
-        }
-        
-        return `
-            <div class="confirmation-item ${classes}" id="item-${idx}">
-                <div class="item-header">
-                    <h6>${item.dados.nome || 'Sem nome'}</h6>
-                    ${item.valido ? '<span class="badge bg-success">✓ Válido</span>' : ''}
-                    ${item.duplicado ? '<span class="badge bg-warning">⚠ Duplicado</span>' : ''}
-                    ${item.erros.length > 0 ? '<span class="badge bg-danger">✗ Erros</span>' : ''}
-                </div>
-                <div class="item-data">
-                    <p><strong>📅</strong> ${item.dados.data || '--'} ${item.dados.horario || '--'}</p>
-                    <p><strong>👥</strong> ${item.dados.numPessoas || '--'} pessoas</p>
-                    <p><strong>📱</strong> ${item.dados.telefone || 'Sem telefone'}</p>
-                    <p><strong>🪑</strong> ${item.dados.numMesa || 'Sem mesa'}</p>
-                    ${item.dados.observacoes ? `<p><strong>📝</strong> ${item.dados.observacoes}</p>` : ''}
-                </div>
-                ${erros ? `<div class="item-errors">${erros}</div>` : ''}
-                ${botoes}
-            </div>`;
-    }).join('');
-    
-    const html = `
-        <div id="modalConfirmacao" class="modal fade show d-block" style="background: rgba(0,0,0,0.6);">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold">Confirmar Reservas Extraídas</h5>
-                        <button type="button" class="btn-close" onclick="fecharConfirmacao()"></button>
-                    </div>
-                    <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-                        <div class="confirmation-list">
-                            ${cardsHtml}
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="fecharConfirmacao()">Cancelar</button>
-                        <button class="btn btn-primary" onclick="confirmarESalvar(${JSON.stringify(listaItems).replace(/"/g, '&quot;')})">
-                            Salvar Válidas
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            .confirmation-list { display: grid; gap: 1rem; }
-            .confirmation-item { border: 2px solid #dee2e6; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
-            .confirmation-item:hover { border-color: #007bff; background: #f0f7ff; }
-            .confirmation-item.item-valido { border-left: 4px solid #28a745; }
-            .confirmation-item.item-duplicado { border-left: 4px solid #ffc107; opacity: 0.8; }
-            .confirmation-item.item-invalido { border-left: 4px solid #dc3545; opacity: 0.6; }
-            .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #dee2e6; }
-            .item-header h6 { margin: 0; font-weight: 700; }
-            .item-data { font-size: 0.9rem; color: #666; }
-            .item-data p { margin: 0.25rem 0; }
-            .item-errors { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #fee; }
-        </style>`;
-    
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-/**
- * Transferir item inválido para formulário
- */
-globalThis.transferirParaFormulario = function(idx) {
-    // Fecha modal de confirmação
-    fecharConfirmacao();
-    
-    // Limpa form
-    limparFormulario();
-    
-    // Volta para aba de formulário manual
-    document.getElementById('tab-manual').click();
-    
-    mostrarToast('Transfira os dados para o formulário e tente novamente', 'info');
-};
-
-/**
- * Editar item
- */
-globalThis.editarItem = function(idx) {
-    mostrarToast('Função de edição em desenvolvimento', 'info');
-};
-
-/**
- * Fechar modal de sucesso com limpeza
- */
-globalThis.fecharModalSucesso = function() {
-    const modal = document.getElementById('modalSucesso');
-    if (modal) modal.remove();
-    
-    // Limpar formulário
-    limparFormulario();
-    
-    // Atualizar dados
-    if (globalThis.carregarReservas) globalThis.carregarReservas();
-    if (globalThis.calendar) globalThis.calendar.render();
-    
-    mostrarToast('✓ Pronto para nova reserva!', 'success');
-};
-
-// ===== FIX: Prevenir erro de listener assíncrono =====
 if (typeof chrome !== 'undefined' && chrome.runtime) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        // Responde imediatamente para evitar timeout
         sendResponse({ received: true });
-        return false; // Não indica resposta assíncrona
+        return false;
     });
 }
 
-// ===== FIX: Garantir que fetch não gera warning =====
 globalThis.fetch = (function() {
     const originalFetch = window.fetch;
     return function(...args) {
@@ -899,5 +870,4 @@ globalThis.fetch = (function() {
     };
 })();
 
-console.log("✓ Módulo de Reservas v3.0 carregado com sucesso");
-console.log("✓ Módulo de Reservas v3.0 carregado");
+console.log("✓ Módulo de Reservas v3.0 carregado (data corrigida)");

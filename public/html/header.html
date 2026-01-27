@@ -1,17 +1,29 @@
 <!-- public/html/header.html -->
 <div class="logo-title">
     <h1>Sistema Inteligente de Reservas</h1>
-   
 </div>
+
 <div class="user-info">
-    <!-- Adicione isso ao seu header.html -->
-<a href="/html/fila.html" class="btn-fila" title="Fila de Espera">
-    <i class="fas fa-users-line"></i> Fila
-</a>
-    <!-- Botão + para abrir o modal -->
+    <!-- Botão de Busca -->
+    <button class="btn-search-header" onclick="goToSearch()" title="Buscar Reservas">
+        <i class="fas fa-search"></i> Buscar
+    </button>
+
+    <!-- Link para Fila de Espera -->
+    <a href="/html/fila.html" class="btn-fila" title="Fila de Espera">
+        <i class="fas fa-users-line"></i> Fila
+    </a>
+    
+    <!-- Botão + para abrir modal de nova reserva -->
     <button class="btn-add-modal" onclick="openReservationModal()" title="Nova Reserva">
         <i class="fas fa-plus-circle"></i>
     </button>
+    
+    <!-- Informações do usuário -->
     <span id="userName" class="username"></span>
-    <button id="logoutBtn" onclick="logout()">Sair</button>
+    
+    <!-- Botão de logout -->
+    <button id="logoutBtn" class="btn-logout" onclick="logout()" title="Sair do sistema">
+        Sair
+    </button>
 </div>

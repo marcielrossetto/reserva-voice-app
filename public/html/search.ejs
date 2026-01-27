@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisar Reservas</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Local -->
+    <link rel="stylesheet" href="/css/searching.css">
+    <link rel="stylesheet" href="/css/header.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- HEADER -->
+        <header id="main-header" class="header">
+            <!-- Conteúdo será injetado aqui pelo header.js -->
+        </header>
+
+        <!-- FILTROS -->
+        <div class="filter-card">
+            <form method="GET" class="filter-grid" id="filterForm">
+                <% if (verCanceladas) { %>
+                    <input type="hidden" name="canceladas" value="1">
+                <% } %>
+                
+                <div>
+                    <label class="small fw-bold">Início</label>
+                    <input type="date" name="data_inicio" class="form-input" value="<%= data_inicio %>">
+                </div>
+                
+                <div>
+                    <label class="small fw-bold">Fim</label>
+                    <input type="date" name="data_fim" class="form-input" value="<%= data_fim %>">
+                </div>
+                
+                <div style="grid-column: span 2;">
+                    <label class="small fw-bold">Busca</label>
+                    <input type="text" name="busca" class="form-input" placeholder="Nome, Tel ou ID" value="<%= busca %>">
+                </div>
+                
+                <div>
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RESUMO -->
+        <div class="summary-section">
+            <div class="btn-group">
+                <span class="badge" style="background: <%= corBadge %>; color: <%= corTexto %>;">
+                    <%= tituloPagina %>: <%= reservas.length %>
+                </span>
+                <span class="badge dark">
+                    Pax Total: <%= totalPessoasFiltro %>
+                </span>
+            </div>
+            <div class="btn-group">
+                <% if (verCanceladas) { %>
+                    <a href="/search" class="btn btn-secondary">Ativas</a>
+                <% } else { %>
+                    <a href="/search?canceladas=1" class="btn btn-outline-danger">Canceladas</a>
+                    <a href="/adicionar-reserva" class="btn btn-primary">Nova</a>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- TABELA -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Data/Hora</th>
+                        <th>Pax</th>
+                        <th>Mesa</th>
+                        <th>Obs Reserva</th>
+                        <th>Obs Cliente</th>
+                        <th>Motivo Cancel.</th>
+                        <th>Registro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% reservas.forEach(r => { 
+                        const status = r.status ? 1 : 0;
+                        const tel = r.telefone?.replace(/\D/g, '') || '';
+                        const dataBr = new Date(r.data).toLocaleDateString('pt-BR');
+                       const hora = r.horario ? new Date(r.horario).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}) : 'N/D';
+                        const dataEmissao = r.dataEmissao ? new Date(r.dataEmissao).toLocaleDateString('pt-BR') + ' ' + new Date(r.dataEmissao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}) : 'N/D';
+                        const paramsZap = tel + '|' + r.nome + '|' + dataBr + '|' + hora + '|' + r.numPessoas;
+                    %>
+                        <tr class="<%= status === 0 ? 'row-cancelled' : '' %>">
+                            <td>#<%= r.id %></td>
+                            <td>
+                                <span class="fw-bold"><%= r.nome.charAt(0).toUpperCase() + r.nome.slice(1).toLowerCase() %></span>
+                                <br>
+                                <small><%= r.telefone %></small>
+                            </td>
+                            <td>
+                                <%= dataBr %><br>
+                                <b><%= hora %></b>
+                            </td>
+                            <td class="text-center"><b><%= r.numPessoas %></b></td>
+                            <td><%= r.numMesa || '-' %></td>
+                            <td>
+                                <div class="scroll-box"><%= r.observacoes || '' %></div>
+                            </td>
+                            <td>
+                                <div class="scroll-box obs-cliente-box"><%= r.obsCliente || '' %></div>
+                            </td>
+                            <td>
+                                <% if (status === 0) { %>
+                                    <div class="scroll-box motivo-box"><%= r.motivoCancelamento || 'N/I' %></div>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </td>
+                            <td style="font-size: 0.65rem;">
+                                <i class="fas fa-building text-primary"></i> <%= r.nome_empresa %><br>
+                                <i class="fas fa-user"></i> <%= r.criador_nome || 'Sistema' %><br>
+                                <i class="fas fa-clock"></i> <%= dataEmissao %>
+                            </td>
+                            <td>
+                                <select class="action-select" onchange="handleAction(this)">
+                                    <option value="">Opções</option>
+                                    <option value="whatsapp:<%= paramsZap %>">📲 WhatsApp</option>
+                                    <option value="obs:<%= r.id %>">📝 Obs Cliente</option>
+                                    <% if (status !== 0) { %>
+                                        <option value="editar:<%= r.id %>">✏️ Editar</option>
+                                        <option value="cancelar:<%= r.id %>">❌ Cancelar</option>
+                                    <% } else { %>
+                                        <option value="reativar:<%= r.id %>">✅ Reativar</option>
+                                    <% } %>
+                                </select>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAIS -->
+    <!-- 1. Modal Editar -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h6>Editar Reserva</h6>
+                    <button type="button" class="btn-close btn-close-white"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditar">
+                        <input type="hidden" name="id_reserva" id="edit_id">
+                        
+                        <label class="modal-ios-label">Nome:</label>
+                        <input type="text" name="nome" id="edit_nome" class="modal-ios-input">
+                        
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="modal-ios-label">Data:</label>
+                                <input type="date" name="data" id="edit_data" class="modal-ios-input">
+                            </div>
+                            <div class="col-6">
+                                <label class="modal-ios-label">Hora:</label>
+                                <input type="time" name="horario" id="edit_horario" class="modal-ios-input">
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="modal-ios-label">Telefone:</label>
+                                <input type="text" name="telefone" id="edit_telefone" class="modal-ios-input">
+                            </div>
+                            <div class="col-6">
+                                <label class="modal-ios-label">Pax:</label>
+                                <input type="number" name="numPessoas" id="edit_numPessoas" class="modal-ios-input">
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="modal-ios-label">Mesa:</label>
+                                <input type="text" name="numMesa" id="edit_numMesa" class="modal-ios-input">
+                            </div>
+                        </div>
+
+                        <label class="modal-ios-label">Obs Cliente (Fixo):</label>
+                        <textarea name="obsCliente" id="edit_obsCliente" class="modal-ios-input" rows="2"></textarea>
+
+                        <label class="modal-ios-label">Obs Reserva:</label>
+                        <textarea name="observacoes" id="edit_observacoes" class="modal-ios-input" rows="2"></textarea>
+                    </form>
+                    <button class="btn btn-primary w-100 mt-3" onclick="salvarEdicao()">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Obs Cliente -->
+    <div id="modalObsCliente" class="modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark">
+                    <h6>Observação do Cliente</h6>
+                    <button type="button" class="btn-close btn-close-white"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formObsCliente">
+                        <input type="hidden" name="id_reserva_obs" id="obs_id">
+                        <textarea name="obsCliente" id="edit_obsCliente_modal" class="modal-ios-input" rows="6" placeholder="Notas sobre o cliente..."></textarea>
+                    </form>
+                    <button class="btn btn-dark w-100 mt-3" onclick="salvarObsCliente()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal Cancelar -->
+    <div id="modalCancelar" class="modal">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h6>Cancelar Reserva</h6>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="cancelar_id_input">
+                    <label class="small fw-bold mb-2">Motivo:</label>
+                    <select id="motivo_cancel_select" class="modal-ios-input" multiple>
+                        <option>Mudança de planos</option>
+                        <option>Problemas de saúde</option>
+                        <option>Erro na reserva</option>
+                        <option>Não informou</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger w-100" onclick="confirmarCancelamento()">Confirmar Cancelamento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/components/header.js"></script>
+    <script src="/js/searching.js"></script>
+</body>
+
+</html>

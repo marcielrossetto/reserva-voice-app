@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Query</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/reservationQuery.css">
+</head>
+<body>
+    <div id="main-header"></div>
+
+    <!-- FILTERS -->
+    <div class="container-fluid mt-3 mb-3">
+        <div class="filter-bar-horizontal">
+            <!-- DATE -->
+            <div class="filter-item-date">
+                <input type="date" id="filterData" class="form-control form-control-sm" onchange="loadReservations()">
+            </div>
+
+            <!-- SEARCH -->
+            <div class="filter-item-search">
+                <input type="text" id="filterBusca" class="form-control form-control-sm" placeholder="Search name or phone..." onkeyup="loadReservations()">
+            </div>
+
+            <!-- PERIOD -->
+            <div class="period-icons">
+                <button class="btn-period active" onclick="setPeriodo('todos', this)" title="Full Day">
+                    <i class="fas fa-calendar-day"></i>
+                </button>
+                <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Lunch (11:00 - 17:59)">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Dinner (18:00 - 23:59)">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <input type="hidden" id="filterPeriodo" value="todos">
+            </div>
+
+            <!-- INCLUDE CANCELLED -->
+            <div class="filter-item-checkbox">
+                <label>
+                    <input type="checkbox" id="incluirCanceladas" onchange="loadReservations()"> Cancelled
+                </label>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="filter-actions">
+                <button class="btn btn-secondary btn-sm" onclick="window.print()">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openReservationModal()">
+                    <i class="fas fa-plus"></i> New
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOTALS -->
+    <div class="container-fluid">
+        <div class="totais-info">
+            <span id="totalStatus">📅 Today</span>
+            <span class="badge badge-dark">Active: <span id="totalAtivos">0</span> pax | <span id="totalQtd">0</span> res</span>
+            <span class="badge badge-warning" id="badgeCanceladas" style="display:none;">Cancelled: <span id="totalCanceladas">0</span></span>
+        </div>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="container-fluid mt-3" id="printArea">
+        <div id="reservationsContainer" class="reservations-grid">
+            <!-- Cards inserted here via JS -->
+        </div>
+    </div>
+
+    <!-- Modal for editing -->
+    <div id="modal-container"></div>
+
+    <footer class="mt-5">
+        <p>Reservation System - Developed by Marciel Rossetto</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/components/header.js"></script>
+    <script src="/js/reservationQuery.js"></script>
+    <script src="/js/components/reservation_modal.js"></script>
+</body>
+</html>

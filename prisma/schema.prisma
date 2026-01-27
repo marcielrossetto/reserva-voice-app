@@ -75,7 +75,7 @@ model Usuario {
 }
 
 // ============================================================================
-// CLIENTES
+// CLIENTES - CORRIGIDO: horario como String (HH:MM:SS)
 // ============================================================================
 
 model Cliente {
@@ -84,7 +84,7 @@ model Cliente {
   nome                  String    @db.VarChar(255)
   data                  DateTime
   numPessoas            Int
-  horario               DateTime
+  horario         String  @db.VarChar(8)
   telefone              String?   @db.VarChar(20)
   telefone2             String?   @db.VarChar(20)
   tipoEvento            String?   @db.VarChar(100)

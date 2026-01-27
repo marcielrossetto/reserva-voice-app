@@ -14,6 +14,7 @@ function normalizePhone(phone) {
 /**
  * Normaliza data para YYYY-MM-DD
  * Aceita: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, hoje, amanha
+ * CORRIGIDO: Agora captura data com PONTO também!
  */
 function normalizeDate(dateStr, hoje = new Date()) {
     const lower = String(dateStr).toLowerCase().trim();
@@ -28,17 +29,15 @@ function normalizeDate(dateStr, hoje = new Date()) {
         return amanha.toISOString().split('T')[0];
     }
     
-    // DD/MM/YYYY, DD-MM-YYYY ou DD.MM.YYYY (com ponto)
-    const match = dateStr.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+    // DD/MM/YYYY, DD-MM-YYYY ou DD.MM.YYYY (COM PONTO!)
+    const match = String(dateStr).match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
     if (match) {
         let [, day, month, year] = match;
         
         day = String(day).padStart(2, '0');
         month = String(month).padStart(2, '0');
         
-        if (!year) {
-            year = hoje.getFullYear();
-        } else if (year.length === 2) {
+        if (year.length === 2) {
             year = '20' + year;
         }
         
@@ -67,31 +66,32 @@ function normalizeHour(hourStr) {
 
 /**
  * Parse inteligente de reserva via WhatsApp
+ * ORIGINAL - apenas corrigido para pegar data com ponto
  */
 function parseReserva(texto) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
     const resultado = {
-        nome: { value: null, score: 0 },
-        telefone: { value: null, score: 0 },
-        data: { value: null, score: 0 },
-        horario: { value: null, score: 0 },
-        pessoas: { value: null, score: 0 },
-        pagamento: { value: null, score: 0 },
-        mesa: { value: null, score: 0 },
-        observacoes: { value: null, score: 1 }
+        nome: null,
+        telefone: null,
+        data: null,
+        horario: null,
+        numPessoas: null,
+        numMesa: null,
+        observacoes: null,
+        erros: [],
+        valido: true
     };
     
     const lower = texto.toLowerCase();
     let textoLimpo = texto;
     
-    // 👤 NOME - PRIMEIRO (antes de quebrar o texto)
+    // 👤 NOME - PRIMEIRO
     const nomeMatch = texto.match(/^([a-záàâãéèêíïóôõöúçñ\s]+?)(?:\n|:)/i);
     if (nomeMatch && nomeMatch[1].trim().length > 2) {
         const nome = nomeMatch[1].trim();
-        resultado.nome.value = nome;
-        resultado.nome.score = 0.95;
+        resultado.nome = nome;
         textoLimpo = textoLimpo.replace(nome, '');
     }
     
@@ -101,19 +101,17 @@ function parseReserva(texto) {
         const telRaw = telMatch[1].trim();
         const telefone = normalizePhone(telRaw);
         if (telefone) {
-            resultado.telefone.value = telefone;
-            resultado.telefone.score = 0.95;
+            resultado.telefone = telefone;
         }
     }
     
-    // 📅 DATA - FORMATO ESPECÍFICO
+    // 📅 DATA - CORRIGIDO: Agora pega também com PONTO
     const dataMatch = texto.match(/Data:\s*(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/i);
     if (dataMatch) {
         const dataRaw = dataMatch[1].trim();
         const data = normalizeDate(dataRaw, hoje);
         if (data) {
-            resultado.data.value = data;
-            resultado.data.score = 0.95;
+            resultado.data = data;
         }
     }
     
@@ -123,8 +121,7 @@ function parseReserva(texto) {
         const horaRaw = horaMatch[1];
         const horario = normalizeHour(horaRaw + ':00');
         if (horario) {
-            resultado.horario.value = horario;
-            resultado.horario.score = 0.95;
+            resultado.horario = horario;
         }
     }
     
@@ -133,55 +130,51 @@ function parseReserva(texto) {
     if (pessoasMatch) {
         const num = Number(pessoasMatch[1]);
         if (num > 0 && num <= 200) {
-            resultado.pessoas.value = num;
-            resultado.pessoas.score = 0.95;
+            resultado.numPessoas = num;
         }
-    }
-    
-    // 💳 PAGAMENTO
-    const pagamentoMatch = texto.match(/Pagamento:\s*([^\n]+)/i);
-    if (pagamentoMatch) {
-        const pag = pagamentoMatch[1].toLowerCase();
-        if (pag.includes('unica') || pag.includes('única')) {
-            resultado.pagamento.value = 'unica';
-        } else if (pag.includes('individual')) {
-            resultado.pagamento.value = 'individual';
-        } else {
-            resultado.pagamento.value = pag.trim();
-        }
-        resultado.pagamento.score = 0.9;
     }
     
     // 🪑 MESA
     const mesaMatch = texto.match(/Mesa:\s*(\d+|[a-z0-9\s]+)/i);
     if (mesaMatch) {
-        resultado.mesa.value = mesaMatch[1].trim();
-        resultado.mesa.score = 0.9;
+        resultado.numMesa = mesaMatch[1].trim();
     }
     
     // 📝 OBSERVAÇÕES
     const obsMatch = texto.match(/Observações?:\s*([^\n]+)/i);
     if (obsMatch) {
-        resultado.observacoes.value = obsMatch[1].trim();
-        resultado.observacoes.score = 0.9;
+        resultado.observacoes = obsMatch[1].trim();
     }
+    
+    // Validação
+    if (!resultado.nome) resultado.erros.push('Nome obrigatório');
+    if (!resultado.data) resultado.erros.push('Data obrigatória');
+    if (!resultado.horario) resultado.erros.push('Horário obrigatório');
+    if (!resultado.numPessoas) resultado.erros.push('Nº de pessoas obrigatório');
+    
+    resultado.valido = resultado.erros.length === 0;
     
     return resultado;
 }
-    // 📝 OBSERVAÇÕES
-    resultado.observacoes.value = textoLimpo
-        .replace(/unica|única|individual/gi, '')
-        .replace(/mesa|salao|salão|pista/gi, '')
-        .replace(/pax|pessoas|para/gi, '')
-        .replace(/h(?:oras)?/gi, '')
-        .trim() || null;
+
+/**
+ * Parse de múltiplas reservas
+ */
+function parseMultiplasReservas(texto) {
+    const blocos = texto.split(/\n\n+/).filter(b => b.trim());
     
-    return resultado;
+    if (blocos.length > 1) {
+        return blocos.map(bloco => parseReserva(bloco)).filter(r => r.nome);
+    }
+    
+    const resultado = parseReserva(texto);
+    return resultado.nome ? [resultado] : [];
 }
 
 module.exports = {
     normalizePhone,
     normalizeDate,
     normalizeHour,
-    parseReserva
+    parseReserva,
+    parseMultiplasReservas
 };
