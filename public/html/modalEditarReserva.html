@@ -1,0 +1,164 @@
+<div class="modal fade" id="modalEditarReserva" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: 22px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2)">
+      <div class="modal-header border-0">
+        <h5 class="modal-title w-100 text-center fw-bold">Editar Reserva #<span id="edit-reserva-id">--</span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="formEditarReserva" onsubmit="event.preventDefault(); salvarEdicaoReserva();">
+          
+          <!-- CARD PERFIL CLIENTE -->
+          <div class="profile-card mb-3 p-3 border border-success rounded">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 id="edit-card-nome" class="fw-bold mb-0">--</h6>
+                <p id="edit-card-telefone" class="small text-muted mb-1">--</p>
+                <p class="small mb-0">
+                  Última visita: <span id="edit-card-ultima" class="fw-bold">--</span>
+                </p>
+              </div>
+              <button type="button" class="btn btn-sm btn-light border" onclick="trocarClienteEdit()">
+                Trocar Cliente
+              </button>
+            </div>
+          </div>
+
+          <!-- NOME -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Nome:</label>
+            <input type="text" id="edit_nome" class="form-control" required>
+          </div>
+
+          <!-- DATA E HORÁRIO -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Data:</label>
+              <input type="date" id="edit_data" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Horário:</label>
+              <input type="time" id="edit_horario" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- PAX -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Pax:</label>
+              <input type="number" id="edit_num_pessoas" class="form-control" min="1" required>
+            </div>
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Telefone Alt:</label>
+              <input type="text" id="edit_telefone2" class="form-control" onkeyup="maskPhone(this)">
+            </div>
+          </div>
+
+          <!-- FORMA PAGAMENTO -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Forma de Pagamento:</label>
+              <select id="edit_forma_pagamento" class="form-select">
+                <option value="Não definido">Selecione</option>
+                <option value="unica">Única</option>
+                <option value="individual">Individual</option>
+                <option value="U (rod) I (beb)">Única (rod) Individual (beb)</option>
+                <option value="outros">Outros</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Mesa:</label>
+              <input type="text" id="edit_num_mesa" class="form-control">
+            </div>
+          </div>
+
+          <!-- TIPO EVENTO -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Tipo de Evento:</label>
+            <select id="edit_tipo_evento" class="form-select">
+              <option value="Manual">Manual</option>
+              <option value="Aniversario">Aniversário</option>
+              <option value="Conf. fim de ano">Confraternização Fim de Ano</option>
+              <option value="Formatura">Formatura</option>
+              <option value="Casamento">Casamento</option>
+              <option value="Conf. Familia">Confraternização Família</option>
+            </select>
+          </div>
+
+          <!-- VALOR RODÍZIO -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Valor do Rodízio:</label>
+            <input type="text" id="edit_valor_rodizio" class="form-control">
+          </div>
+
+          <!-- CHECKBOXES -->
+          <div class="checkbox-area p-3 bg-light rounded-3 mb-3">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="edit_torta" name="tortaTermoVela">
+              <label class="form-check-label small fw-bold" for="edit_torta">
+                Ciente torta, Termo e vela
+              </label>
+            </div>
+            <div class="d-flex gap-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="edit_churras" name="churrascaria">
+                <label class="form-check-label small fw-bold" for="edit_churras">Churrascaria</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="edit_exec" name="executivo">
+                <label class="form-check-label small fw-bold" for="edit_exec">Executivo</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Observações:</label>
+            <textarea id="edit_observacoes" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
+              Salvar Alterações
+            </button>
+            <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-bold" onclick="confirmarCancelamento()">
+              Cancelar Reserva
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #modalEditarReserva .modal-dialog { max-width: 1200px; }
+  #modalEditarReserva .modal-content { border-radius: 20px; border: none; }
+  #modalEditarReserva .modal-header { padding: 1.5rem; border-bottom: 1px solid #f0f0f0; background: #f9f9fb; }
+  #modalEditarReserva .modal-title { font-size: 1.25rem; letter-spacing: 0.5px; }
+  #modalEditarReserva .modal-body { padding: 1.5rem; }
+
+  #formEditarReserva { display: flex; flex-direction: column; gap: 0.75rem; }
+  #formEditarReserva .mb-3 { margin-bottom: 0.75rem !important; }
+  #formEditarReserva .row { margin: 0 -6px; }
+  #formEditarReserva .row > div { padding: 0 6px; }
+
+  .form-label { font-size: 0.85rem; font-weight: 700; color: #333; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-control, .form-select { border-radius: 12px; border: 1px solid #d1d1d6; padding: 0.75rem 1rem; background: #f9f9fb; font-size: 0.95rem; transition: all 0.2s ease; }
+  .form-control:focus, .form-select:focus { border-color: #007aff; background: #fff; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+
+  .profile-card { background: #f0f9f0; border: 2px solid #28a745; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+  .profile-card h6 { font-size: 1.05rem; color: #333; margin-bottom: 0.25rem; }
+
+  .checkbox-area { background: #f8f9fa; border: 1px solid #d1d1d6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .form-check { display: flex; align-items: center; margin-bottom: 0.75rem; }
+  .form-check-input { width: 1.25rem; height: 1.25rem; margin-top: 0; cursor: pointer; border-radius: 4px; border: 1.5px solid #d1d1d6; }
+  .form-check-input:checked { background-color: #007aff; border-color: #007aff; }
+  .form-check-label { font-weight: 600; color: #333; cursor: pointer; margin-left: 0.75rem; margin-bottom: 0; }
+
+  @media (max-width: 576px) {
+    #modalEditarReserva .modal-dialog { margin: 0.5rem; max-width: calc(100% - 1rem); }
+    #modalEditarReserva .modal-body { padding: 1rem; }
+    #formEditarReserva .row > div { margin-bottom: 0.5rem; }
+  }
+</style>

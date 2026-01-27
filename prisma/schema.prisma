@@ -84,7 +84,7 @@ model Cliente {
   nome                  String    @db.VarChar(255)
   data                  DateTime
   numPessoas            Int
-  horario         String  @db.VarChar(8)
+  horario               String    @db.VarChar(8)
   telefone              String?   @db.VarChar(20)
   telefone2             String?   @db.VarChar(20)
   tipoEvento            String?   @db.VarChar(100)
@@ -103,11 +103,31 @@ model Cliente {
   executivo             Boolean   @default(false)
 
   empresa               Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  alteracoes            ClienteAlteracao[]
 
   @@index([empresaId])
   @@index([data])
   @@index([status])
   @@map("clientes")
+}
+
+// ============================================================================
+// HISTÓRICO DE ALTERAÇÕES DE CLIENTES
+// ============================================================================
+
+model ClienteAlteracao {
+  id                    Int       @id @default(autoincrement())
+  clienteId             Int
+  campo                 String    @db.VarChar(100)
+  valorAnterior         String?   @db.Text
+  valorNovo             String?   @db.Text
+  dataAlteracao         DateTime  @default(now())
+
+  cliente               Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId])
+  @@index([dataAlteracao])
+  @@map("cliente_alteracoes")
 }
 
 // ============================================================================

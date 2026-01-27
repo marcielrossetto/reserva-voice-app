@@ -1,10 +1,13 @@
 /**
- * RESERVATION QUERY - iOS Style FINAL
+ * RESERVATION QUERY - iOS Style CORRIGIDO
+ * SEM declaração de token (já está em config.js)
+ * Nome com 18 letras + layout mobile melhorado
  */
 
-let token = localStorage.getItem("token");
+// ❌ NÃO DECLARE TOKEN AQUI - use o de config.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  verificarAutenticacao();
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("filterData").value = today;
   loadReservations();
@@ -60,13 +63,40 @@ function renderCards(reservations, totals) {
   });
 }
 
+function formatarData(dataString) {
+  try {
+    const [ano, mes, dia] = dataString.split("-");
+    const dataObj = new Date(ano, parseInt(mes) - 1, parseInt(dia));
+    return dataObj.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (e) {
+    return dataString;
+  }
+}
+
 function createCard(reservation) {
   const card = document.createElement("div");
-  card.className = `reservation-card ${reservation.status ? "" : "cancelled"}`;
+  const statusClass = reservation.confirmado
+    ? "confirmed"
+    : reservation.status
+      ? "pending"
+      : "cancelled";
+  card.className = `reservation-card ${statusClass}`;
 
-  const confirmedClass = reservation.confirmado ? "confirmed" : "pending";
-  const confirmedText = reservation.confirmado ? "Confirmada" : "Pendente";
   const mesaDisplay = reservation.numMesa ? reservation.numMesa : "N/D";
+  const phone = reservation.telefone
+    ? reservation.telefone.replace(/\D/g, "")
+    : "";
+
+  // ✅ CORRIGIDO: 18 letras em vez de 12
+  const nomeDisplay =
+    reservation.nome.length > 18
+      ? reservation.nome.substring(0, 18) + "..."
+      : reservation.nome;
+  const nomeClass = reservation.nome.length > 18 ? "truncated" : "";
 
   card.innerHTML = `
         <div class="card-content">
@@ -74,31 +104,20 @@ function createCard(reservation) {
             <div class="card-id-box">
                 <div class="card-id-number">${reservation.id}</div>
                 <div class="card-id-label">ID</div>
-                <button class="card-history-btn" onclick="viewReservationHistory(${reservation.id})" title="Histórico da reserva">
+                <button class="card-history-btn" onclick="viewReservationHistory(${reservation.id})" title="Historico da reserva">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
 
             <!-- NOME + TELEFONE -->
             <div class="card-main">
-                <div class="card-name">${reservation.nome}</div>
-                <a href="https://wa.me/${reservation.telefone.replace(/\D/g, "")}" target="_blank" class="card-phone" title="Abrir WhatsApp">
+                <div class="card-name ${nomeClass}" title="${reservation.nome}">${nomeDisplay}</div>
+                <a href="javascript:void(0)" onclick="openWhatsAppModal(${reservation.id}, '${reservation.nome}', '${reservation.data}', '${reservation.horario}', ${reservation.numPessoas}, '${phone}')" class="card-phone" title="Enviar WhatsApp">
                     <i class="fab fa-whatsapp"></i> ${reservation.telefone || "N/A"}
                 </a>
             </div>
 
-            <!-- OBS COM SCROLL -->
-            ${
-              reservation.observacoes
-                ? `
-                <div class="card-obs" title="${reservation.observacoes}">
-                    ${reservation.observacoes}
-                </div>
-            `
-                : ""
-            }
-
-            <!-- PAX + HORÁRIO + MESA -->
+            <!-- PAX + HORARIO + MESA -->
             <div class="card-center">
                 <div class="card-stat" onclick="openEditModal(${reservation.id})" title="Clique para editar">
                     <span class="card-stat-value">${reservation.numPessoas}</span>
@@ -114,18 +133,32 @@ function createCard(reservation) {
                     <span class="card-mesa-value">${mesaDisplay}</span>
                     <span class="card-mesa-label">mesa</span>
                 </div>
-
-                <span class="badge-status badge-${confirmedClass}">${confirmedText}</span>
             </div>
 
-            <!-- MENU iOS -->
-            <div class="card-menu">
-                <button class="btn-menu-ios" onclick="toggleMenu(event)">⋮</button>
+            <!-- OBS COM SCROLL -->
+            ${
+              reservation.observacoes
+                ? `
+                <div class="card-obs" title="${reservation.observacoes}">
+                    ${reservation.observacoes}
+                </div>
+            `
+                : `
+                <div class="card-obs-empty">...</div>
+            `
+            }
+
+            <!-- BOLINHA STATUS -->
+            <div class="card-status-dot ${statusClass}" onclick="openStatusModal(${reservation.id}, '${statusClass}')" title="${statusClass === "confirmed" ? "Confirmada" : statusClass === "pending" ? "Pendente" : "Cancelada"}"></div>
+
+            <!-- MENU iOS (3 PONTOS) -->
+            <div class="card-menu" id="menu-container-${reservation.id}">
+                <button class="btn-menu-ios" onclick="toggleMenu(event, ${reservation.id})">⋮</button>
                 <div class="menu-dropdown" id="menu-${reservation.id}">
                     ${
                       !reservation.confirmado && reservation.status
                         ? `
-                        <button class="menu-item" onclick="openConfirmationModal(${reservation.id}, '${reservation.nome}', '${reservation.data}', '${reservation.horario}', ${reservation.numPessoas})">
+                        <button class="menu-item" onclick="openWhatsAppConfirmation(${reservation.id}, '${reservation.nome}', '${reservation.data}', '${reservation.horario}', ${reservation.numPessoas})">
                             <i class="fab fa-whatsapp"></i>
                             <span>Confirmar</span>
                         </button>
@@ -145,10 +178,6 @@ function createCard(reservation) {
                             <i class="fas fa-edit"></i>
                             <span>Editar</span>
                         </button>
-                        <button class="menu-item danger" onclick="cancelReservation(${reservation.id})">
-                            <i class="fas fa-trash"></i>
-                            <span>Cancelar</span>
-                        </button>
                     `
                         : ""
                     }
@@ -160,16 +189,23 @@ function createCard(reservation) {
   return card;
 }
 
-function toggleMenu(event) {
+function toggleMenu(event, reservationId) {
   event.stopPropagation();
   const btn = event.target.closest(".btn-menu-ios");
-  const menu = btn.nextElementSibling;
+  const menu = document.getElementById(`menu-${reservationId}`);
+  const cardRect = btn.closest(".reservation-card").getBoundingClientRect();
 
   document.querySelectorAll(".menu-dropdown").forEach((m) => {
     if (m !== menu) m.classList.remove("show");
   });
 
-  menu.classList.toggle("show");
+  if (menu.classList.contains("show")) {
+    menu.classList.remove("show");
+  } else {
+    menu.classList.add("show");
+    menu.style.top = cardRect.bottom + 5 + "px";
+    menu.style.right = window.innerWidth - cardRect.right + "px";
+  }
 }
 
 function closeMenusOnClickOutside(event) {
@@ -177,81 +213,6 @@ function closeMenusOnClickOutside(event) {
     document
       .querySelectorAll(".menu-dropdown")
       .forEach((m) => m.classList.remove("show"));
-  }
-}
-
-function openConfirmationModal(id, nome, data, horario, pax) {
-  document
-    .querySelectorAll(".menu-dropdown")
-    .forEach((m) => m.classList.remove("show"));
-
-  const dataObj = new Date(data + "T00:00:00");
-  const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-
-  const horarioFormatado = horario.substring(0, 5);
-  const mensagem = `Olá ${nome}! 👋\n\nSua reserva foi confirmada! ✅\n\n📅 Data: ${dataFormatada}\n🕐 Horário: ${horarioFormatado}\n👥 Pessoas: ${pax}\n\nAguardamos sua visita! 😊`;
-
-  const html = `
-        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10000;">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header bg-success text-white border-0">
-                        <h5 class="modal-title fw-bold">✓ Confirmar Reserva</h5>
-                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
-                    </div>
-                    <div class="modal-body pt-4">
-                        <div class="alert alert-light border-start border-4 border-success mb-3" role="alert">
-                            <div class="mb-2">
-                                <strong class="text-dark">${nome}</strong>
-                                <span class="badge bg-secondary float-end">#${id}</span>
-                            </div>
-                            <div class="small text-muted">
-                                <div class="mb-1"><i class="fas fa-calendar-alt"></i> ${dataFormatada}</div>
-                                <div class="mb-1"><i class="fas fa-clock"></i> ${horarioFormatado}</div>
-                                <div><i class="fas fa-users"></i> ${pax} ${pax === 1 ? "pessoa" : "pessoas"}</div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-2">📱 Mensagem WhatsApp:</small>
-                            <div class="bg-light p-3 rounded" style="font-size: 0.85rem; line-height: 1.6; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">${mensagem}</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-top-0 bg-light pt-3">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.closest('.modal').remove()">Cancelar</button>
-                        <button type="button" class="btn btn-success btn-sm" onclick="sendWhatsAppConfirmation(${id}, this.closest('.modal'))">
-                            <i class="fab fa-whatsapp"></i> Enviar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-  document.body.insertAdjacentHTML("beforeend", html);
-}
-
-async function sendWhatsAppConfirmation(id, modal) {
-  try {
-    const res = await fetch(`/api/reservationQuery/${id}/confirm`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.ok) {
-      modal.remove();
-      showToast("✅ Reserva confirmada!", "success");
-      loadReservations();
-    }
-  } catch (err) {
-    showToast("❌ Erro ao confirmar", "danger");
   }
 }
 
@@ -280,7 +241,7 @@ function showEditModal(reservation) {
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header border-0 bg-light">
-                        <h5 class="modal-title fw-bold">Editar Reserva #${reservation.id}</h5>
+                        <h5 class="modal-title fw-bold">Editar Reserva ${reservation.id}</h5>
                         <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
                     </div>
                     <div class="modal-body">
@@ -298,7 +259,7 @@ function showEditModal(reservation) {
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="fw-bold">Horário</label>
+                                        <label class="fw-bold">Horario</label>
                                         <input type="time" id="edit_horario" class="form-control" value="${reservation.horario.substring(0, 5)}" required>
                                     </div>
                                 </div>
@@ -312,14 +273,14 @@ function showEditModal(reservation) {
                                 <input type="text" id="edit_mesa" class="form-control" value="${reservation.numMesa || ""}">
                             </div>
                             <div class="form-group">
-                                <label class="fw-bold">Observações</label>
+                                <label class="fw-bold">Observacoes</label>
                                 <textarea id="edit_obs" class="form-control" rows="3">${reservation.observacoes || ""}</textarea>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer border-top-0">
                         <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.modal').remove()">Cancelar</button>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="saveEdit(${reservation.id})">Salvar Alterações</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveEdit(${reservation.id})">Salvar Alteracoes</button>
                     </div>
                 </div>
             </div>
@@ -350,34 +311,245 @@ async function saveEdit(id) {
 
     if (res.ok) {
       document.querySelector(".modal").remove();
-      showToast("✅ Reserva atualizada", "success");
+      showToast("Reserva atualizada", "success");
       loadReservations();
     }
   } catch (err) {
-    showToast("❌ Erro ao salvar", "danger");
+    showToast("Erro ao salvar", "danger");
   }
 }
 
-async function cancelReservation(id) {
-  const motivo = prompt("Motivo da cancelação:");
-  if (!motivo) return;
+function openStatusModal(id, currentStatus) {
+  let titulo = "Alterar Status";
+  let botoes = `
+        <button class="btn btn-outline-warning btn-sm" onclick="changeStatus(${id}, 'pending', this.closest('.modal'))">
+            <i class="fas fa-circle" style="color: #ff9800;"></i> Pendente
+        </button>
+        <button class="btn btn-outline-success btn-sm" onclick="changeStatus(${id}, 'confirmed', this.closest('.modal'))">
+            <i class="fas fa-circle" style="color: #28a745;"></i> Confirmada
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="openCancelModal(${id}, this.closest('.modal'))">
+            <i class="fas fa-circle" style="color: #dc3545;"></i> Cancelada
+        </button>
+    `;
+
+  if (currentStatus === "cancelled") {
+    titulo = "Reativar Reserva?";
+    botoes += `
+            <button class="btn btn-outline-info btn-sm" onclick="changeStatus(${id}, 'reactivate', this.closest('.modal'))">
+                <i class="fas fa-redo"></i> Sim, Reativar
+            </button>
+        `;
+  }
+
+  const html = `
+        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10000;">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-info text-white border-0">
+                        <h5 class="modal-title fw-bold">${titulo}</h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="d-flex flex-column gap-2">
+                            ${botoes}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+
+function openCancelModal(id, parentModal) {
+  parentModal.remove();
+
+  const html = `
+        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10001;">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white border-0">
+                        <h5 class="modal-title fw-bold">Cancelar Reserva</h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="form-group">
+                            <label class="fw-bold mb-2">Motivo do cancelamento:</label>
+                            <textarea id="cancel_reason" class="form-control" rows="3" placeholder="Digite o motivo..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.modal').remove()">Fechar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="changeStatus(${id}, 'cancelled', this.closest('.modal'))">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+
+async function changeStatus(id, status, modal) {
+  const reason =
+    status === "cancelled"
+      ? document.getElementById("cancel_reason")?.value || ""
+      : null;
 
   try {
-    const res = await fetch(`/api/reservationQuery/${id}/cancel`, {
+    const endpoint =
+      status === "confirmed"
+        ? `/api/reservationQuery/${id}/confirm`
+        : status === "cancelled"
+          ? `/api/reservationQuery/${id}/cancel`
+          : status === "reactivate"
+            ? `/api/reservationQuery/${id}/reactivate`
+            : `/api/reservationQuery/${id}/status`;
+
+    const payload = status === "cancelled" ? { reason } : { status };
+
+    const res = await fetch(endpoint, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ reason: motivo }),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
-      showToast("❌ Reserva cancelada", "warning");
+      modal.remove();
+      showToast("Status alterado!", "success");
+      loadReservations();
+    } else {
+      showToast("Erro ao alterar status", "danger");
+    }
+  } catch (err) {
+    showToast("Erro ao alterar status", "danger");
+  }
+}
+
+function openWhatsAppModal(id, nome, data, horario, pax, phone) {
+  const dataFormatada = formatarData(data);
+  const horarioFormatado = horario.substring(0, 5);
+
+  const mensagem = `Ola ${nome}! Estamos entrando em contato para confirmar sua reserva para ${pax} pessoas as ${horarioFormatado}hs no dia ${dataFormatada}. Podemos confirmar?`;
+
+  const html = `
+        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10000;">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-success text-white border-0">
+                        <h5 class="modal-title fw-bold">WhatsApp</h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="alert alert-light border-start border-4 border-success mb-3" role="alert">
+                            <strong class="text-dark">${nome}</strong>
+                            <div class="small text-muted mt-2">
+                                <div class="mb-1">${pax} pessoas</div>
+                                <div class="mb-1">${horarioFormatado}</div>
+                                <div>${dataFormatada}</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-2">Mensagem:</small>
+                            <div class="bg-light p-3 rounded" style="font-size: 0.85rem; line-height: 1.6; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">${mensagem}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 bg-light pt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.closest('.modal').remove()">Cancelar</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="sendWhatsApp('${phone}', '${encodeURIComponent(mensagem)}', this.closest('.modal'))">
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+
+function sendWhatsApp(phone, message, modal) {
+  if (!phone) {
+    showToast("Telefone nao disponivel", "warning");
+    return;
+  }
+
+  const url = `https://wa.me/${phone}?text=${message}`;
+  window.open(url, "_blank");
+
+  setTimeout(() => {
+    modal.remove();
+  }, 500);
+}
+
+function openWhatsAppConfirmation(id, nome, data, horario, pax) {
+  document
+    .querySelectorAll(".menu-dropdown")
+    .forEach((m) => m.classList.remove("show"));
+
+  const dataFormatada = formatarData(data);
+  const horarioFormatado = horario.substring(0, 5);
+  const mensagem = `Ola ${nome}! Sua reserva foi confirmada! Data: ${dataFormatada} Horario: ${horarioFormatado} Pessoas: ${pax}. Aguardamos sua visita!`;
+
+  const html = `
+        <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10000;">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-success text-white border-0">
+                        <h5 class="modal-title fw-bold">Confirmar Reserva</h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="alert alert-light border-start border-4 border-success mb-3" role="alert">
+                            <strong class="text-dark">${nome}</strong>
+                            <span class="badge bg-secondary float-end">${id}</span>
+                            <div class="small text-muted mt-2">
+                                <div class="mb-1">${dataFormatada}</div>
+                                <div class="mb-1">${horarioFormatado}</div>
+                                <div>${pax} ${pax === 1 ? "pessoa" : "pessoas"}</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-2">Mensagem WhatsApp:</small>
+                            <div class="bg-light p-3 rounded" style="font-size: 0.85rem; line-height: 1.6; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">${mensagem}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 bg-light pt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.closest('.modal').remove()">Cancelar</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="sendWhatsAppConfirmation(${id}, this.closest('.modal'))">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+
+async function sendWhatsAppConfirmation(id, modal) {
+  try {
+    const res = await fetch(`/api/reservationQuery/${id}/confirm`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.ok) {
+      modal.remove();
+      showToast("Reserva confirmada!", "success");
       loadReservations();
     }
   } catch (err) {
-    showToast("❌ Erro ao cancelar", "danger");
+    showToast("Erro ao confirmar", "danger");
   }
 }
 
@@ -404,45 +576,63 @@ async function viewClientHistory(phone) {
 function showClientHistory(client, reservations) {
   const html = `
         <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header border-0 bg-light">
-                        <h5 class="modal-title fw-bold">${client.nome}</h5>
+                        <h5 class="modal-title fw-bold">Historico do Cliente - ${client.nome}</h5>
                         <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row mb-3 g-2">
-                            <div class="col-4 text-center">
+                        <div class="row mb-4 g-2">
+                            <div class="col-3 text-center">
                                 <small class="text-muted d-block">Total</small>
-                                <strong class="h6">${client.totalReservations}</strong>
+                                <h6 class="fw-bold">${client.totalReservations}</h6>
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <small class="text-muted d-block">Confirmadas</small>
-                                <strong class="h6 text-success">${client.confirmadas}</strong>
+                                <h6 class="fw-bold text-success">${client.confirmadas}</h6>
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <small class="text-muted d-block">Canceladas</small>
-                                <strong class="h6 text-danger">${client.canceladas}</strong>
+                                <h6 class="fw-bold text-danger">${client.canceladas}</h6>
+                            </div>
+                            <div class="col-3 text-center">
+                                <small class="text-muted d-block">Telefone</small>
+                                <h6 class="fw-bold">${client.telefone || "N/A"}</h6>
                             </div>
                         </div>
                         <hr>
-                        <small class="text-muted d-block mb-2">Últimas Reservas:</small>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            ${reservations
-                              .slice(0, 10)
-                              .map(
-                                (r) => `
-                                <div class="py-2 px-2 border-bottom" style="font-size: 0.85rem;">
-                                    <strong>${new Date(r.data).toLocaleDateString("pt-BR")}</strong> 
-                                    • ${r.horario.substring(0, 5)} 
-                                    • ${r.numPessoas}p
-                                    <span class="badge ${r.confirmado ? "bg-success" : "bg-warning"} float-end" style="font-size: 0.7rem;">
-                                        ${r.confirmado ? "✓" : "pendente"}
-                                    </span>
-                                </div>
-                            `,
-                              )
-                              .join("")}
+                        <h6 class="fw-bold mb-3">Ultimas Reservas</h6>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light">
+                                    <tr style="font-size: 0.85rem;">
+                                        <th>Data</th>
+                                        <th>Horario</th>
+                                        <th>Pessoas</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${reservations
+                                      .slice(0, 20)
+                                      .map(
+                                        (r) => `
+                                        <tr style="font-size: 0.85rem;">
+                                            <td>${new Date(r.data).toLocaleDateString("pt-BR")}</td>
+                                            <td>${r.horario.substring(0, 5)}</td>
+                                            <td>${r.numPessoas}p</td>
+                                            <td>
+                                                <span class="badge ${r.confirmado ? "bg-success" : r.status ? "bg-warning" : "bg-danger"}" style="font-size: 0.7rem;">
+                                                    ${r.confirmado ? "Confirmada" : r.status ? "Pendente" : "Cancelada"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `,
+                                      )
+                                      .join("")}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -457,48 +647,66 @@ async function viewReservationHistory(id) {
     const res = await fetch(`/api/reservationQuery/${id}/history`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const { success, changes } = await res.json();
 
-    if (success) {
-      showReservationHistory(id, changes);
+    if (res.status === 404) {
+      showToast("Nenhuma alteracao registrada", "info");
+      return;
+    }
+
+    const json = await res.json();
+
+    if (json.success && json.changes && json.changes.length > 0) {
+      showReservationHistory(id, json.changes);
     } else {
-      showToast("Nenhuma alteração registrada", "info");
+      showToast("Nenhuma alteracao registrada", "info");
     }
   } catch (err) {
-    showToast("Erro ao carregar histórico", "danger");
+    showToast("Nenhuma alteracao registrada", "info");
   }
 }
 
 function showReservationHistory(id, changes) {
   const html = `
         <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header border-0 bg-light">
-                        <h5 class="modal-title fw-bold">Histórico #${id}</h5>
+                        <h5 class="modal-title fw-bold">Historico de Alteracoes ${id}</h5>
                         <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
                     </div>
                     <div class="modal-body">
                         ${
                           changes && changes.length > 0
                             ? `
-                            <div style="max-height: 400px; overflow-y: auto;">
-                                ${changes
-                                  .map(
-                                    (c, i) => `
-                                    <div class="py-2 px-2 border-bottom" style="font-size: 0.85rem;">
-                                        <strong>${c.campo}</strong><br>
-                                        <small class="text-muted">De: ${c.valorAnterior || "—"}</small><br>
-                                        <small class="text-success">Para: ${c.valorNovo || "—"}</small><br>
-                                        <small class="text-secondary">${new Date(c.dataAlteracao).toLocaleString("pt-BR")}</small>
-                                    </div>
-                                `,
-                                  )
-                                  .join("")}
+                            <div style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-sm table-striped">
+                                    <thead class="table-light">
+                                        <tr style="font-size: 0.85rem;">
+                                            <th>Campo</th>
+                                            <th>Anterior</th>
+                                            <th>Novo</th>
+                                            <th>Data/Hora</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${changes
+                                          .map(
+                                            (c, i) => `
+                                            <tr style="font-size: 0.8rem;">
+                                                <td><strong>${c.campo}</strong></td>
+                                                <td><code>${c.valorAnterior || "-"}</code></td>
+                                                <td><code style="color: green;">${c.valorNovo || "-"}</code></td>
+                                                <td>${new Date(c.dataAlteracao).toLocaleString("pt-BR")}</td>
+                                            </tr>
+                                        `,
+                                          )
+                                          .join("")}
+                                    </tbody>
+                                </table>
                             </div>
                         `
                             : `
-                            <p class="text-muted text-center py-4">Nenhuma alteração registrada</p>
+                            <p class="text-muted text-center py-4">Nenhuma alteracao registrada</p>
                         `
                         }
                     </div>
@@ -518,6 +726,153 @@ function setPeriodo(periodo, btn) {
   loadReservations();
 }
 
+/**
+ * Funções para editar reserva
+ * Adicione estas funções ao seu reservationQuery_iOS.js
+ */
+
+/**
+ * Abrir modal de edição com dados da reserva
+ */
+async function abrirEditarReserva(id) {
+  try {
+    const res = await requisicaoAutenticada(`/api/reservationQuery/${id}`);
+    const { reservation } = await res.json();
+
+    if (!reservation) {
+      showToast("Reserva não encontrada", "danger");
+      return;
+    }
+
+    // Preencher modal com dados
+    document.getElementById("edit-reserva-id").textContent = id;
+    document.getElementById("edit-card-nome").textContent = reservation.nome;
+    document.getElementById("edit-card-telefone").textContent =
+      reservation.telefone || "Sem telefone";
+    document.getElementById("edit-card-ultima").textContent = new Date(
+      reservation.data,
+    ).toLocaleDateString("pt-BR");
+
+    document.getElementById("edit_nome").value = reservation.nome;
+   document.getElementById('edit_data').value = reservation.data.split('T')[0];
+    document.getElementById("edit_horario").value =
+      reservation.horario.substring(0, 5);
+    document.getElementById("edit_num_pessoas").value = reservation.numPessoas;
+    document.getElementById("edit_telefone2").value =
+      reservation.telefone2 || "";
+    document.getElementById("edit_forma_pagamento").value =
+      reservation.formaPagamento || "Não definido";
+    document.getElementById("edit_num_mesa").value = reservation.numMesa || "";
+    document.getElementById("edit_tipo_evento").value =
+      reservation.tipoEvento || "Manual";
+    document.getElementById("edit_valor_rodizio").value =
+      reservation.valorRodizio || "";
+    document.getElementById("edit_observacoes").value =
+      reservation.observacoes || "";
+
+    // Checkboxes
+    document.getElementById("edit_torta").checked =
+      reservation.tortaTermoVela || false;
+    document.getElementById("edit_churras").checked =
+      reservation.churrascaria || false;
+    document.getElementById("edit_exec").checked =
+      reservation.executivo || false;
+
+    // Mostrar modal
+    const modal = new bootstrap.Modal(
+      document.getElementById("modalEditarReserva"),
+    );
+    modal.show();
+  } catch (err) {
+    console.error("Erro ao abrir edição:", err);
+    showToast("Erro ao carregar reserva", "danger");
+  }
+}
+
+/**
+ * Salvar edição da reserva
+ */
+async function salvarEdicaoReserva() {
+  const id = document.getElementById("edit-reserva-id").textContent;
+
+  const payload = {
+    nome: document.getElementById("edit_nome").value,
+    data: document.getElementById("edit_data").value,
+    horario: document.getElementById("edit_horario").value + ":00",
+    numPessoas: parseInt(document.getElementById("edit_num_pessoas").value),
+    telefone2: document.getElementById("edit_telefone2").value || null,
+    formaPagamento: document.getElementById("edit_forma_pagamento").value,
+    numMesa: document.getElementById("edit_num_mesa").value || null,
+    tipoEvento: document.getElementById("edit_tipo_evento").value,
+    valorRodizio: document.getElementById("edit_valor_rodizio").value || null,
+    observacoes: document.getElementById("edit_observacoes").value || null,
+    tortaTermoVela: document.getElementById("edit_torta").checked,
+    churrascaria: document.getElementById("edit_churras").checked,
+    executivo: document.getElementById("edit_exec").checked,
+  };
+
+  try {
+    const res = await requisicaoAutenticada(`/api/reservationQuery/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      showToast("Reserva atualizada!", "success");
+      document.getElementById("modalEditarReserva").classList.remove("show");
+      document.getElementById("modalEditarReserva").style.display = "none";
+      document.body.classList.remove("modal-open");
+
+      // Remove backdrop
+      const backdrop = document.querySelector(".modal-backdrop");
+      if (backdrop) backdrop.remove();
+
+      loadReservations();
+    } else {
+      showToast("Erro ao salvar", "danger");
+    }
+  } catch (err) {
+    console.error("Erro ao salvar:", err);
+    showToast("Erro ao salvar alterações", "danger");
+  }
+}
+/**
+ * Confirmar cancelamento
+ */
+async function confirmarCancelamento() {
+  const id = document.getElementById("edit-reserva-id").textContent;
+  const motivo = prompt("Motivo do cancelamento:");
+
+  if (!motivo) return;
+
+  try {
+    const res = await requisicaoAutenticada(
+      `/api/reservationQuery/${id}/cancel`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ reason: motivo }),
+      },
+    );
+
+    if (res.ok) {
+      showToast("Reserva cancelada", "success");
+      bootstrap.Modal.getInstance(
+        document.getElementById("modalEditarReserva"),
+      ).hide();
+      loadReservations();
+    }
+  } catch (err) {
+    showToast("Erro ao cancelar", "danger");
+  }
+}
+
+/**
+ * Trocar cliente (opcional)
+ */
+function trocarClienteEdit() {
+  // Implementar lógica de trocar cliente se necessário
+  showToast("Trocar cliente - implementar", "info");
+}
 function updateTotals(data, totals) {
   const dataDate = new Date(data + "T00:00:00");
   const dataFormatada = dataDate.toLocaleDateString("pt-BR", {
@@ -526,7 +881,7 @@ function updateTotals(data, totals) {
     month: "2-digit",
   });
 
-  document.getElementById("totalStatus").textContent = `📅 ${dataFormatada}`;
+  document.getElementById("totalStatus").textContent = dataFormatada;
   document.getElementById("totalAtivos").textContent = totals.ativos;
   document.getElementById("totalQtd").textContent = totals.quantidade;
 
@@ -537,29 +892,115 @@ function updateTotals(data, totals) {
     document.getElementById("badgeCanceladas").style.display = "none";
   }
 }
+/**
+ * Funções Utilitárias
+ */
 
-function showToast(msg, tipo) {
-  const toast = document.createElement("div");
-  toast.className = `alert alert-${tipo === "danger" ? "danger" : tipo === "warning" ? "warning" : tipo === "info" ? "info" : "success"}`;
-  toast.innerHTML = msg;
-  toast.style.cssText =
-    "position:fixed; top:20px; right:20px; z-index:10001; min-width:300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);";
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-async function openReservationModal() {
-  if (!document.getElementById("modalReserva")) {
-    try {
-      const response = await fetch("/html/reservation_modal.html");
-      document.getElementById("modal-container").innerHTML =
-        await response.text();
-    } catch (err) {
-      console.error("Erro:", err);
-    }
+function maskPhone(input) {
+  let value = input.value.replace(/\D/g, '');
+  if (value.length > 11) value = value.slice(0, 11);
+  
+  if (value.length <= 10) {
+    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  } else {
+    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   }
-  const myModal = new bootstrap.Modal(document.getElementById("modalReserva"));
-  myModal.show();
+  
+  input.value = value;
 }
 
-console.log("✓ Reservation Query FINAL carregado");
+async function buscarTelefone() {
+  const telefone = document.getElementById('res_telefone').value.replace(/\D/g, '');
+  if (telefone.length < 10) return;
+
+  try {
+    const res = await requisicaoAutenticada(`/api/reservationQuery/client/${telefone}`);
+    const { success, client } = await res.json();
+    
+    if (success && client) {
+      preencherDadosCliente(client);
+    }
+  } catch (err) {
+    console.log('Cliente não encontrado');
+  }
+}
+
+function preencherDadosCliente(client) {
+  document.getElementById('res_nome').value = client.nome;
+  document.getElementById('div-input-nome').style.display = 'none';
+  
+  const cardPerfil = document.getElementById('card-perfil-cliente');
+  cardPerfil.style.display = 'block';
+  
+  document.getElementById('card-nome-display').textContent = client.nome;
+  document.getElementById('card-telefone-display').textContent = client.telefone;
+  document.getElementById('stat-reservas').textContent = client.totalReservations || 0;
+  document.getElementById('stat-cancelada').textContent = client.canceladas || 0;
+}
+
+function toggleTelefone(checkbox) {
+  const inputTelefone = document.getElementById('res_telefone');
+  inputTelefone.disabled = checkbox.checked;
+  inputTelefone.value = '';
+}
+
+async function verificarEEnviar() {
+  const nome = document.getElementById('res_nome').value.trim();
+  const data = document.getElementById('res_data').value;
+  const horario = document.getElementById('res_horario').value;
+  const numPessoas = document.getElementById('res_num_pessoas').value;
+
+  if (!nome || !data || !horario || !numPessoas) {
+    showToast('Preencha todos os campos obrigatórios', 'warning');
+    return;
+  }
+
+  await salvarNovaReserva();
+}
+
+async function salvarNovaReserva() {
+  const payload = {
+    nome: document.getElementById('res_nome').value,
+    data: document.getElementById('res_data').value,
+    horario: document.getElementById('res_horario').value + ':00',
+    numPessoas: parseInt(document.getElementById('res_num_pessoas').value),
+    telefone: document.getElementById('res_telefone').value || null,
+    telefone2: document.getElementById('res_telefone2').value || null,
+    formaPagamento: document.getElementById('res_forma_pagamento').value,
+    numMesa: document.getElementById('res_num_mesa').value || null,
+    tipoEvento: document.getElementById('res_tipo_evento').value,
+    valorRodizio: document.getElementById('res_valor_rodizio').value || null,
+    observacoes: document.getElementById('res_observacoes').value || null,
+    tortaTermoVela: document.getElementById('torta').checked,
+    churrascaria: document.getElementById('churras').checked,
+    executivo: document.getElementById('exec').checked
+  };
+
+  try {
+    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservationQuery`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      showToast('Reserva criada com sucesso!', 'success');
+      document.getElementById('modalReserva').classList.remove('show');
+      document.body.classList.remove('modal-open');
+      const backdrop = document.querySelector('.modal-backdrop');
+      if (backdrop) backdrop.remove();
+      loadReservations();
+    }
+  } catch (err) {
+    showToast('Erro ao salvar', 'danger');
+  }
+}
+
+function openReservationModal() {
+  const modal = document.getElementById('modalReserva');
+  if (modal) {
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+  }
+}
+console.log("Reservation Query iOS carregado - SEM TOKEN DUPLICADO");

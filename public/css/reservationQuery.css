@@ -1,12 +1,14 @@
-/* ===== RESERVATION CARDS - iOS STYLE FINAL ===== */
+/* ===== RESERVATION CARDS - iOS STYLE FINAL v7 - REFATORADO ===== */
 
 .reservations-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.75rem;
     padding: 1rem;
-    max-width: 80%;
+    max-width: 85%;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ===== CARD COMPACTO 80px ===== */
@@ -20,7 +22,9 @@
     display: flex;
     align-items: center;
     padding: 0;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
+    box-sizing: border-box;
 }
 
 .reservation-card:hover {
@@ -29,7 +33,16 @@
 
 .reservation-card.cancelled {
     border-left-color: #dc3545;
-    opacity: 0.7;
+    background-color: #ffe5e5;
+    opacity: 1;
+}
+
+.reservation-card.pending {
+    border-left-color: #ff9800;
+}
+
+.reservation-card.confirmed {
+    border-left-color: #28a745;
 }
 
 /* ===== CARD ESTRUTURA ===== */
@@ -39,7 +52,9 @@
     width: 100%;
     height: 100%;
     padding: 0.5rem 1rem;
-    gap: 1rem;
+    gap: 0.6rem;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* ===== ID (CANTO SUPERIOR ESQUERDO) ===== */
@@ -50,6 +65,7 @@
     justify-content: center;
     min-width: 45px;
     gap: 0.35rem;
+    flex-shrink: 0;
 }
 
 .card-id-number {
@@ -84,6 +100,7 @@
     gap: 0.25rem;
     flex: 1;
     min-width: 0;
+    overflow: hidden;
 }
 
 .card-name {
@@ -95,6 +112,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
+    max-width: 100%;
+}
+
+.card-name.truncated {
+    max-width: 130px;
 }
 
 .card-phone {
@@ -103,6 +125,9 @@
     cursor: pointer;
     text-decoration: none;
     transition: color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card-phone:hover {
@@ -110,9 +135,101 @@
     text-decoration: underline;
 }
 
-/* ===== OBS COM SCROLL ===== */
+/* ===== CENTER: PAX + HORÁRIO + MESA ===== */
+.card-center {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.card-stat {
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+}
+
+.card-stat:hover {
+    background: #f0f0f0;
+}
+
+.card-stat-value {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #ff9500;
+    display: block;
+    line-height: 1;
+}
+
+.card-stat-label {
+    font-size: 0.65rem;
+    color: #999;
+    display: block;
+    line-height: 1;
+}
+
+.card-time {
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+}
+
+.card-time-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+    display: block;
+    line-height: 1;
+}
+
+.card-time-label {
+    font-size: 0.65rem;
+    color: #999;
+    display: block;
+    line-height: 1;
+}
+
+.card-mesa-box {
+    text-align: center;
+    padding: 0.25rem;
+    min-width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+}
+
+.card-mesa-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #666;
+    display: block;
+    line-height: 1;
+}
+
+.card-mesa-label {
+    font-size: 0.65rem;
+    color: #999;
+    display: block;
+    line-height: 1;
+}
+
+/* ===== OBS COM SCROLL (PENULTIMO) ===== */
 .card-obs {
-    width: 200px;
+    width: 140px;
     height: 56px;
     padding: 0.4rem;
     background: #f8f9fa;
@@ -139,96 +256,49 @@
     border-radius: 2px;
 }
 
-/* ===== CENTER: PAX + HORÁRIO + MESA ===== */
-.card-center {
+.card-obs-empty {
+    width: 140px;
+    height: 56px;
+    padding: 0.4rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 2px solid #007bff;
+    font-size: 0.75rem;
+    color: #999;
+    line-height: 1.3;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
+    justify-content: center;
+    font-weight: bold;
 }
 
-.card-stat {
-    text-align: center;
+/* ===== STATUS BOLINHA ===== */
+.card-status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
     cursor: pointer;
     transition: all 0.2s;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.card-stat:hover {
-    background: #f0f0f0;
+.card-status-dot.pending {
+    background: #ff9800;
 }
 
-.card-stat-value {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: #ff9500;
-    display: block;
+.card-status-dot.confirmed {
+    background: #28a745;
 }
 
-.card-stat-label {
-    font-size: 0.65rem;
-    color: #999;
-    display: block;
+.card-status-dot.cancelled {
+    background: #dc3545;
 }
 
-.card-time {
-    text-align: center;
-    padding: 0.25rem 0.5rem;
-}
-
-.card-time-value {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #333;
-    display: block;
-}
-
-.card-time-label {
-    font-size: 0.65rem;
-    color: #999;
-    display: block;
-}
-
-.card-mesa-box {
-    text-align: center;
-    padding: 0.25rem;
-    min-width: 40px;
-}
-
-.card-mesa-value {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #666;
-    display: block;
-}
-
-.card-mesa-label {
-    font-size: 0.65rem;
-    color: #999;
-    display: block;
-}
-
-/* ===== STATUS ===== */
-.card-status {
-    flex-shrink: 0;
-}
-
-.badge-status {
-    font-size: 0.7rem;
-    padding: 0.35rem 0.6rem;
-    border-radius: 4px;
-    white-space: nowrap;
-}
-
-.badge-confirmed {
-    background: #d4edda;
-    color: #155724;
-}
-
-.badge-pending {
-    background: #fff3cd;
-    color: #856404;
+.card-status-dot:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== MENU iOS (3 PONTOS) ===== */
@@ -237,6 +307,7 @@
     align-items: center;
     position: relative;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .btn-menu-ios {
@@ -255,15 +326,12 @@
 }
 
 .menu-dropdown {
-    position: absolute;
-    right: 0;
-    top: 100%;
+    position: fixed;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     min-width: 180px;
-    margin-top: 0.5rem;
     overflow: hidden;
     display: none;
 }
@@ -321,25 +389,29 @@
 /* ===== FILTER BAR - UMA LINHA ===== */
 .filter-bar-horizontal {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.6rem;
     align-items: center;
     padding: 0.75rem 1rem;
     background: #f8f9fa;
     border-radius: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin: 1rem auto;
-    max-width: 80%;
+    max-width: 85%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
 }
 
 .filter-item-date,
 .filter-item-search {
     flex: 1;
-    min-width: 120px;
+    min-width: 100px;
 }
 
 .filter-item-date input,
 .filter-item-search input {
     font-size: 0.9rem;
+    padding: 0.4rem;
 }
 
 .filter-item-checkbox {
@@ -356,17 +428,19 @@
 
 .period-icons {
     display: flex;
-    gap: 0.35rem;
+    gap: 0.3rem;
+    flex-shrink: 0;
 }
 
 .btn-period {
     background: #fff;
     border: 1px solid #dee2e6;
-    padding: 0.4rem 0.5rem;
+    padding: 0.35rem 0.45rem;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 .btn-period:hover {
@@ -378,15 +452,25 @@
     border-color: #007bff;
     color: white;
 }
+#modalEditarReserva .modal-dialog {
+  max-width: 90vw !important;
+  margin: 1rem auto !important;
+}
 
+#modalEditarReserva .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
 .filter-actions {
     display: flex;
-    gap: 0.35rem;
+    gap: 0.3rem;
+    flex-shrink: 0;
 }
 
 .filter-actions .btn {
-    padding: 0.4rem 0.65rem;
-    font-size: 0.85rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 
 /* ===== TOTALS ===== */
@@ -399,8 +483,10 @@
     border-left: 4px solid #007bff;
     flex-wrap: wrap;
     margin: 0 auto 1rem;
-    max-width: 80%;
+    max-width: 85%;
+    width: 100%;
     font-size: 0.9rem;
+    box-sizing: border-box;
 }
 
 .totais-info span {
@@ -410,142 +496,179 @@
 /* ===== RESPONSIVE - TABLET ===== */
 @media (max-width: 768px) {
     .reservations-grid {
-        max-width: 95%;
+        max-width: 92%;
     }
 
     .filter-bar-horizontal {
-        max-width: 95%;
+        max-width: 92%;
     }
 
     .totais-info {
-        max-width: 95%;
+        max-width: 92%;
     }
+#modalEditarReserva .modal-dialog {
+    max-width: 95vw !important;
+    margin: 0.5rem auto !important;
+  }
 
+  #modalEditarReserva .modal-body {
+    padding: 1rem !important;
+  }
+
+  #modalEditarReserva .form-control,
+  #modalEditarReserva .form-select {
+    font-size: 16px;
+  }
     .card-content {
-        padding: 0.4rem 0.75rem;
-        gap: 0.75rem;
+        padding: 0.4rem 0.6rem;
+        gap: 0.4rem;
     }
 
     .card-name {
-        font-size: 0.9rem;
+        font-size: 0.93rem;
+        max-width: 140px;
     }
 
     .card-phone {
-        font-size: 0.75rem;
+        font-size: 0.77rem;
     }
 
     .card-stat-value {
-        font-size: 1.1rem;
+        font-size: 1.12rem;
     }
 
     .card-time-value {
-        font-size: 0.9rem;
+        font-size: 0.93rem;
     }
 
     .card-obs {
-        width: 150px;
+        width: 105px;
         height: 50px;
-        font-size: 0.7rem;
-    }
-
-    .btn-period {
-        padding: 0.35rem 0.4rem;
-        font-size: 0.8rem;
-    }
-
-    .filter-item-date input,
-    .filter-item-search input {
-        font-size: 0.85rem;
+        font-size: 0.73rem;
     }
 }
 
-/* ===== RESPONSIVE - MOBILE ===== */
+/* ===== RESPONSIVE - MOBILE CORRIGIDO ===== */
 @media (max-width: 480px) {
     .reservations-grid {
-        max-width: 95%;
+        max-width: 97%;
         gap: 0.5rem;
-        padding: 0.75rem;
+        padding: 0.5rem;
     }
 
     .filter-bar-horizontal {
-        max-width: 95%;
-        gap: 0.5rem;
+        max-width: 97%;
+        gap: 0.4rem;
         padding: 0.5rem;
     }
 
     .totais-info {
-        max-width: 95%;
-        gap: 1rem;
+        max-width: 97%;
+        gap: 0.8rem;
         padding: 0.5rem;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .card-content {
-        padding: 0.35rem 0.5rem;
-        gap: 0.5rem;
+        padding: 0.35rem 0.4rem;
+        gap: 0.3rem;
     }
 
     .card-id-number {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 
     .card-id-label {
-        font-size: 0.55rem;
+        font-size: 0.6rem;
     }
 
+    /* ✅ NOME AUMENTADO: 18 letras */
     .card-name {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
+        max-width: 130px;
+        font-weight: 600;
     }
 
+    .card-name.truncated {
+        max-width: 130px;
+    }
+
+    /* ✅ TELEFONE MELHORADO */
     .card-phone {
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    /* ✅ NÚMEROS AUMENTADOS */
+    .card-stat-value {
+        font-size: 1.08rem;
+        font-weight: 700;
+    }
+
+    .card-stat-label {
         font-size: 0.7rem;
     }
 
-    .card-stat-value {
-        font-size: 1rem;
+    /* ✅ HORÁRIO MELHORADO */
+    .card-time-value {
+        font-size: 0.92rem;
+        font-weight: 600;
     }
 
-    .card-time-value {
+    .card-time-label {
+        font-size: 0.7rem;
+    }
+
+    /* ✅ MESA MELHORADA */
+    .card-mesa-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .card-mesa-label {
+        font-size: 0.7rem;
+    }
+
+    /* ✅ OBS MAIOR */
+    .card-obs {
+        width: 85px;
+        height: 50px;
+        font-size: 0.72rem;
+        padding: 0.45rem;
+    }
+
+    .card-obs-empty {
+        width: 85px;
+        height: 50px;
+        font-size: 0.72rem;
+        padding: 0.45rem;
+    }
+
+    /* ✅ BOLINHA LIGEIRAMENTE MAIOR */
+    .card-status-dot {
+        width: 11px;
+        height: 11px;
+    }
+
+    /* ✅ MENU */
+    .card-history-btn {
         font-size: 0.85rem;
     }
 
-    .card-obs {
-        width: 120px;
-        height: 45px;
-        font-size: 0.65rem;
-    }
-
-    .card-history-btn {
-        font-size: 0.8rem;
-    }
-
     .btn-menu-ios {
-        font-size: 1rem;
-        padding: 0.35rem;
+        font-size: 1.1rem;
+        padding: 0.4rem;
     }
 
-    .badge-status {
-        font-size: 0.65rem;
-        padding: 0.3rem 0.4rem;
-    }
-
+    /* ✅ BOTÕES DE PERÍODO */
     .btn-period {
-        padding: 0.3rem 0.3rem;
-        font-size: 0.75rem;
+        padding: 0.35rem 0.4rem;
+        font-size: 0.78rem;
     }
 
-    .filter-item-date,
-    .filter-item-search {
-        min-width: 100px;
-    }
-
-    .filter-item-date input,
-    .filter-item-search input {
-        font-size: 0.8rem;
-    }
-
-    .filter-item-checkbox {
-        font-size: 0.8rem;
+    /* ✅ FILTER BAR MELHORADO */
+    .filter-item-checkbox label {
+        font-size: 0.85rem;
     }
 }
 

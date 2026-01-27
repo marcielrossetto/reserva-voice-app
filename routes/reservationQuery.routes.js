@@ -23,10 +23,265 @@ function normalizeDateForDb(date) {
     return "";
 }
 
-// ========================= ENDPOINTS =========================
+/**
+ * Registrar alteração no histórico
+ */
+async function registrarAlteracao(clienteId, campo, valorAnterior, valorNovo) {
+    try {
+        if (valorAnterior !== valorNovo) {
+            await prisma.clienteAlteracao.create({
+                data: {
+                    clienteId,
+                    campo,
+                    valorAnterior: String(valorAnterior || ''),
+                    valorNovo: String(valorNovo || '')
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Erro ao registrar alteração:', err);
+    }
+}
+
+// ========================= PUT ESPECÍFICAS (ANTES das genéricas) =========================
 
 /**
- * 1. GET RESERVATIONS WITH FILTERS (Date, Search, Period, Status)
+ * PUT /api/reservationQuery/:id/status
+ * Alterar status (pendente/confirmada)
+ */
+router.put("/:id/status", auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const empresaId = req.user.empresaId;
+
+        const anterior = await prisma.cliente.findFirst({
+            where: { id: parseInt(id), empresaId }
+        });
+
+        if (!anterior) {
+            return res.json({ success: false, error: "Reservation not found" });
+        }
+
+        const atualizado = await prisma.cliente.update({
+            where: { id: parseInt(id) },
+            data: { confirmado: status === 'confirmed' }
+        });
+
+        // Registrar alteração
+        await registrarAlteracao(
+            id,
+            'confirmado',
+            anterior.confirmado,
+            status === 'confirmed'
+        );
+
+        res.json({ success: true, reservation: atualizado });
+    } catch (err) {
+        console.error("❌ Error updating status:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * PUT /api/reservationQuery/:id/reactivate
+ * Reativar reserva cancelada
+ */
+router.put("/:id/reactivate", auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const empresaId = req.user.empresaId;
+
+        const anterior = await prisma.cliente.findFirst({
+            where: { id: parseInt(id), empresaId }
+        });
+
+        if (!anterior) {
+            return res.json({ success: false, error: "Reservation not found" });
+        }
+
+        const atualizado = await prisma.cliente.update({
+            where: { id: parseInt(id) },
+            data: {
+                status: true,
+                confirmado: false,
+                motivoCancelamento: null
+            }
+        });
+
+        // Registrar alterações
+        await registrarAlteracao(id, 'status', false, true);
+        await registrarAlteracao(id, 'confirmado', anterior.confirmado, false);
+
+        console.log(`✅ Reservation ${id} reactivated`);
+
+        res.json({ success: true, reservation: atualizado });
+    } catch (err) {
+        console.error("❌ Error reactivating reservation:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * PUT /api/reservationQuery/:id/cancel
+ * Cancelar com motivo
+ */
+router.put("/:id/cancel", auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        const empresaId = req.user.empresaId;
+
+        const anterior = await prisma.cliente.findFirst({
+            where: { id: parseInt(id), empresaId }
+        });
+
+        if (!anterior) {
+            return res.json({ success: false, error: "Reservation not found" });
+        }
+
+        const atualizado = await prisma.cliente.update({
+            where: { id: parseInt(id) },
+            data: {
+                status: false,
+                motivoCancelamento: reason || "Cancelled by user"
+            }
+        });
+
+        // Registrar alterações
+        await registrarAlteracao(id, 'status', true, false);
+        await registrarAlteracao(
+            id,
+            'motivoCancelamento',
+            anterior.motivoCancelamento,
+            reason || "Cancelled by user"
+        );
+
+        console.log(`❌ Reservation ${id} cancelled. Reason: ${reason}`);
+
+        res.json({ success: true, reservation: atualizado });
+    } catch (err) {
+        console.error("❌ Error cancelling reservation:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * PUT /api/reservationQuery/:id/confirm
+ * Confirmar reserva
+ */
+router.put("/:id/confirm", auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const empresaId = req.user.empresaId;
+
+        const anterior = await prisma.cliente.findFirst({
+            where: { id: parseInt(id), empresaId }
+        });
+
+        if (!anterior) {
+            return res.json({ success: false, error: "Reservation not found" });
+        }
+
+        const atualizado = await prisma.cliente.update({
+            where: { id: parseInt(id) },
+            data: {
+                confirmado: true,
+                status: true
+            }
+        });
+
+        // Registrar alteração
+        await registrarAlteracao(id, 'confirmado', anterior.confirmado, true);
+
+        console.log(`✅ Reservation ${id} confirmed`);
+
+        res.json({ success: true, reservation: atualizado });
+    } catch (err) {
+        console.error("❌ Error confirming reservation:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ========================= GET ESPECÍFICAS (ANTES das genéricas) =========================
+
+/**
+ * GET /api/reservationQuery/client/:phone
+ * Histórico completo do cliente
+ */
+router.get("/client/:phone", auth, async (req, res) => {
+    try {
+        const { phone } = req.params;
+        const empresaId = req.user.empresaId;
+
+        const phoneClean = String(phone).replaceAll(/\D/g, "");
+
+        const reservations = await prisma.cliente.findMany({
+            where: {
+                empresaId,
+                telefone: phoneClean
+            },
+            orderBy: { data: 'desc' }
+        });
+
+        if (reservations.length === 0) {
+            return res.json({ success: false, error: "Client not found" });
+        }
+
+        const cliente = reservations[0];
+        const totalReservations = reservations.length;
+        const confirmadas = reservations.filter(r => r.confirmado).length;
+        const canceladas = reservations.filter(r => !r.status).length;
+
+        res.json({
+            success: true,
+            client: {
+                nome: cliente.nome,
+                telefone: cliente.telefone,
+                totalReservations,
+                confirmadas,
+                canceladas,
+                ultimaVisita: cliente.data
+            },
+            reservations
+        });
+
+    } catch (err) {
+        console.error("❌ Error fetching client history:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * GET /api/reservationQuery/:id/history
+ * Histórico de alterações
+ */
+router.get("/:id/history", auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const changes = await prisma.clienteAlteracao.findMany({
+            where: { clienteId: parseInt(id) },
+            orderBy: { dataAlteracao: 'desc' }
+        });
+
+        res.json({
+            success: true,
+            changes: changes || [],
+            total: changes.length
+        });
+
+    } catch (err) {
+        console.error("❌ Error fetching history:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ========================= GET GENÉRICA =========================
+
+/**
+ * GET /api/reservationQuery
+ * Listar com filtros (data, busca, período, status)
  */
 router.get("/", auth, async (req, res) => {
     try {
@@ -99,54 +354,11 @@ router.get("/", auth, async (req, res) => {
     }
 });
 
-/**
- * 2. GET CLIENT HISTORY (by phone)
- */
-router.get("/client/:phone", auth, async (req, res) => {
-    try {
-        const { phone } = req.params;
-        const empresaId = req.user.empresaId;
-
-        const phoneClean = String(phone).replaceAll(/\D/g, "");
-
-        const reservations = await prisma.cliente.findMany({
-            where: {
-                empresaId,
-                telefone: phoneClean
-            },
-            orderBy: { data: 'desc' }
-        });
-
-        if (reservations.length === 0) {
-            return res.json({ success: false, error: "Client not found" });
-        }
-
-        const cliente = reservations[0];
-        const totalReservations = reservations.length;
-        const confirmadas = reservations.filter(r => r.confirmado).length;
-        const canceladas = reservations.filter(r => !r.status).length;
-
-        res.json({
-            success: true,
-            client: {
-                nome: cliente.nome,
-                telefone: cliente.telefone,
-                totalReservations,
-                confirmadas,
-                canceladas,
-                ultimaVisita: cliente.data
-            },
-            reservations
-        });
-
-    } catch (err) {
-        console.error("❌ Error fetching client history:", err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
+// ========================= GET ESPECÍFICA (ANTES da PUT genérica) =========================
 
 /**
- * 3. GET ONE RESERVATION
+ * GET /api/reservationQuery/:id
+ * Uma reserva específica
  */
 router.get("/:id", auth, async (req, res) => {
     try {
@@ -171,9 +383,77 @@ router.get("/:id", auth, async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
+// ========================= POST CRIAR RESERVA =========================
 
 /**
- * 4. UPDATE RESERVATION (with edit history)
+ * POST /api/reservationQuery
+ * Criar nova reserva
+ */
+router.post("/", auth, async (req, res) => {
+    try {
+        const empresaId = req.user.empresaId;
+        const {
+            nome,
+            data,
+            horario,
+            numPessoas,
+            telefone,
+            telefone2,
+            formaPagamento,
+            numMesa,
+            tipoEvento,
+            valorRodizio,
+            observacoes,
+            tortaTermoVela,
+            churrascaria,
+            executivo
+        } = req.body;
+
+        // Validações
+        if (!nome || !data || !horario || !numPessoas) {
+            return res.json({ success: false, error: "Campos obrigatórios faltando" });
+        }
+
+        const novaReserva = await prisma.cliente.create({
+            data: {
+                empresaId,
+                nome,
+                data: new Date(data),
+                horario,
+                numPessoas: parseInt(numPessoas),
+                telefone: telefone || null,
+                telefone2: telefone2 || null,
+                formaPagamento: formaPagamento || null,
+                numMesa: numMesa || null,
+                tipoEvento: tipoEvento || "Manual",
+                valorRodizio: valorRodizio ? parseInt(valorRodizio) : null,
+                observacoes: observacoes || null,
+                tortaTermoVela: tortaTermoVela || false,
+                churrascaria: churrascaria || false,
+                executivo: executivo || false,
+                status: true,
+                confirmado: false
+            }
+        });
+
+        console.log(`✅ Reservation ${novaReserva.id} created`);
+
+        res.json({
+            success: true,
+            reservation: novaReserva,
+            message: "Reserva criada com sucesso"
+        });
+
+    } catch (err) {
+        console.error("❌ Error creating reservation:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+// ========================= PUT GENÉRICA (POR ÚLTIMO) =========================
+
+/**
+ * PUT /api/reservationQuery/:id
+ * Atualizar reserva (genérico, com histórico)
  */
 router.put("/:id", auth, async (req, res) => {
     try {
@@ -202,110 +482,42 @@ router.put("/:id", auth, async (req, res) => {
             return res.json({ success: false, error: "Cannot edit past reservations" });
         }
 
-        // Track changes
-        const changes = [];
-        const updatableFields = ['nome', 'numPessoas', 'horario', 'numMesa', 'observacoes', 'confirmado', 'status'];
+        // Campos atualizáveis
+        const updatableFields = ['nome', 'numPessoas', 'horario', 'numMesa', 'observacoes', 'confirmado', 'status', 'telefone'];
 
+        // Construir objeto de update
+        const updateData = {};
         for (const field of updatableFields) {
-            if (d[field] !== undefined && d[field] !== reservationCurrent[field]) {
-                changes.push({
-                    field,
-                    previousValue: String(reservationCurrent[field]),
-                    newValue: String(d[field]),
-                    userId: usuarioId,
-                    changeDate: new Date()
-                });
+            if (d[field] !== undefined && d[field] !== null) {
+                updateData[field] = d[field];
             }
         }
 
         // Update reservation
         const reservationUpdated = await prisma.cliente.update({
             where: { id: parseInt(id) },
-            data: {
-                nome: d.nome !== undefined ? d.nome : reservationCurrent.nome,
-                numPessoas: d.numPessoas !== undefined ? d.numPessoas : reservationCurrent.numPessoas,
-                horario: d.horario !== undefined ? d.horario : reservationCurrent.horario,
-                numMesa: d.numMesa !== undefined ? d.numMesa : reservationCurrent.numMesa,
-                observacoes: d.observacoes !== undefined ? d.observacoes : reservationCurrent.observacoes,
-                confirmado: d.confirmado !== undefined ? d.confirmado : reservationCurrent.confirmado,
-                status: d.status !== undefined ? d.status : reservationCurrent.status
-            }
+            data: updateData
         });
 
-        // Save history (if there are changes)
-        if (changes.length > 0) {
-            console.log(`📝 Changes in reservation ${id}:`, changes);
-            // Here you can save in an audit table if desired
+        // Registrar alterações
+        for (const field of updatableFields) {
+            if (d[field] !== undefined && d[field] !== reservationCurrent[field]) {
+                await registrarAlteracao(
+                    id,
+                    field,
+                    reservationCurrent[field],
+                    d[field]
+                );
+            }
         }
 
         res.json({
             success: true,
-            reservation: reservationUpdated,
-            changes
+            reservation: reservationUpdated
         });
 
     } catch (err) {
         console.error("❌ Error updating reservation:", err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-/**
- * 5. CANCEL RESERVATION (only changes status)
- */
-router.put("/:id/cancel", auth, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { reason } = req.body;
-        const empresaId = req.user.empresaId;
-
-        const reservation = await prisma.cliente.update({
-            where: { id: parseInt(id) },
-            data: {
-                status: false,
-                motivoCancelamento: reason || "Cancelled by system"
-            }
-        });
-
-        console.log(`❌ Reservation ${id} cancelled. Reason: ${reason}`);
-
-        res.json({
-            success: true,
-            message: "Reservation cancelled successfully",
-            reservation
-        });
-
-    } catch (err) {
-        console.error("❌ Error cancelling reservation:", err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-/**
- * 6. CONFIRM RESERVATION (WhatsApp)
- */
-router.put("/:id/confirm", auth, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const empresaId = req.user.empresaId;
-
-        const reservation = await prisma.cliente.update({
-            where: { id: parseInt(id) },
-            data: {
-                confirmado: true
-            }
-        });
-
-        console.log(`✅ Reservation ${id} confirmed`);
-
-        res.json({
-            success: true,
-            message: "Reservation confirmed successfully",
-            reservation
-        });
-
-    } catch (err) {
-        console.error("❌ Error confirming reservation:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });

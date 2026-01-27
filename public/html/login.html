@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Login | Sistema de Reservas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/js/config.js"></script>
+  <script src="/js/config.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -25,164 +25,30 @@
       border-radius: 14px;
       box-shadow: 0 20px 40px rgba(0,0,0,.25);
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 8px;
-    }
-    p {
-      text-align: center;
-      color: #555;
-      margin-bottom: 24px;
-    }
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 14px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 15px;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: none;
-      background: #2563eb;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    h2 { text-align: center; margin-bottom: 8px; }
+    p { text-align: center; color: #555; margin-bottom: 24px; }
+    input { width: 100%; padding: 14px; margin-bottom: 14px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; }
+    button { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
     button:hover { background: #1e40af; }
-
-    .toggle {
-      text-align: center;
-      margin-top: 16px;
-      cursor: pointer;
-      color: #2563eb;
-      font-weight: 500;
-    }
-
+    .toggle { text-align: center; margin-top: 16px; cursor: pointer; color: #2563eb; font-weight: 500; }
     .hidden { display: none; }
-
-    .msg {
-      text-align: center;
-      margin-top: 12px;
-      font-weight: 500;
-    }
+    .msg { text-align: center; margin-top: 12px; font-weight: 500; }
   </style>
 </head>
 
 <body>
-
 <div class="container">
   <h2 id="title">Entrar</h2>
   <p id="subtitle">Acesse sua conta</p>
-
-  <!-- CAMPOS DE CADASTRO -->
   <input id="nome" placeholder="Seu nome" class="hidden">
   <input id="empresa" placeholder="Nome da empresa" class="hidden">
-
-  <!-- CAMPOS COMUNS -->
   <input id="email" placeholder="E-mail">
   <input id="senha" type="password" placeholder="Senha">
-
   <button onclick="submitForm()">Entrar</button>
-
   <div class="toggle" onclick="toggleForm()">Criar conta grátis</div>
   <div class="msg" id="msg"></div>
 </div>
 
-<script>
-  // ========================= DETECÇÃO AUTOMÁTICA DE AMBIENTE =========================
-  // Funciona tanto em localhost quanto no Render
-  const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3001' 
-    : 'https://reserva-voice-app-1.onrender.com';
-
-  console.log('🔗 API Base URL:', API_BASE_URL);
-
-  // ========================= VERIFICAÇÃO DE TOKEN =========================
-  // Se já tem token, vai pro dashboard
-  const token = localStorage.getItem("token");
-  if (token) {
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 500);
-  }
-
-  let isRegister = false;
-
-  function toggleForm() {
-    isRegister = !isRegister;
-    document.getElementById("nome").classList.toggle("hidden");
-    document.getElementById("empresa").classList.toggle("hidden");
-    document.getElementById("title").innerText = isRegister ? "Criar conta" : "Entrar";
-    document.getElementById("subtitle").innerText = isRegister ? "Crie sua conta no sistema" : "Acesse sua conta";
-    document.querySelector("button").innerText = isRegister ? "Cadastrar" : "Entrar";
-    document.querySelector(".toggle").innerText = isRegister ? "Já tenho conta" : "Criar conta grátis";
-  }
-
-  async function submitForm() {
-    const btn = document.querySelector("button");
-    btn.disabled = true;
-
-    const email = document.getElementById("email").value.trim();
-    const senha = document.getElementById("senha").value.trim();
-    const nome = document.getElementById("nome").value.trim();
-
-    if (!email || !senha) {
-      document.getElementById("msg").style.color = "red";
-      document.getElementById("msg").innerText = "Preencha email e senha";
-      btn.disabled = false;
-      return;
-    }
-
-    const payload = { nome, email, senha };
-    const url = isRegister 
-      ? `${API_BASE_URL}/api/auth/register` 
-      : `${API_BASE_URL}/api/auth/login`;
-
-    console.log('📤 Enviando requisição para:', url);
-    console.log('📦 Payload:', payload);
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        document.getElementById("msg").style.color = "red";
-        document.getElementById("msg").innerText = data.message || "Erro ao processar";
-        btn.disabled = false;
-        return;
-      }
-
-      // ========================= SALVAR DADOS NO LOCALSTORAGE =========================
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.user.nome);
-      localStorage.setItem("empresa_id", data.user.empresa_id || data.empresa_id || "1");
-
-      console.log('✅ Login realizado com sucesso');
-      console.log('👤 Usuário:', data.user.nome);
-      console.log('🏢 Empresa ID:', data.user.empresa_id || data.empresa_id || "1");
-
-      // Aguarda um pouco antes de redirecionar
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 300);
-
-    } catch (e) {
-      document.getElementById("msg").style.color = "red";
-      document.getElementById("msg").innerText = "Erro de conexão: " + e.message;
-      console.error('❌ Erro:', e);
-      btn.disabled = false;
-    }
-  }
-</script>
+<script src="/js/login.js"></script>
 </body>
 </html>

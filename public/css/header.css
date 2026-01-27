@@ -1,95 +1,209 @@
 /* public/css/header.css */
 
-.header {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+.header-modern {
+  background: linear-gradient(135deg, #1e293b 0%, #1e40af 100%);
   color: white;
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.logo-title {
-  margin-bottom: 12px;
-}
-
-.logo-title h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-  color: white;
-}
-
-.user-info {
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 20px;
   display: flex;
-  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.btn-search-header,
-.btn-fila,
-.btn-add-modal,
-.btn-logout {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.header-brand i {
+  font-size: 24px;
+}
+
+.header-brand h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.nav-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
   color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.2s;
 }
 
-.btn-search-header:hover,
-.btn-fila:hover,
-.btn-add-modal:hover,
-.btn-logout:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
+.nav-btn:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.4);
 }
 
-.btn-add-modal {
-  font-size: 18px;
-  padding: 8px 12px;
+.nav-btn.btn-add {
+  background: #3b82f6;
+  border-color: #2563eb;
+  font-weight: 600;
 }
 
-.username {
+.nav-btn.btn-add:hover {
+  background: #2563eb;
+}
+
+.admin-menu {
+  position: relative;
+}
+
+.nav-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 200px;
+  margin-top: 4px;
+  display: none;
+  z-index: 1000;
+}
+
+.nav-dropdown.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
   font-size: 13px;
-  font-weight: 500;
-  padding: 0 12px;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
-  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+  color: #1e40af;
+}
+
+.dropdown-item i {
+  width: 16px;
+  text-align: center;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  font-size: 28px;
+  opacity: 0.9;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-role {
+  font-size: 11px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-logout {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.btn-logout:hover {
+  background: #dc2626;
+  border-color: #b91c1c;
 }
 
 @media (max-width: 768px) {
-  .header {
-    padding: 12px 16px;
+  .header-container {
+    padding: 10px 12px;
+    gap: 12px;
   }
 
-  .logo-title h1 {
-    font-size: 18px;
+  .header-brand h1 {
+    display: none;
   }
 
-  .user-info {
-    width: 100%;
-    gap: 8px;
+  .header-nav {
+    gap: 4px;
   }
 
-  .btn-search-header,
-  .btn-fila,
-  .btn-add-modal,
-  .btn-logout {
-    padding: 6px 12px;
-    font-size: 12px;
+  .nav-btn span {
+    display: none;
   }
 
-  .username {
-    font-size: 12px;
-    padding: 0 8px;
+  .nav-btn {
+    padding: 8px 10px;
+  }
+
+  .user-details {
+    display: none;
+  }
+
+  .nav-dropdown {
+    min-width: 180px;
   }
 }

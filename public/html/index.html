@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <!-- CSS Local -->
+     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/css/calendar.css" />
     <link rel="stylesheet" href="/css/reservation_modal.css" />
@@ -22,9 +23,7 @@
 <body>
 
 <!-- HEADER -->
-<header id="main-header" class="header">
-    <!-- Injetado pelo header.js -->
-</header>
+<div id="header-container"></div>
 
 <!-- SEÇÃO DO CALENDÁRIO -->
 <section id="calendarArea" class="container-fluid mt-2">
@@ -115,7 +114,13 @@
 <!-- 1º: jQuery e Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="/js/config.js"></script>
+<div id="header-container"></div>
+<script>
+  fetch('/html/header.html')
+    .then(r => r.text())
+    .then(html => document.getElementById('header-container').innerHTML = html);
+</script>
 <!-- 2º: Config e Header -->
 <script src="/js/config.js"></script>
 <script src="/js/components/header.js"></script>
@@ -128,6 +133,12 @@
 
 <!-- 5º: Modal de Reserva -->
 <script src="/js/components/reservation_modal.js"></script>
+<!-- Antes de fechar </body> -->
+<script>
+  fetch('/html/modalEditarReserva.html')
+    .then(r => r.text())
+    .then(html => document.body.insertAdjacentHTML('beforeend', html));
+</script>
 
 </body>
 </html>
