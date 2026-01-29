@@ -1,21 +1,36 @@
 /**
- * public/js/login.js
- * 
- * Sistema de login simples:
- * - Login básico
- * - Cadastro de empresa
- * - Recuperação de senha
- * - Validação de senha forte
+ * public/js/login.js - ATUALIZADO
+ * ✅ Exibe mensagens de erro vindo do header
  */
 
 const API_URL = "http://localhost:3001/api";
 let emailRecuperacaoGlobal = null;
 let tokenRecuperacaoGlobal = null;
 
+// ========== VERIFICAR MENSAGENS DO HEADER ==========
+window.addEventListener('load', function() {
+  const mensagem = sessionStorage.getItem("loginMensagem");
+  const tipo = sessionStorage.getItem("loginMensagemTipo") || "danger";
+
+  if (mensagem) {
+    console.log("📢 Mensagem do sistema:", mensagem);
+    mostrarAlerta("alertaLogin", mensagem, tipo);
+    
+    // Limpar sessionStorage
+    sessionStorage.removeItem("loginMensagem");
+    sessionStorage.removeItem("loginMensagemTipo");
+  }
+});
+
 // ========== REDIRECION AUTOMÁTICO SE JÁ LOGADO ==========
 if (localStorage.getItem("token")) {
-  window.location.href = "/html/index.html";
+  // Se tem token, tenta validar
+  // Se for inválido, header.js cuida de redirecionar
+  console.log("✅ Token encontrado, deixando header.js validar...");
+  // Não redireciona aqui, deixa header.js fazer
 }
+
+// ... resto do código igual ...
 
 // ========== VALIDAÇÃO DE SENHA ==========
 function validarSenha() {
@@ -412,4 +427,4 @@ function resetarFormularios() {
   document.getElementById("alertaCadastro").innerHTML = "";
 }
 
-console.log("✅ login.js carregado");
+console.log("✅ login.js atualizado");

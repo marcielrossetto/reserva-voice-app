@@ -1,5 +1,7 @@
 /**
  * routes/auth.js - COM BCRYPTJS PARA CRIPTOGRAFAR SENHAS
+ * ✅ Importa authMiddleware
+ * ✅ Remove rota duplicada
  */
 
 const express = require('express');
@@ -8,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -271,6 +274,20 @@ router.post('/verificar-token-senha', async (req, res) => {
     } catch (error) {
         console.error('❌ Erro verificar token:', error);
         res.status(500).json({ erro: 'Erro ao verificar token' });
+    }
+});
+
+// ========== GET /auth/validate (✅ ROTA ÚNICA) ==========
+router.get('/validate', authMiddleware, (req, res) => {
+    try {
+        res.json({
+            valido: true,
+            empresaId: req.user.id,
+            email: req.user.email,
+            nomeEmpresa: req.user.nomeEmpresa
+        });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao validar token' });
     }
 });
 

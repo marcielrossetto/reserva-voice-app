@@ -1,31 +1,123 @@
 /**
- * public/js/components/header.js
- * Gerencia o carregamento e funcionalidades do header
+ * public/js/components/header.js - REFATORADO
+ * ✅ Validação segura de token
+ * ✅ Tratamento de erro quando token inválido
+ * ✅ Bloqueia acesso sem token válido
  */
+
 (function() {
   // ========================= CONSTANTES =========================
   const TOKEN = localStorage.getItem("token");
   const EMAIL = localStorage.getItem("email");
   const EMPRESA_ID = localStorage.getItem("empresaId");
+  const IS_LOGIN_PAGE = window.location.pathname.includes("login");
 
-  // ========================= SEGURANÇA =========================
+  // ========================= STATE GLOBAL =========================
+  let tokenValidado = false;
+  let tentativasValidacao = 0;
+  const MAX_TENTATIVAS = 3;
+
+  // ========================= VALIDAÇÃO DE TOKEN =========================
   /**
-   * Verifica se usuário está autenticado
-   * Se não, redireciona para login
+   * ✅ Valida token com o servidor
+   * Se inválido, limpa localStorage e redireciona para login
    */
-  if (!TOKEN && !window.location.pathname.includes("login")) {
-    console.warn("❌ Sem token - redirecionando para login");
-    window.location.replace("/login.html");
-    return;
+  async function validarTokenComServidor() {
+    // ✅ Se já está na página de login, não valida
+    if (IS_LOGIN_PAGE) {
+      tokenValidado = true;
+      return true;
+    }
+
+    // ❌ Se não tem token, redireciona para login
+    if (!TOKEN) {
+      console.warn("❌ Token não encontrado - redirecionando para login");
+      redireccionarParaLogin("Token expirado. Faça login novamente.");
+      return false;
+    }
+
+    try {
+      console.log("🔍 Validando token com servidor...");
+      
+      const response = await fetch('/api/auth/validate', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // ✅ Token válido
+      if (response.ok) {
+        console.log("✅ Token válido!");
+        tokenValidado = true;
+        return true;
+      }
+
+      // ❌ Token inválido (401/403)
+      if (response.status === 401 || response.status === 403) {
+        console.error("❌ Token inválido ou expirado");
+        redireccionarParaLogin("Sua sessão expirou. Faça login novamente.");
+        return false;
+      }
+
+      // ❌ Erro no servidor
+      console.error("❌ Erro na validação:", response.status);
+      redireccionarParaLogin("Erro ao validar sessão. Tente novamente.");
+      return false;
+
+    } catch (error) {
+      tentativasValidacao++;
+      
+      // Se falhar 3x, assume que não tem conexão e bloqueia
+      if (tentativasValidacao >= MAX_TENTATIVAS) {
+        console.error("❌ Falha ao conectar ao servidor (tentativa", tentativasValidacao, ")");
+        redireccionarParaLogin("Erro de conexão. Verifique sua internet.");
+        return false;
+      }
+
+      console.warn("⚠️ Erro ao validar token:", error.message);
+      
+      // Na primeira falha, tenta novamente em 2s
+      if (tentativasValidacao === 1) {
+        console.log("🔄 Tentando novamente em 2s...");
+        setTimeout(validarTokenComServidor, 2000);
+        return false;
+      }
+
+      return false;
+    }
   }
 
-  // ========================= FUNÇÕES PRIVADAS =========================
+  // ========================= REDIRECIONAMENTO =========================
   /**
-   * Carrega o HTML do header e injeta no DOM
+   * ✅ Redireciona para login com mensagem de erro
+   */
+  function redireccionarParaLogin(mensagem) {
+    console.error("🚪 Redirecionando para login:", mensagem);
+    
+    // Limpar localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("empresaId");
+    
+    // Guardar mensagem no sessionStorage (para exibir no login)
+    if (mensagem) {
+      sessionStorage.setItem("loginMensagem", mensagem);
+      sessionStorage.setItem("loginMensagemTipo", "danger");
+    }
+
+    // Redirecionar com replace (não mantém histórico)
+    window.location.replace("/login.html");
+  }
+
+  // ========================= CARREGAMENTO DO HEADER =========================
+  /**
+   * ✅ Carrega HTML do header apenas se token válido
    */
   async function loadHeader() {
     const headerContainer = document.getElementById('header-container') || 
                            document.getElementById('main-header');
+    
     if (!headerContainer) {
       console.warn("⚠️ Elemento header-container não encontrado");
       return;
@@ -44,28 +136,30 @@
         emailEl.textContent = EMAIL;
       }
 
-      console.log("✅ Header carregado");
+      console.log("✅ Header carregado com sucesso");
       console.log("📍 Empresa ID:", EMPRESA_ID);
       console.log("📧 Email:", EMAIL);
       
-      // Inicializar eventos do header
+      // Inicializar eventos
       initHeaderEvents();
     } catch (error) {
       console.error('❌ Erro ao carregar header:', error);
+      redireccionarParaLogin("Erro ao carregar interface.");
     }
   }
 
+  // ========================= EVENTOS DO HEADER =========================
   /**
-   * Inicializa eventos do header após carregar
+   * ✅ Inicializa eventos após carregar header
    */
   function initHeaderEvents() {
-    // ✅ Botão de logout
+    // Logout
     const logoutBtn = document.getElementById('btnLogout');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', logout);
     }
 
-    // ✅ Botões de navegação
+    // Navegação
     const btnIndex = document.getElementById('btnIndex');
     if (btnIndex) {
       btnIndex.addEventListener('click', () => goToIndex());
@@ -82,16 +176,25 @@
     }
   }
 
+  // ========================= INICIALIZAÇÃO =========================
   /**
-   * Inicializa o carregamento do header
-   * Executa quando o DOM está pronto
+   * ✅ Inicia validação e carregamento
    */
-  function initHeader() {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadHeader);
-    } else {
-      loadHeader();
+  async function inicializar() {
+    console.log("🚀 Inicializando Header...");
+
+    // ✅ Validar token
+    const tokenValido = await validarTokenComServidor();
+
+    // ✅ Se token válido, carregar header
+    if (tokenValido) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadHeader);
+      } else {
+        loadHeader();
+      }
     }
+    // ❌ Se inválido, já redireciona para login
   }
 
   // ========================= FUNÇÕES GLOBAIS =========================
@@ -102,15 +205,14 @@
   globalThis.openReservationModal = function(e) {
     if (e) e.preventDefault();
 
-    if (!EMPRESA_ID) {
-      alert("❌ Erro: empresa não encontrada. Faça login novamente.");
-      window.location.href = '/login.html';
+    if (!EMPRESA_ID || !tokenValidado) {
+      alert("❌ Sessão inválida. Faça login novamente.");
+      redireccionarParaLogin("Sessão expirada.");
       return;
     }
 
     console.log("➕ Abrindo modal de reserva...");
 
-    // Tenta abrir modal do Bootstrap
     const modalElement = document.getElementById('modalEditarReserva') || 
                         document.getElementById('modalReserva');
     
@@ -138,6 +240,7 @@
     if (confirm("🚪 Deseja realmente sair?")) {
       console.log("🚪 Fazendo logout...");
       localStorage.clear();
+      sessionStorage.clear();
       window.location.replace("/login.html");
     }
   };
@@ -148,9 +251,9 @@
   globalThis.goToIndex = function(e) {
     if (e) e.preventDefault();
 
-    if (!EMPRESA_ID) {
-      alert("❌ Erro: empresa não encontrada. Faça login novamente.");
-      window.location.href = '/login.html';
+    if (!EMPRESA_ID || !tokenValidado) {
+      alert("❌ Sessão inválida. Faça login novamente.");
+      redireccionarParaLogin("Sessão expirada.");
       return;
     }
 
@@ -164,9 +267,9 @@
   globalThis.goToQueue = function(e) {
     if (e) e.preventDefault();
 
-    if (!EMPRESA_ID) {
-      alert("❌ Erro: empresa não encontrada. Faça login novamente.");
-      window.location.href = '/login.html';
+    if (!EMPRESA_ID || !tokenValidado) {
+      alert("❌ Sessão inválida. Faça login novamente.");
+      redireccionarParaLogin("Sessão expirada.");
       return;
     }
 
@@ -180,32 +283,34 @@
   globalThis.goToSearch = function(e) {
     if (e) e.preventDefault();
 
-    if (!EMPRESA_ID) {
-      alert("❌ Erro: empresa não encontrada. Faça login novamente.");
-      window.location.href = '/login.html';
+    if (!EMPRESA_ID || !tokenValidado) {
+      alert("❌ Sessão inválida. Faça login novamente.");
+      redireccionarParaLogin("Sessão expirada.");
       return;
     }
 
     console.log("🔍 Acessando busca");
     
-    // Se está em index.html, focus no input de busca
     const searchInput = document.getElementById('filterBusca');
     if (searchInput) {
       searchInput.focus();
       return;
     }
 
-    // Senão, vai para index.html
     window.location.href = '/html/index.html';
   };
 
   /**
-   * ✅ Carrega e exibe informações do usuário
+   * ✅ Carrega informações do usuário
    */
   globalThis.loadUserInfo = async function() {
     try {
+      if (!tokenValidado) {
+        console.warn("⚠️ Token não validado ainda");
+        return;
+      }
+
       const emailEl = document.getElementById("userEmail");
-      
       if (emailEl && EMAIL) {
         emailEl.textContent = EMAIL;
         console.log("✅ Informações do usuário carregadas");
@@ -239,14 +344,12 @@
     }
   });
 
-  // ========================= INICIALIZAÇÃO =========================
-  console.log("🚀 Inicializando Header...");
-  initHeader();
+  // ========================= EXECUTAR =========================
+  console.log("✅ header.js REFATORADO - iniciando...");
+  inicializar();
 
   // Exportar para uso global
   globalThis.initHeaderEvents = initHeaderEvents;
   globalThis.loadHeader = loadHeader;
-
-  console.log("✅ header.js REFATORADO carregado!");
 
 })();
