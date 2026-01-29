@@ -1,105 +1,188 @@
 /**
  * public/js/config.js
- * 
- * Configuração centralizada - VERSÃO MELHORADA
- * Carregue SEMPRE este arquivo PRIMEIRO no seu HTML:
- * <script src="/js/config.js"></script>
+ *
+ * Configuração ÚNICA e COMPLETA
+ * - Gerencia token e autenticação
+ * - Intercepta requisições automaticamente
+ * - Redireciona para login se token expirar
+ * - Carregue SEMPRE este arquivo PRIMEIRO
  */
 
 // ========================= DETECÇÃO AUTOMÁTICA DE AMBIENTE =========================
 
 const API_CONFIG = {
-    BASE_URL: window.location.hostname === 'localhost' 
-        ? 'http://localhost:3001' 
-        : 'https://reserva-voice-app-1.onrender.com',
-    
-    get AUTH() { return `${this.BASE_URL}/api/auth`; },
-    get RESERVATIONS() { return `${this.BASE_URL}/api/reservationQuery`; },
-    get RESERVAS() { return `${this.BASE_URL}/api/reservas`; },
-    get CALENDAR() { return `${this.BASE_URL}/api/calendar`; },
-    get ADMIN() { return `${this.BASE_URL}/api/admin`; },
+  BASE_URL:
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://reserva-voice-app-1.onrender.com",
+
+  get AUTH() {
+    return `${this.BASE_URL}/api/auth`;
+  },
+  get RESERVATIONS() {
+    return `${this.BASE_URL}/api/reservationQuery`;
+  },
+  get RESERVAS() {
+    return `${this.BASE_URL}/api/reservas`;
+  },
+  get CALENDAR() {
+    return `${this.BASE_URL}/api/calendar`;
+  },
+  get ADMIN() {
+    return `${this.BASE_URL}/api/admin`;
+  },
 };
 
 // ========================= TOKEN GLOBAL (ÚNICO) =========================
 
-let token = localStorage.getItem("token");
+// ✅ SEM let/const - deixar global!
+token = localStorage.getItem("token");
+
+// ========================= INTERCEPTAR FETCH - TOKEN EXPIRADO =========================
+
+/**
+ * Intercepta TODAS as requisições
+ * Se token expirar (401) → Redireciona para login
+ */
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+  let response = await originalFetch.apply(this, args);
+
+  // ✅ Se status 401 (não autorizado/token expirado)
+  if (response.status === 401) {
+    try {
+      const data = await response.json();
+
+      // Se backend indicou que é token expirado
+      if (data.redirect || data.erro?.includes("expirado")) {
+        console.warn("⚠️ SESSÃO EXPIRADA! Redirecionando para login...");
+
+        // Limpar dados
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Mostrar mensagem
+        alert("⏰ Sua sessão expirou!\nPor favor, faça login novamente.");
+
+        // Redirecionar para login
+        window.location.href = "/login.html";
+
+        return response;
+      }
+    } catch (e) {
+      console.error("Erro ao processar resposta 401:", e);
+    }
+  }
+
+  return response;
+};
 
 // ========================= FUNÇÕES DE AUTENTICAÇÃO =========================
 
 /**
- * Verificar se usuário está autenticado
+ * Verificar se usuário está autenticado ao carregar página
  */
 function verificarAutenticacao() {
-    if (!token) {
-        console.warn("❌ Usuário não autenticado. Redirecionando...");
-        window.location.href = '/login';
-        return false;
-    }
-    return true;
+  const tokenAtual = localStorage.getItem("token");
+
+  // Se não tem token → vai para login
+  if (!tokenAtual) {
+    console.log("❌ Sem token. Redirecionando para login...");
+    window.location.href = "/login.html";
+    return false;
+  }
+
+  // Token existe, verificar se é válido
+  verificarTokenValido(tokenAtual);
+  return true;
+}
+
+/**
+ * Verificar se token é válido (verificação LOCAL)
+ * ✅ Não faz chamada ao backend
+ */
+function verificarTokenValido(tokenParam) {
+  // Token vazio = inválido
+  if (!tokenParam) {
+    console.warn("⚠️ Token inválido!");
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/login.html";
+    return false;
+  }
+
+  // Token existe = válido
+  console.log("✅ Token validado localmente");
+  return true;
 }
 
 /**
  * Atualizar token no localStorage
  */
 function atualizarToken(novoToken) {
-    token = novoToken;
-    localStorage.setItem("token", novoToken);
-    console.log("✅ Token atualizado");
+  token = novoToken;
+  localStorage.setItem("token", novoToken);
+  console.log("✅ Token atualizado");
 }
 
 /**
- * Logout - remover token
+ * Logout - remover token e redirecionar
  */
 function fazerLogout() {
-    token = null;
-    localStorage.removeItem("token");
-    window.location.href = '/login';
+  console.log("🚪 Fazendo logout...");
+  token = null;
+  localStorage.clear();
+  sessionStorage.clear();
+  console.log("✅ Logout realizado");
+  window.location.href = "/login.html";
 }
 
 // ========================= REQUISIÇÕES AUTENTICADAS =========================
 
 /**
- * Fazer requisição autenticada
+ * Fazer requisição com token automaticamente
  * Uso: requisicaoAutenticada('/api/reservationQuery', { method: 'GET' })
  */
 async function requisicaoAutenticada(endpoint, options = {}) {
-    if (!token) {
-        throw new Error("Token não encontrado. Faça login novamente.");
-    }
+  const tokenAtual = localStorage.getItem("token");
 
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
+  if (!tokenAtual) {
+    throw new Error("Token não encontrado. Faça login novamente.");
+  }
 
-    const mergedOptions = {
-        ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers
-        }
-    };
+  const defaultHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${tokenAtual}`,
+  };
 
-    const url = endpoint.startsWith('http') 
-        ? endpoint 
-        : `${API_CONFIG.BASE_URL}${endpoint}`;
+  const mergedOptions = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  };
 
-    const response = await fetch(url, mergedOptions);
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_CONFIG.BASE_URL}${endpoint}`;
 
-    // Se retornar 401, token expirou
-    if (response.status === 401) {
-        fazerLogout();
-        throw new Error("Sessão expirada. Faça login novamente.");
-    }
+  const response = await fetch(url, mergedOptions);
 
-    return response;
+  // Interceptor de 401 já trata isso, mas deixamos aqui como backup
+  if (response.status === 401) {
+    fazerLogout();
+  }
+
+  return response;
 }
 
 /**
- * Fazer fetch com autenticação automática (compatibilidade com config antigo)
+ * Compatibilidade com função antiga
+ * Alias para requisicaoAutenticada
  */
 async function apiFetch(endpoint, options = {}) {
-    return requisicaoAutenticada(endpoint, options);
+  return requisicaoAutenticada(endpoint, options);
 }
 
 // ========================= UTILITÁRIOS =========================
@@ -107,15 +190,20 @@ async function apiFetch(endpoint, options = {}) {
 /**
  * Exibir notificação de toast
  */
-function showToast(msg, tipo = 'info') {
-    const toast = document.createElement('div');
-    const tipoClasse = tipo === 'danger' ? 'danger' : 
-                       tipo === 'warning' ? 'warning' : 
-                       tipo === 'info' ? 'info' : 'success';
-    
-    toast.className = `alert alert-${tipoClasse}`;
-    toast.innerHTML = msg;
-    toast.style.cssText = `
+function showToast(msg, tipo = "info") {
+  const toast = document.createElement("div");
+  const tipoClasse =
+    tipo === "danger"
+      ? "danger"
+      : tipo === "warning"
+        ? "warning"
+        : tipo === "info"
+          ? "info"
+          : "success";
+
+  toast.className = `alert alert-${tipoClasse}`;
+  toast.innerHTML = msg;
+  toast.style.cssText = `
         position: fixed; 
         top: 20px; 
         right: 20px; 
@@ -123,74 +211,124 @@ function showToast(msg, tipo = 'info') {
         min-width: 300px; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 /**
  * Formatar data
  */
 function formatarData(dataString) {
-    try {
-        const [ano, mes, dia] = dataString.split('-');
-        const dataObj = new Date(ano, parseInt(mes) - 1, parseInt(dia));
-        return dataObj.toLocaleDateString('pt-BR', { 
-            day: '2-digit', 
-            month: 'long', 
-            year: 'numeric'
-        });
-    } catch (e) {
-        return dataString;
-    }
+  try {
+    const [ano, mes, dia] = dataString.split("-");
+    const dataObj = new Date(ano, parseInt(mes) - 1, parseInt(dia));
+    return dataObj.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (e) {
+    return dataString;
+  }
 }
 
 // ========================= ENDPOINTS CENTRALIZADOS =========================
 
 const API_ENDPOINTS = {
-    // Reservations
-    RESERVATIONS: `${API_CONFIG.BASE_URL}/api/reservationQuery`,
-    RESERVATION_GET: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}`,
-    RESERVATION_HISTORY: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/history`,
-    RESERVATION_CLIENT: (phone) => `${API_CONFIG.BASE_URL}/api/reservationQuery/client/${phone}`,
-    
-    // Reservation Actions
-    RESERVATION_CONFIRM: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/confirm`,
-    RESERVATION_CANCEL: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/cancel`,
-    RESERVATION_STATUS: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/status`,
-    RESERVATION_REACTIVATE: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/reactivate`,
+  // Auth
+  AUTH_LOGIN: `${API_CONFIG.BASE_URL}/api/auth/login`,
+  AUTH_VERIFICAR_PIN: `${API_CONFIG.BASE_URL}/api/auth/verificar-pin`,
+  AUTH_REGISTRAR: `${API_CONFIG.BASE_URL}/api/auth/registrar`,
+  AUTH_RECUPERAR_SENHA: `${API_CONFIG.BASE_URL}/api/auth/recuperar-senha`,
+  AUTH_REDEFINIR_SENHA: `${API_CONFIG.BASE_URL}/api/auth/redefinir-senha`,
+  AUTH_ME: `${API_CONFIG.BASE_URL}/api/auth/me`,
+  AUTH_LOGOUT: `${API_CONFIG.BASE_URL}/api/auth/logout`,
+
+  // Reservations
+  RESERVATIONS: `${API_CONFIG.BASE_URL}/api/reservationQuery`,
+  RESERVATION_GET: (id) => `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}`,
+  RESERVATION_HISTORY: (id) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/history`,
+  RESERVATION_CLIENT: (phone) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/client/${phone}`,
+  RESERVATION_CONFIRM: (id) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/confirm`,
+  RESERVATION_CANCEL: (id) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/cancel`,
+  RESERVATION_STATUS: (id) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/status`,
+  RESERVATION_REACTIVATE: (id) =>
+    `${API_CONFIG.BASE_URL}/api/reservationQuery/${id}/reactivate`,
 };
 
-// ========================= EXPOR GLOBALMENTE =========================
+// ========================= EXPORTAR GLOBALMENTE =========================
 
-// Legado
-globalThis.API_CONFIG = API_CONFIG;
+// Legado (compatibilidade)
 globalThis.API_BASE_URL = API_CONFIG.BASE_URL;
 globalThis.API_RESERVAS = API_CONFIG.RESERVAS;
 globalThis.API_BASE = API_CONFIG.BASE_URL;
 
-// Novos
+// ✅ NOVOS - Exportar token globalmente
+globalThis.token = token;
+globalThis.empresaId = localStorage.getItem("empresaId");
+globalThis.email = localStorage.getItem("email");
+
+globalThis.API_CONFIG = API_CONFIG;
 globalThis.API_ENDPOINTS = API_ENDPOINTS;
 globalThis.apiFetch = apiFetch;
 globalThis.requisicaoAutenticada = requisicaoAutenticada;
 globalThis.verificarAutenticacao = verificarAutenticacao;
+globalThis.verificarTokenValido = verificarTokenValido;
 globalThis.atualizarToken = atualizarToken;
 globalThis.fazerLogout = fazerLogout;
 globalThis.showToast = showToast;
 globalThis.formatarData = formatarData;
 
-// ========================= LOGS =========================
+// ========================= INICIALIZAR =========================
 
-console.log('🔗 API Config iniciado');
-console.log('🌍 Ambiente:', window.location.hostname === 'localhost' ? 'DESENVOLVIMENTO' : 'PRODUÇÃO');
-console.log('📍 Base URL:', API_CONFIG.BASE_URL);
-console.log('✅ Token:', token ? '✅ Presente' : '❌ Não encontrado');
-console.log('✅ Config.js carregado com sucesso');
+console.log("✅ Config.js carregado com TODAS as funcionalidades");
+console.log(
+  "🌍 Ambiente:",
+  window.location.hostname === "localhost" ? "DESENVOLVIMENTO" : "PRODUÇÃO",
+);
+console.log("📍 Base URL:", API_CONFIG.BASE_URL);
+console.log("🔐 Token Global:", token ? "✅ Presente" : "❌ Não encontrado");
+console.log("🔄 Interceptação de token expirado: ATIVA");
+console.log("✅ Variáveis globais:", {
+  token: token ? "✅ OK" : "❌",
+  empresaId: globalThis.empresaId,
+  email: globalThis.email,
+});
 
-// ========================= DISPLAY USUÁRIO =========================
+// ========================= VERIFICAR AUTENTICAÇÃO AO CARREGAR =========================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const userDisplay = document.getElementById('userDisplay');
-    if (userDisplay && localStorage.getItem('usuario')) {
-        userDisplay.textContent = `Usuário: ${localStorage.getItem('usuario')}`;
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  const currentPage = window.location.pathname;
+  const tokenLocal = localStorage.getItem("token");
+  const usuario = localStorage.getItem("usuario");
+
+  console.log("📄 Página:", currentPage);
+  console.log("🔐 Token:", tokenLocal ? "✅ OK" : "❌ Não encontrado");
+
+  // ✅ Se está em login.html, deixa carregar
+  if (currentPage.includes("login.html") || currentPage === "/") {
+    console.log("📄 Página de login/home - permitido");
+    return;
+  }
+
+  // ✅ Se não tem token e NÃO está em login, redireciona
+  if (!tokenLocal) {
+    console.log("❌ Sem token! Redirecionando para login...");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  // ✅ Token existe, carregar usuário
+  console.log("✅ Autenticado como:", usuario);
+
+  // Exibir usuário no header
+  const userDisplay = document.getElementById("userDisplay");
+  if (userDisplay && usuario) {
+    userDisplay.textContent = `Usuário: ${usuario}`;
+  }
 });

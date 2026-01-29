@@ -12,27 +12,29 @@ datasource db {
 // ============================================================================
 
 model Empresa {
-  id                    Int       @id @default(autoincrement())
-  nomeEmpresa           String    @db.VarChar(255)
-  cnpjCpf               String?   @unique @db.VarChar(20)
-  telefone              String?   @db.VarChar(20)
+  id                    Int     @id @default(autoincrement())
+  nomeEmpresa           String
+  email                 String?  @unique
+  senha                 String?
+  cnpjCpf               String?
+  telefone              String?
+  dataCadastro          DateTime @default(now())
   dataInclusao          DateTime?
   logo                  Bytes?
-  logoCaminho           String?   @db.VarChar(500)
-  dataCadastro          DateTime  @default(now())
-
+  logoCaminho           String?
   dataInicioTeste       DateTime?
   dataExpiracao         DateTime?
-  status                Boolean   @default(true)
-  statusPagamento       Int       @default(0)
-  plano                 String    @default("mensal") @db.VarChar(50)
-  valor                 Decimal   @default(0.00) @db.Decimal(10, 2)
+  status                Boolean @default(true)
+  statusPagamento       Int     @default(0)
+  plano                 String  @default("mensal")
+  valor                 Decimal @default(0.00) @db.Decimal(10, 2)
   dataUltimoPagamento   DateTime?
-  observacoes           String?   @db.Text
-  excluida              Boolean   @default(false)
+  observacoes           String?
+  excluida              Boolean @default(false)
   dataExclusao          DateTime?
+  resetPasswordToken    String?
+  resetPasswordExpires  DateTime?
 
-  // Relações
   usuarios              Usuario[]
   clientes              Cliente[]
   bebidasCadastro       BebidaCadastro[]
@@ -48,32 +50,33 @@ model Empresa {
   @@index([status])
   @@index([statusPagamento])
   @@index([excluida])
+  @@index([email])
   @@map("empresas")
 }
-
 // ============================================================================
 // USUÁRIOS
 // ============================================================================
 
 model Usuario {
-  id            Int       @id @default(autoincrement())
-  empresaId     Int
-  nome          String    @db.VarChar(255)
-  email         String    @unique @db.VarChar(255)
-  senha         String    @db.VarChar(255)
-  nivel         String    @db.VarChar(50)
-  status        Boolean   @default(true)
-  dataEmissao   DateTime  @default(now())
-  ultimoAcesso  DateTime?
-
-  empresa       Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-
-  @@index([empresaId])
-  @@index([email])
-  @@index([status])
-  @@map("login")
+id            Int       @id @default(autoincrement())
+empresaId     Int
+nome          String    @db.VarChar(255)
+email         String    @unique @db.VarChar(255)
+senha         String    @db.VarChar(255)
+nivel         String    @db.VarChar(50)
+status        Boolean   @default(true)
+dataEmissao   DateTime  @default(now())
+ultimoAcesso  DateTime?
+// ✅ NOVOS CAMPOS
+pinVerificacao  String?   @db.VarChar(6)
+pinRecuperacao  String?   @db.VarChar(6)
+pinExpiracao    DateTime?
+empresa       Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+@@index([empresaId])
+@@index([email])
+@@index([status])
+@@map("login")
 }
-
 // ============================================================================
 // CLIENTES - CORRIGIDO: horario como String (HH:MM:SS)
 // ============================================================================

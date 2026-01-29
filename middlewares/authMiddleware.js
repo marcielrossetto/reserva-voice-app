@@ -1,8 +1,6 @@
 const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
 
-// middlewares/authMiddleware.js
-
 module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -16,23 +14,23 @@ module.exports = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("✅ Token validado:", decoded);
 
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: decoded.userId },
-      include: { empresa: true }
+    // ✅ BUSCAR EMPRESA (não usuario)
+    const empresa = await prisma.empresa.findUnique({
+      where: { id: decoded.empresaId }
     });
 
-    if (!usuario) {
-      console.log("❌ Usuário não encontrado:", decoded.userId);
-      return res.status(401).json({ message: "Usuário não encontrado" });
+    if (!empresa) {
+      console.log("❌ Empresa não encontrada:", decoded.empresaId);
+      return res.status(401).json({ message: "Empresa não encontrada" });
     }
 
-    console.log("✅ Usuário autenticado:", usuario.nome);
+    console.log("✅ Empresa autenticada:", empresa.nomeEmpresa);
 
     req.user = {
-      id: usuario.id,
-      nome: usuario.nome,
-      nivel: usuario.nivel,
-      empresaId: usuario.empresaId
+      id: empresa.id,
+      nomeEmpresa: empresa.nomeEmpresa,
+      email: empresa.email,
+      empresaId: empresa.id
     };
 
     next();

@@ -1,7 +1,20 @@
 /**
- * public/js/fila.js
- * Sistema de Gerenciamento de Fila de Espera - COMPLETO
+ * public/js/fila.js - REFATORADO COMPLETO
+ * 
+ * ✅ ID da fila → histórico
+ * ✅ Modal de mesas/prioridade com layout completo (editar, bebidas, WhatsApp, sentar, excluir)
+ * ✅ Cronômetro preservado
+ * ✅ Auto-refresh 3s
  */
+// ✅ VERIFICAR TOKEN ANTES DE TUDO
+const token = localStorage.getItem('token');
+
+if (!token) {
+    console.log('❌ Sem token em fila.js');
+    window.location.href = '/login.html';
+}
+
+console.log('✅ Token OK em fila.js:', token.substring(0, 20) + '...');
 
 let filaData = {
     espera: [],
@@ -11,6 +24,7 @@ let filaData = {
 };
 
 let tempId = null;
+let autoRefreshIntervaloFila = null;
 
 document.addEventListener('DOMContentLoaded', inicializarFila);
 
@@ -40,15 +54,31 @@ async function inicializarFila() {
         document.getElementById('telefonePessoa')?.addEventListener('keyup', (e) => maskPhone(e.target));
         document.getElementById('edTel')?.addEventListener('keyup', (e) => maskPhone(e.target));
 
+        iniciarAutoRefreshFila();
         setInterval(atualizarTimers, 1000);
-        setInterval(() => {
-            const data = document.getElementById('dataSelecionada').value;
-            if (data) carregarDados(data);
-        }, 30000);
 
         console.log('✅ Fila inicializada!');
     } catch (error) {
         console.error('❌ Erro:', error);
+    }
+}
+
+function iniciarAutoRefreshFila() {
+    if (autoRefreshIntervaloFila) clearInterval(autoRefreshIntervaloFila);
+
+    autoRefreshIntervaloFila = setInterval(() => {
+        const data = document.getElementById('dataSelecionada').value;
+        if (data) {
+            console.log("🔄 Auto-refresh...");
+            carregarDadosSemZerar(data);
+        }
+    }, 3000);
+}
+
+function pararAutoRefreshFila() {
+    if (autoRefreshIntervaloFila) {
+        clearInterval(autoRefreshIntervaloFila);
+        autoRefreshIntervaloFila = null;
     }
 }
 
@@ -60,6 +90,13 @@ async function carregarDados(data) {
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+
+        if (response.status === 401) {
+            console.error("❌ Token expirado!");
+            pararAutoRefreshFila();
+            window.location.href = "/login.html";
+            return;
+        }
 
         if (!response.ok) throw new Error(`Erro ${response.status}`);
 
@@ -81,12 +118,50 @@ async function carregarDados(data) {
     }
 }
 
+async function carregarDadosSemZerar(data) {
+    try {
+        if (!data) data = new Date().toISOString().split('T')[0];
+
+        const url = `${API_CONFIG.BASE_URL}/api/fila/dia/${data}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+
+        // ✅ GUARDAR TIMERS ANTIGOS
+        const timersAntigos = {};
+        document.querySelectorAll('.timer[data-start]').forEach(el => {
+            timersAntigos[el.getAttribute('data-start')] = el.textContent;
+        });
+
+        filaData = {
+            espera: result.espera || [],
+            historico: result.historico || [],
+            bebidas: result.bebidasDia || [],
+            numeroInicial: result.numeroInicial || 1
+        };
+
+        const numInicialEl = document.getElementById('numeroInicial');
+        if (numInicialEl) numInicialEl.value = filaData.numeroInicial;
+
+        renderizarComTimersAntigos(timersAntigos);
+    } catch (error) {
+        console.error('❌ Erro ao carregar:', error);
+    }
+}
+
 function renderizar() {
     renderizarFila();
     renderizarHistorico();
     atualizarTotais();
 }
 
+/**
+ * ✅ RENDERIZAR FILA COM LAYOUT COMPLETO
+ */
 function renderizarFila() {
     const container = document.getElementById('listaEspera');
     if (!container) return;
@@ -106,12 +181,14 @@ function renderizarFila() {
         const numVirtual = filaData.numeroInicial + index;
         const prioClass = getPrioridadeClass(cliente.prioMotivo);
         const qtdBebidas = filaData.bebidas.filter(b => b.filaId === cliente.id).length;
+        const dataStart = Math.floor(new Date(cliente.dataCriacao).getTime() / 1000);
 
+        // ✅ ID ORIGINAL VISÍVEL
         const html = `
             <div class="fila-item ${prioClass}" data-pax="${cliente.numPessoas}" data-id="${cliente.id}">
                 ${cliente.prioMotivo ? `<span class="badge-prioridade ${cliente.prioMotivo.toLowerCase()}">${cliente.prioMotivo.toUpperCase()}</span>` : ''}
                 
-                <div class="pos-num">${numVirtual}<small>${index + 1}º</small></div>
+                <div class="pos-num">${numVirtual}<small>#${cliente.id}</small></div>
                 
                 <div class="nome-container">
                     <span class="res-nome">${cliente.nome}</span>
@@ -123,8 +200,8 @@ function renderizarFila() {
                             <i class="material-icons">add</i>
                         </button>
                         ${cliente.telefone ? `
-                            <button class="btn-icon" onclick="enviarWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="Enviar WhatsApp">
-                                <i class="material-icons">whatsapp</i>
+                            <button class="btn-icon" onclick="chamarClienteWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="WhatsApp">
+                                <i class="material-icons" style="color: #25d366;">chat</i>
                             </button>
                         ` : ''}
                         <div class="total-bebidas-trigger" onclick="verConsumo(event, ${cliente.id})">
@@ -134,7 +211,7 @@ function renderizarFila() {
                 </div>
                 
                 <div class="pax-focus"><strong>${cliente.numPessoas}</strong><small>Pax</small></div>
-                <div class="timer" data-start="${Math.floor(new Date(cliente.dataCriacao).getTime() / 1000)}">00:00</div>
+                <div class="timer" data-start="${dataStart}">00:00</div>
                 
                 <div class="btn-sentar-group">
                     <button class="btn-circle btn-seat" onclick="abrirSentar(${cliente.id})" title="Sentar"><i class="material-icons">event_seat</i></button>
@@ -145,6 +222,71 @@ function renderizarFila() {
 
         container.insertAdjacentHTML('beforeend', html);
     });
+}
+
+function renderizarComTimersAntigos(timersAntigos) {
+    const container = document.getElementById('listaEspera');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (filaData.espera.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted py-4">Fila vazia</p>';
+        renderizarFiltros({});
+        return;
+    }
+
+    const mesas = contarMesas();
+    renderizarFiltros(mesas);
+
+    filaData.espera.forEach((cliente, index) => {
+        const numVirtual = filaData.numeroInicial + index;
+        const prioClass = getPrioridadeClass(cliente.prioMotivo);
+        const qtdBebidas = filaData.bebidas.filter(b => b.filaId === cliente.id).length;
+        const dataStart = Math.floor(new Date(cliente.dataCriacao).getTime() / 1000);
+        const timerAnterior = timersAntigos[dataStart] || '00:00';
+
+        const html = `
+            <div class="fila-item ${prioClass}" data-pax="${cliente.numPessoas}" data-id="${cliente.id}">
+                ${cliente.prioMotivo ? `<span class="badge-prioridade ${cliente.prioMotivo.toLowerCase()}">${cliente.prioMotivo.toUpperCase()}</span>` : ''}
+                
+                <div class="pos-num">${numVirtual}<small>#${cliente.id}</small></div>
+                
+                <div class="nome-container">
+                    <span class="res-nome">${cliente.nome}</span>
+                    <div class="acoes-sub">
+                        <button class="btn-icon" onclick="abrirEditar(event, ${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', ${cliente.numPessoas}, '${cliente.telefone || ''}')" title="Editar">
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button class="btn-icon" onclick="abrirAddBebida(event, ${cliente.id})" title="Adicionar Bebida">
+                            <i class="material-icons">add</i>
+                        </button>
+                        ${cliente.telefone ? `
+                            <button class="btn-icon" onclick="chamarClienteWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="WhatsApp">
+                                <i class="material-icons" style="color: #25d366;">chat</i>
+                            </button>
+                        ` : ''}
+                        <div class="total-bebidas-trigger" onclick="verConsumo(event, ${cliente.id})">
+                            🍹 ${qtdBebidas}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pax-focus"><strong>${cliente.numPessoas}</strong><small>Pax</small></div>
+                <div class="timer" data-start="${dataStart}">${timerAnterior}</div>
+                
+                <div class="btn-sentar-group">
+                    <button class="btn-circle btn-seat" onclick="abrirSentar(${cliente.id})" title="Sentar"><i class="material-icons">event_seat</i></button>
+                    <button class="btn-circle btn-close" onclick="cancelarFila(${cliente.id})" title="Cancelar"><i class="material-icons">close</i></button>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', html);
+    });
+
+    renderizarHistorico();
+    atualizarTotais();
 }
 
 function renderizarFiltros(mesas) {
@@ -164,10 +306,16 @@ function renderizarFiltros(mesas) {
         <div class="mesa-badge text-dark border-dark" onclick="abrirModalFiltrar('9mais')">
             <span>${mesas['9mais'] || 0}</span><small class="d-block" style="font-size:8px">9+</small>
         </div>
+        <div class="mesa-badge text-info border-info" onclick="abrirModalFiltrarPrioridade()">
+            <span>⭐</span><small class="d-block" style="font-size:8px">Prior.</small>
+        </div>
     `;
     document.getElementById('filtrosMesas').innerHTML = filtrosHTML;
 }
 
+/**
+ * ✅ HISTÓRICO COM ID ORIGINAL
+ */
 function renderizarHistorico() {
     const container = document.getElementById('listaHistorico');
     if (!container) return;
@@ -184,18 +332,26 @@ function renderizarHistorico() {
         const tempoEspera = Math.floor(new Date(cliente.horaSentado).getTime() / 1000) - Math.floor(new Date(cliente.dataCriacao).getTime() / 1000);
         const tempoFormatado = formatarTempo(tempoEspera);
         const qtdBebidas = filaData.bebidas.filter(b => b.filaId === cliente.id).length;
+        
+        // ✅ ID ORIGINAL (NÃO MUDA)
+        const idOriginal = cliente.id;
+        const posicaoAnterior = cliente.posicao || '?';
+        const statusLabel = isDesistencia ? '❌ Cancel' : '✅ Sentou';
 
         const html = `
             <div class="fila-item ${isDesistencia ? 'desistencia' : ''}">
-                <div class="pos-num ${isDesistencia ? 'text-danger' : ''}">${cliente.id}</div>
+                <div class="pos-num ${isDesistencia ? 'text-danger' : ''}">
+                    #${idOriginal}<small>ID</small>
+                </div>
                 
                 <div class="nome-container">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="res-nome ${isDesistencia ? 'text-danger' : ''}">${cliente.nome}</span>
+                        <span class="badge badge-info">Pos: ${posicaoAnterior}º</span>
                         ${cliente.numMesa ? `<span class="mesa-numero">Mesa ${cliente.numMesa}</span>` : ''}
                     </div>
                     <small class="text-muted" style="font-size: 10px;">
-                        Espera: ${tempoFormatado} | ${isDesistencia ? 'Cancel.' : 'Final'}: ${new Date(cliente.horaSentado).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        ⏱️ ${tempoFormatado} | 🕐 ${new Date(cliente.horaSentado).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} | ${statusLabel}
                     </small>
                     ${qtdBebidas > 0 ? `
                         <div class="total-bebidas-trigger" onclick="verConsumo(event, ${cliente.id})">
@@ -232,6 +388,13 @@ function atualizarTotais() {
     document.getElementById('totalVendasBadge').textContent = `R$ ${totalVendas.toFixed(2).replace('.', ',')}`;
 }
 
+function chamarClienteWhatsApp(event, telefone, nome) {
+    event.stopPropagation();
+    const mensagem = `Olá ${nome}! 👋\n\nSua mesa está pronta! 🎉\n\nPor favor, dirija-se ao responsável para se sentar.\n\nObrigado!`;
+    const url = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+}
+
 async function adicionarCliente(e) {
     e.preventDefault();
 
@@ -260,8 +423,11 @@ async function adicionarCliente(e) {
         document.getElementById('formAddCliente').reset();
         document.getElementById('qtdPessoas').value = '1';
 
+        console.log("✅ Cliente adicionado!");
+        
         const data = document.getElementById('dataSelecionada').value;
-        await carregarDados(data);
+        await carregarDadosSemZerar(data);
+
     } catch (error) {
         console.error('❌ Erro:', error);
     }
@@ -284,6 +450,9 @@ async function sentarCliente(id, mesa) {
         });
 
         if (!response.ok) throw new Error('Erro');
+        
+        console.log("✅ Cliente sentado!");
+        
         const data = document.getElementById('dataSelecionada').value;
         await carregarDados(data);
     } catch (error) {
@@ -393,7 +562,7 @@ async function confirmarBebida() {
         if (!response.ok) throw new Error('Erro');
         bootstrap.Modal.getInstance(document.getElementById('modalAddBebida')).hide();
         const data = document.getElementById('dataSelecionada').value;
-        await carregarDados(data);
+        await carregarDadosSemZerar(data);
     } catch (error) {
         console.error('❌ Erro:', error);
     }
@@ -437,13 +606,6 @@ async function verConsumo(event, id) {
     }
 }
 
-function enviarWhatsApp(event, telefone, nome) {
-    event.stopPropagation();
-    const mensagem = `Olá ${nome}! Sua mesa está próxima a ser liberada. Por favor dirija-se ao responsável. Obrigado!`;
-    const url = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
-}
-
 async function salvarNumeroInicial() {
     const numero = parseInt(document.getElementById('numeroInicial').value);
 
@@ -464,13 +626,18 @@ async function salvarNumeroInicial() {
         });
 
         if (!response.ok) throw new Error('Erro');
-        alert('Salvo!');
+        alert('✅ Começará do ' + numero);
         await carregarDados(data);
     } catch (error) {
         console.error('❌ Erro:', error);
     }
 }
 
+// ========== FILTROS COM CARDS COMPLETOS ==========
+
+/**
+ * ✅ FILTRAR POR MESAS - MOSTRA CARDS COMPLETOS
+ */
 function abrirModalFiltrar(faixa) {
     const filtrados = filaData.espera.filter(cliente => {
         const pax = cliente.numPessoas;
@@ -484,15 +651,18 @@ function abrirModalFiltrar(faixa) {
 
     let html = '';
     if (filtrados.length > 0) {
-        filtrados.forEach((cliente, index) => {
+        filtrados.forEach((cliente) => {
+            const posicaoGlobal = filaData.espera.indexOf(cliente) + 1;
+            const numVirtual = filaData.numeroInicial + (posicaoGlobal - 1);
             const prioClass = getPrioridadeClass(cliente.prioMotivo);
             const qtdBebidas = filaData.bebidas.filter(b => b.filaId === cliente.id).length;
+            const dataStart = Math.floor(new Date(cliente.dataCriacao).getTime() / 1000);
 
             html += `
                 <div class="fila-item ${prioClass}" data-pax="${cliente.numPessoas}" data-id="${cliente.id}">
                     ${cliente.prioMotivo ? `<span class="badge-prioridade ${cliente.prioMotivo.toLowerCase()}">${cliente.prioMotivo.toUpperCase()}</span>` : ''}
                     
-                    <div class="pos-num">${filaData.numeroInicial + index}<small>${index + 1}º</small></div>
+                    <div class="pos-num">${numVirtual}<small>#${cliente.id}</small></div>
                     
                     <div class="nome-container">
                         <span class="res-nome">${cliente.nome}</span>
@@ -500,12 +670,12 @@ function abrirModalFiltrar(faixa) {
                             <button class="btn-icon" onclick="abrirEditar(event, ${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', ${cliente.numPessoas}, '${cliente.telefone || ''}')" title="Editar">
                                 <i class="material-icons">edit</i>
                             </button>
-                            <button class="btn-icon" onclick="abrirAddBebida(event, ${cliente.id})" title="Adicionar Bebida">
+                            <button class="btn-icon" onclick="abrirAddBebida(event, ${cliente.id})" title="Bebida">
                                 <i class="material-icons">add</i>
                             </button>
                             ${cliente.telefone ? `
-                                <button class="btn-icon" onclick="enviarWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="WhatsApp">
-                                    <i class="material-icons">whatsapp</i>
+                                <button class="btn-icon" onclick="chamarClienteWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="WhatsApp">
+                                    <i class="material-icons" style="color: #25d366;">chat</i>
                                 </button>
                             ` : ''}
                             <div class="total-bebidas-trigger" onclick="verConsumo(event, ${cliente.id})">
@@ -515,7 +685,7 @@ function abrirModalFiltrar(faixa) {
                     </div>
                     
                     <div class="pax-focus"><strong>${cliente.numPessoas}</strong><small>Pax</small></div>
-                    <div class="timer" data-start="${Math.floor(new Date(cliente.dataCriacao).getTime() / 1000)}">00:00</div>
+                    <div class="timer" data-start="${dataStart}">00:00</div>
                     
                     <div class="btn-sentar-group">
                         <button class="btn-circle btn-seat" onclick="abrirSentar(${cliente.id})" title="Sentar"><i class="material-icons">event_seat</i></button>
@@ -532,21 +702,55 @@ function abrirModalFiltrar(faixa) {
     new bootstrap.Modal(document.getElementById('modalFiltro')).show();
 }
 
+/**
+ * ✅ FILTRAR POR PRIORIDADE - MOSTRA CARDS COMPLETOS
+ */
 function abrirModalFiltrarPrioridade() {
-    const filtrados = filaData.espera.filter(e => e.prioMotivo);
+    const filtrados = filaData.espera.filter(e => e.prioMotivo && e.prioMotivo.trim() !== '');
 
-    let html = '<div class="alert alert-warning mb-3"><strong>Clientes com Prioridade</strong></div>';
+    let html = '<div class="alert alert-warning mb-3"><strong>⭐ Com Prioridade</strong></div>';
 
     if (filtrados.length > 0) {
-        filtrados.forEach((cliente, index) => {
+        filtrados.forEach((cliente) => {
+            const posicaoGlobal = filaData.espera.indexOf(cliente) + 1;
+            const numVirtual = filaData.numeroInicial + (posicaoGlobal - 1);
             const prioClass = getPrioridadeClass(cliente.prioMotivo);
             const qtdBebidas = filaData.bebidas.filter(b => b.filaId === cliente.id).length;
+            const dataStart = Math.floor(new Date(cliente.dataCriacao).getTime() / 1000);
 
             html += `
                 <div class="fila-item ${prioClass}" data-pax="${cliente.numPessoas}" data-id="${cliente.id}">
-                    <div class="pos-num">${filaData.numeroInicial + index}</div>
-                    <span class="res-nome">${cliente.nome}</span>
+                    <span class="badge-prioridade ${cliente.prioMotivo.toLowerCase()}">${cliente.prioMotivo.toUpperCase()}</span>
+                    
+                    <div class="pos-num">${numVirtual}<small>#${cliente.id}</small></div>
+                    
+                    <div class="nome-container">
+                        <span class="res-nome">${cliente.nome}</span>
+                        <div class="acoes-sub">
+                            <button class="btn-icon" onclick="abrirEditar(event, ${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', ${cliente.numPessoas}, '${cliente.telefone || ''}')" title="Editar">
+                                <i class="material-icons">edit</i>
+                            </button>
+                            <button class="btn-icon" onclick="abrirAddBebida(event, ${cliente.id})" title="Bebida">
+                                <i class="material-icons">add</i>
+                            </button>
+                            ${cliente.telefone ? `
+                                <button class="btn-icon" onclick="chamarClienteWhatsApp(event, '${cliente.telefone}', '${cliente.nome}')" title="WhatsApp">
+                                    <i class="material-icons" style="color: #25d366;">chat</i>
+                                </button>
+                            ` : ''}
+                            <div class="total-bebidas-trigger" onclick="verConsumo(event, ${cliente.id})">
+                                🍹 ${qtdBebidas}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="pax-focus"><strong>${cliente.numPessoas}</strong><small>Pax</small></div>
+                    <div class="timer" data-start="${dataStart}">00:00</div>
+                    
+                    <div class="btn-sentar-group">
+                        <button class="btn-circle btn-seat" onclick="abrirSentar(${cliente.id})" title="Sentar"><i class="material-icons">event_seat</i></button>
+                        <button class="btn-circle btn-close" onclick="cancelarFila(${cliente.id})" title="Cancelar"><i class="material-icons">close</i></button>
+                    </div>
                 </div>
             `;
         });
@@ -557,6 +761,8 @@ function abrirModalFiltrarPrioridade() {
     document.getElementById('corpoFiltro').innerHTML = html;
     new bootstrap.Modal(document.getElementById('modalFiltro')).show();
 }
+
+// ========== UTILITÁRIOS ==========
 
 function contarMesas() {
     const mesas = { ate2: 0, '3a4': 0, '5a6': 0, '7a8': 0, '9mais': 0 };
@@ -610,3 +816,17 @@ function atualizarTimers() {
         el.textContent = formatarTempo(diff);
     });
 }
+
+// Escutar eventos de fila alterada via WebSocket
+window.addEventListener('filaEspera:alterada', (event) => {
+  console.log("📢 Fila alterada!", event.detail);
+  const data = document.getElementById('dataSelecionada').value;
+  if (data) {
+    carregarDadosSemZerar(data); // Sem reload, só atualiza
+  }
+});
+window.addEventListener('beforeunload', () => {
+    pararAutoRefreshFila();
+});
+
+console.log("✅ fila.js REFATORADO carregado!");

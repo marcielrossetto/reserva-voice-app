@@ -16,11 +16,14 @@ const authMiddleware = (req, res, next) => {
 /**
  * GET /search
  * Renderiza página de pesquisa com filtros
+ * Agora compatível com /api/reservationQuery
  */
 router.get("/search", authMiddleware, async (req, res) => {
   try {
     const empresaId = req.session.empresa_id;
-    const { data_inicio, data_fim, busca, canceladas } = req.query;
+    const { data_inicio, data_fim, busca, canceladas, incluirCanceladas } = req.query;
+
+    console.log("🔍 /search params:", { data_inicio, data_fim, busca, canceladas, incluirCanceladas, empresaId });
 
     let where = { empresaId: empresaId };
 
@@ -39,17 +42,26 @@ router.get("/search", authMiddleware, async (req, res) => {
       ];
     }
 
-    if (canceladas === "1") {
+    let tituloPagina, corBadge, corTexto;
+    
+    // Suportar AMBOS os parâmetros: canceladas=1 OU incluirCanceladas=true
+    const mostrarCanceladas = canceladas === "1" || incluirCanceladas === "true";
+    
+    if (mostrarCanceladas) {
       where.status = false;
-      var tituloPagina = "Canceladas";
-      var corBadge = "#fee2e2";
-      var corTexto = "#991b1b";
+      tituloPagina = "Canceladas";
+      corBadge = "#fee2e2";
+      corTexto = "#991b1b";
+      console.log("📌 Filtrando CANCELADAS (status = false)");
     } else {
       where.status = true;
-      var tituloPagina = "Ativas";
-      var corBadge = "#dbeafe";
-      var corTexto = "#1e40af";
+      tituloPagina = "Ativas";
+      corBadge = "#dbeafe";
+      corTexto = "#1e40af";
+      console.log("📌 Filtrando ATIVAS (status = true)");
     }
+
+    console.log("🔍 Where clause:", JSON.stringify(where, null, 2));
 
     const reservas = await prisma.cliente.findMany({
       where,
@@ -60,6 +72,17 @@ router.get("/search", authMiddleware, async (req, res) => {
       },
       orderBy: { id: "desc" },
     });
+
+    console.log(`✅ ${reservas.length} reservas encontradas com filtro status=${where.status}`);
+    
+    // Debug: conta estatísticas
+    const ativas = await prisma.cliente.count({
+      where: { empresaId: empresaId, status: true },
+    });
+    const canceladas_count = await prisma.cliente.count({
+      where: { empresaId: empresaId, status: false },
+    });
+    console.log(`📊 Ativas: ${ativas}, Canceladas: ${canceladas_count}`);
 
     const totalPessoasResult = await prisma.cliente.aggregate({
       where,
@@ -79,14 +102,17 @@ router.get("/search", authMiddleware, async (req, res) => {
       tituloPagina,
       corBadge,
       corTexto,
-      verCanceladas: canceladas === "1",
+      verCanceladas: mostrarCanceladas,
       data_inicio: data_inicio || "",
       data_fim: data_fim || "",
       busca: busca || "",
     });
   } catch (error) {
-    console.error("Erro em GET /search:", error);
-    res.status(500).json({ erro: error.message });
+    console.error("❌ Erro em GET /search:", error);
+    res.status(500).json({ 
+      erro: error.message,
+      detalhes: process.env.NODE_ENV === 'development' ? error.stack : 'Erro interno'
+    });
   }
 });
 

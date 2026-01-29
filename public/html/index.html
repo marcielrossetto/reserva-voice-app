@@ -114,26 +114,35 @@
 <!-- 1º: jQuery e Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 2º: Config (apenas UMA vez!) -->
 <script src="/js/config.js"></script>
-<div id="header-container"></div>
+
+<!-- 3º: Carregar Header -->
 <script>
   fetch('/html/header.html')
     .then(r => r.text())
-    .then(html => document.getElementById('header-container').innerHTML = html);
+    .then(html => document.getElementById('header-container').innerHTML = html)
+    .then(() => {
+      // Depois que header carregar, inicializa eventos
+      if (typeof initHeaderEvents === 'function') initHeaderEvents();
+      if (typeof loadUserInfo === 'function') loadUserInfo();
+    });
 </script>
-<!-- 2º: Config e Header -->
-<script src="/js/config.js"></script>
+
+<!-- 4º: Header components -->
 <script src="/js/components/header.js"></script>
 
-<!-- 3º: Lógica de Reservas (ANTES do calendário!) -->
+<!-- 5º: Lógica de Reservas -->
 <script src="/js/reservationQuery.js"></script>
 
-<!-- 4º: Calendário (depende de loadReservations) -->
+<!-- 6º: Calendário -->
 <script src="/js/calendar.js"></script>
 
-<!-- 5º: Modal de Reserva -->
+<!-- 7º: Modal de Reserva -->
 <script src="/js/components/reservation_modal.js"></script>
-<!-- Antes de fechar </body> -->
+
+<!-- 8º: Carregar modal HTML -->
 <script>
   fetch('/html/modalEditarReserva.html')
     .then(r => r.text())

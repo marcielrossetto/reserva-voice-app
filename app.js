@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("node:path");
+const apiRoutes = require('./routes/api');
+const authRoutes = require('./routes/auth');
 require("dotenv").config();
 
 const app = express();
@@ -21,14 +23,13 @@ app.set('views', PATHS.views);
 app.use(express.static(PATHS.public));
 
 /**
- * ==========================================================================
  * ROTAS DA API
- * ==========================================================================
  */
+app.use('/api/auth', authRoutes);  // ✅ ÚNICA ROTA AUTH
+app.use('/api', apiRoutes);
 app.use("/api/fila", require("./routes/fila.routes"));
-app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/reservations", require("./routes/reservation.routes"));
-app.use("/api/reservationQuery", require("./routes/reservationQuery.routes"));  // ← NOVA ROTA
+app.use("/api/reservationQuery", require("./routes/reservationQuery.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
 
@@ -44,18 +45,14 @@ app.get("/api/health", (req, res) => {
 });
 
 /**
- * ==========================================================================
  * ROTAS DE PÁGINAS
- * ==========================================================================
  */
 app.get("/reservationQuery", (req, res) => {
     res.render("reservationQuery");
 });
 
 /**
- * ==========================================================================
  * TRATAMENTO DE ASSETS E FALLBACK
- * ==========================================================================
  */
 app.use(['/js', '/css', '/assets'], (req, res) => {
     res.status(404).send("Static resource not found");
@@ -74,9 +71,7 @@ app.get("*", (req, res) => {
 });
 
 /**
- * ==========================================================================
  * TRATAMENTO GLOBAL DE ERROS
- * ==========================================================================
  */
 app.use((err, req, res, next) => {
     const statusCode = err.status || 500;

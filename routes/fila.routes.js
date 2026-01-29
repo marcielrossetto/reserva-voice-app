@@ -1,12 +1,15 @@
 /**
  * routes/fila.routes.js
  * Gerenciamento completo de fila de espera
+ * ✅ COM WEBSOCKET PARA TEMPO REAL
+ * ✅ SEM RELOAD - Browser escuta WebSocket
  */
 
 const express = require('express');
 const router = express.Router();
 const prisma = require('../lib/prisma');
 const autenticar = require('../middlewares/authMiddleware');
+const { notificarFilaAlterada } = require('./websocket');
 
 // ========================= HELPERS =========================
 
@@ -35,7 +38,7 @@ function formatarTempoPHP(segundos) {
 router.post('/sentar', autenticar, async (req, res) => {
   try {
     const { id, mesa } = req.body;
-    const empresaId = req.user.empresaId; // Já vem do middleware
+    const empresaId = req.user.empresaId;
 
     // Busca posição atual na fila
     const clienteAtual = await prisma.filaEspera.findUnique({
@@ -63,6 +66,9 @@ router.post('/sentar', autenticar, async (req, res) => {
       }
     });
 
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'sentou', { id, nome: clienteAtual.nome, mesa });
+
     res.json({ success: true });
   } catch (error) {
     console.error('❌ ERRO SENTAR:', error);
@@ -78,15 +84,23 @@ router.put('/:id', autenticar, async (req, res) => {
   try {
     const { nome, numPessoas, telefone } = req.body;
     const empresaId = req.user.empresaId;
+    const id = parseInt(req.params.id);
+
+    const clienteAtual = await prisma.filaEspera.findUnique({
+      where: { id }
+    });
 
     await prisma.filaEspera.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id },
       data: {
         nome,
         numPessoas: parseInt(numPessoas),
         telefone
       }
     });
+
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'editou', { id, nome });
 
     res.json({ success: true });
   } catch (error) {
@@ -127,6 +141,9 @@ router.post('/:id/cancelar', autenticar, async (req, res) => {
       }
     });
 
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'cancelou', { id, nome: clienteAtual.nome });
+
     res.json({ success: true });
   } catch (error) {
     console.error('❌ ERRO CANCELAR:', error);
@@ -140,7 +157,12 @@ router.post('/:id/cancelar', autenticar, async (req, res) => {
  */
 router.post('/:id/voltar', autenticar, async (req, res) => {
   try {
+    const empresaId = req.user.empresaId;
     const id = parseInt(req.params.id);
+
+    const clienteAtual = await prisma.filaEspera.findUnique({
+      where: { id }
+    });
 
     await prisma.filaEspera.update({
       where: { id },
@@ -151,6 +173,9 @@ router.post('/:id/voltar', autenticar, async (req, res) => {
         posicaoFila: null
       }
     });
+
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'voltou', { id, nome: clienteAtual.nome });
 
     res.json({ success: true });
   } catch (error) {
@@ -178,6 +203,9 @@ router.post('/:id/bebida', autenticar, async (req, res) => {
         dataCriacao: new Date()
       }
     });
+
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'bebida', { id: filaId, bebida: nomeBebida });
 
     res.json({ success: true, bebida });
   } catch (error) {
@@ -317,6 +345,9 @@ router.post('/', autenticar, async (req, res) => {
       }
     });
 
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'adicionou', { id: cliente.id, nome: cliente.nome });
+
     res.json({ success: true, cliente });
   } catch (error) {
     console.error('❌ ERRO INSERT:', error);
@@ -356,6 +387,9 @@ router.post('/config/numero-inicial', autenticar, async (req, res) => {
         }
       });
     }
+
+    // ✅ NOTIFICAR VIA WEBSOCKET
+    notificarFilaAlterada(empresaId, 'config', { numeroInicial });
 
     res.json({ success: true });
   } catch (error) {

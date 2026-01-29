@@ -1,54 +1,470 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Login | Sistema de Reservas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/js/config.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Reserva Voice App</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Poppins", sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container-login {
+        max-width: 500px;
+        width: 100%;
+        padding: 20px;
+      }
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        background: white;
+      }
+      .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 30px;
+        text-align: center;
+      }
+      .card-header h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 24px;
+      }
+      .card-body {
+        padding: 30px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+      .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+      .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+      }
+      .btn {
+        border-radius: 8px;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s;
+        width: 100%;
+        border: none;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+      }
+      .btn-outline-secondary {
+        color: #667eea;
+        border: 2px solid #667eea;
+        margin-top: 10px;
+      }
+      .btn-outline-secondary:hover {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+      }
+      .link-login {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 14px;
+      }
+      .link-login a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .link-login a:hover {
+        text-decoration: underline;
+      }
+      .text-muted-small {
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .alert {
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+      .spinner-border {
+        width: 1rem;
+        height: 1rem;
+      }
+      .hr-divider {
+        margin: 20px 0;
+        border: none;
+        border-top: 1px solid #e0e0e0;
+      }
+      .requisitos-container {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+        font-size: 13px;
+        display: none;
+      }
+      .requisito-item {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+        padding: 5px 0;
+      }
+      .requisito-icon {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+      .requisito-ok {
+        color: #22c55e;
+      }
+      .requisito-no {
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-login">
+      <!-- TELA 1: LOGIN -->
+      <div id="telaLogin" class="card">
+        <div class="card-header">
+          <h4>🔐 Entrar</h4>
+        </div>
+        <div class="card-body">
+          <div id="alertaLogin"></div>
 
-  <style>
-    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #1e3a8a, #bb1136);
-    }
-    .container {
-      width: 100%;
-      max-width: 420px;
-      background: #fff;
-      padding: 32px;
-      border-radius: 14px;
-      box-shadow: 0 20px 40px rgba(0,0,0,.25);
-    }
-    h2 { text-align: center; margin-bottom: 8px; }
-    p { text-align: center; color: #555; margin-bottom: 24px; }
-    input { width: 100%; padding: 14px; margin-bottom: 14px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; }
-    button { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #2563eb; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
-    button:hover { background: #1e40af; }
-    .toggle { text-align: center; margin-top: 16px; cursor: pointer; color: #2563eb; font-weight: 500; }
-    .hidden { display: none; }
-    .msg { text-align: center; margin-top: 12px; font-weight: 500; }
-  </style>
-</head>
+          <form id="formLogin" onsubmit="fazerLogin(event)">
+            <div class="form-group">
+              <label class="form-label">📧 E-mail</label>
+              <input
+                type="email"
+                class="form-control"
+                id="loginEmail"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
 
-<body>
-<div class="container">
-  <h2 id="title">Entrar</h2>
-  <p id="subtitle">Acesse sua conta</p>
-  <input id="nome" placeholder="Seu nome" class="hidden">
-  <input id="empresa" placeholder="Nome da empresa" class="hidden">
-  <input id="email" placeholder="E-mail">
-  <input id="senha" type="password" placeholder="Senha">
-  <button onclick="submitForm()">Entrar</button>
-  <div class="toggle" onclick="toggleForm()">Criar conta grátis</div>
-  <div class="msg" id="msg"></div>
-</div>
+            <div class="form-group">
+              <label class="form-label">🔑 Senha</label>
+              <input
+                type="password"
+                class="form-control"
+                id="loginSenha"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-<script src="/js/login.js"></script>
-</body>
+            <button type="submit" class="btn btn-primary">
+              <span id="btnLoginText">Entrar</span>
+              <span
+                id="btnLoginSpinner"
+                class="spinner-border hidden"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </form>
+
+          <div class="link-login">
+            <a onclick="abrirTelaEsqueceuSenha()">🔓 Esqueci minha senha</a>
+          </div>
+
+          <div class="hr-divider"></div>
+
+          <div style="text-align: center; margin-top: 20px">
+            <p style="font-size: 14px; color: #666">Não tem login?</p>
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              onclick="abrirTelaCadastro()"
+            >
+              ✨ Teste Grátis 7 Dias
+            </button>
+          </div>
+
+          <p class="text-muted-small">
+            Cadastre sua empresa e comece a usar agora
+          </p>
+        </div>
+      </div>
+
+      <!-- TELA 2: CADASTRO EMPRESA -->
+      <div id="telaCadastro" class="card hidden">
+        <div class="card-header">
+          <h4>🏢 Cadastrar Empresa</h4>
+        </div>
+        <div class="card-body">
+          <div id="alertaCadastro"></div>
+
+          <form id="formCadastro" onsubmit="fazerCadastro(event)">
+            <div class="form-group">
+              <label class="form-label">🏢 Nome da Empresa</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nomeEmpresa"
+                placeholder="Ex: Restaurante XYZ"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📱 Telefone</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="telefoneCadastro"
+                placeholder="(11) 99999-9999"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📋 CNPJ ou CPF</label>
+              <input
+                type="text"
+                class="form-control"
+                id="cnpjCpf"
+                placeholder="00.000.000/0000-00"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📧 E-mail</label>
+              <input
+                type="email"
+                class="form-control"
+                id="emailCadastro"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🔑 Senha</label>
+              <input
+                type="password"
+                class="form-control"
+                id="senhaCadastro"
+                placeholder="••••••••"
+                required
+                oninput="validarSenha()"
+              />
+              <div class="requisitos-container" id="requisitosContainer">
+                <div class="requisito-item">
+                  <span class="requisito-icon" id="maius">⭕</span>
+                  <span>Letra maiúscula (A-Z)</span>
+                </div>
+                <div class="requisito-item">
+                  <span class="requisito-icon" id="minus">⭕</span>
+                  <span>Letra minúscula (a-z)</span>
+                </div>
+                <div class="requisito-item">
+                  <span class="requisito-icon" id="numero">⭕</span>
+                  <span>Número (0-9)</span>
+                </div>
+                <div class="requisito-item">
+                  <span class="requisito-icon" id="especial">⭕</span>
+                  <span>Caractere especial (!@#$%^&*)</span>
+                </div>
+                <div class="requisito-item">
+                  <span class="requisito-icon" id="comprimento">⭕</span>
+                  <span>Mínimo 8 caracteres</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <span id="btnCadastroText">Cadastrar</span>
+              <span class="spinner-border hidden" id="btnCadastroSpinner"></span>
+            </button>
+          </form>
+
+          <div class="link-login">
+            <a onclick="voltarTelaLogin()">← Voltar ao Login</a>
+          </div>
+
+          <p class="text-muted-small">
+            ✅ Teste grátis por 7 dias • Sem cartão de crédito
+          </p>
+        </div>
+      </div>
+
+      <!-- TELA 3: ESQUECEU SENHA -->
+      <div id="telaEsqueceuSenha" class="card hidden">
+        <div class="card-header">
+          <h4>🔓 Recuperar Senha</h4>
+        </div>
+        <div class="card-body">
+          <div id="alertaEsqueceu"></div>
+
+          <!-- Etapa 1: Solicitar E-mail -->
+          <div id="etapa1EmailEsqueceu">
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px">
+              Digite seu e-mail para receber um código de verificação
+            </p>
+
+            <form onsubmit="solicitarTokenSenha(event)">
+              <div class="form-group">
+                <label class="form-label">📧 E-mail Cadastrado</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="emailSenha"
+                  placeholder="seu@email.com"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <span id="btnEmailText">Enviar Código</span>
+                <span id="btnEmailSpinner" class="spinner-border hidden"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Etapa 2: Verificar Token -->
+          <div id="etapa2TokenEsqueceu" class="hidden">
+            <div class="alert alert-info">
+              ✅ Código enviado para <strong id="emailRecuperacao"></strong>
+            </div>
+
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px">
+              Digite o código que recebeu por e-mail
+            </p>
+
+            <form onsubmit="verificarTokenSenha(event)">
+              <div class="form-group">
+                <label class="form-label">🔐 Código de Verificação (6 dígitos)</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="tokenVerificacao"
+                  placeholder="000000"
+                  maxlength="6"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <span id="btnTokenText">Verificar</span>
+                <span id="btnTokenSpinner" class="spinner-border hidden"></span>
+              </button>
+            </form>
+
+            <div class="link-login">
+              <a onclick="voltarSolicitarEmail()">← Digitar outro e-mail</a>
+            </div>
+          </div>
+
+          <!-- Etapa 3: Nova Senha -->
+          <div id="etapa3NovaSenhaEsqueceu" class="hidden">
+            <div class="alert alert-success">
+              ✅ Código verificado! Agora crie uma nova senha
+            </div>
+
+            <form onsubmit="atualizarSenhaEsquecida(event)">
+              <div class="form-group">
+                <label class="form-label">🔑 Nova Senha</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="novaSenhaEsqueceu"
+                  placeholder="••••••••"
+                  required
+                  oninput="validarSenhaRecuperacao()"
+                />
+                <div class="requisitos-container" id="requisitosRecuperacao">
+                  <div class="requisito-item">
+                    <span class="requisito-icon" id="maiusRec">⭕</span>
+                    <span>Letra maiúscula (A-Z)</span>
+                  </div>
+                  <div class="requisito-item">
+                    <span class="requisito-icon" id="minusRec">⭕</span>
+                    <span>Letra minúscula (a-z)</span>
+                  </div>
+                  <div class="requisito-item">
+                    <span class="requisito-icon" id="numeroRec">⭕</span>
+                    <span>Número (0-9)</span>
+                  </div>
+                  <div class="requisito-item">
+                    <span class="requisito-icon" id="especialRec">⭕</span>
+                    <span>Caractere especial (!@#$%^&*)</span>
+                  </div>
+                  <div class="requisito-item">
+                    <span class="requisito-icon" id="comprimentoRec">⭕</span>
+                    <span>Mínimo 8 caracteres</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">🔑 Confirmar Senha</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmarSenhaEsqueceu"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <span id="btnSenhaText">Atualizar Senha</span>
+                <span id="btnSenhaSpinner" class="spinner-border hidden"></span>
+              </button>
+            </form>
+          </div>
+
+          <div class="link-login" style="margin-top: 20px">
+            <a onclick="voltarTelaLogin()">← Voltar ao Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- ✅ Carregamento de login.js -->
+    <script src="/js/login.js"></script>
+  </body>
 </html>
