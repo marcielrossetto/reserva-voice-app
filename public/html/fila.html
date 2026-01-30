@@ -4,47 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fila de Espera</title>
+    <!-- Bootstrap e Ícones Originais -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- FontAwesome necessário para o novo Header -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="/css/fila.css">
+
+    <style>
+        /* Ajuste essencial para o conteúdo descer abaixo do novo header fixo */
+        body {
+            padding-top: 80px;
+            background-color: #f8fafc;
+        }
+        /* Mantém o espaçamento original do seu wrapper */
+        .page-wrapper { margin-top: 0 !important; }
+    </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<nav class="navbar navbar-dark bg-dark sticky-top" style="padding: 12px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <h5 class="m-0 text-white fw-bold" style="font-size: 18px;">
-                <i class="material-icons" style="vertical-align: middle; font-size: 26px; margin-right: 8px;">people_alt</i>
-                Fila de Espera
-            </h5>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success" style="padding: 6px 10px; font-size: 11px;">
-                <i class="material-icons" style="font-size: 12px; vertical-align: middle;">fiber_manual_record</i>
-                Online
-            </span>
-            <button class="btn btn-outline-light btn-sm" onclick="location.reload()" title="Atualizar" style="padding: 5px 8px;">
-                <i class="material-icons" style="font-size: 16px;">refresh</i>
-            </button>
-            <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" style="padding: 5px 8px;">
-                    <i class="material-icons" style="font-size: 16px;">menu</i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/html/index.html"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">event</i>Reservas</a></li>
-                    <li><a class="dropdown-item" href="/html/fila.html"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">people</i>Fila</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 5px;">logout</i>Sair</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</nav>
+<!-- NOVO HEADER (Substituindo o antigo nav) -->
+<div id="header-container"></div>
 
-<div class="page-wrapper" style="margin-top: 15px;">
+<div class="page-wrapper">
 
-    <!-- TOOLBAR DE ENTRADA -->
+    <!-- TOOLBAR DE ENTRADA (INTEGRO) -->
     <div class="toolbar-min">
         <form id="formAddCliente" class="row g-2 align-items-end">
             <div class="col-md-2 col-12">
@@ -97,7 +82,7 @@
         </form>
     </div>
 
-    <!-- LAYOUT PRINCIPAL -->
+    <!-- LAYOUT PRINCIPAL (INTEGRO) -->
     <div class="row-balanced">
         <!-- COLUNA 1: ESPERANDO -->
         <div class="col-espera">
@@ -107,13 +92,9 @@
                     ESPERANDO 
                     <span id="totalPaxEspera" class="badge bg-primary">0 PAX</span>
                 </h6>
-                <div class="d-flex gap-1 flex-wrap" id="filtrosMesas">
-                    <!-- Preenchido por JavaScript -->
-                </div>
+                <div class="d-flex gap-1 flex-wrap" id="filtrosMesas"></div>
             </div>
-            <div id="listaEspera" class="fila-container">
-                <!-- Preenchido por JavaScript -->
-            </div>
+            <div id="listaEspera" class="fila-container"></div>
         </div>
 
         <!-- COLUNA 2: HISTÓRICO -->
@@ -130,14 +111,12 @@
                     <span class="badge bg-success" style="cursor:pointer; padding: 8px; font-size: 11px;" id="totalVendasBadge">R$ 0,00</span>
                 </div>
             </div>
-            <div class="historico-scroll" id="listaHistorico">
-                <!-- Preenchido por JavaScript -->
-            </div>
+            <div class="historico-scroll" id="listaHistorico"></div>
         </div>
     </div>
 </div>
 
-<!-- MODAIS -->
+<!-- MODAIS ORIGINAIS (INTEGROS) -->
 <div class="modal fade" id="modalEditar" tabindex="-1">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content" style="border-radius:20px">
@@ -191,16 +170,13 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/config.js"></script>
+<!-- Novo Header logic -->
+<script src="/js/components/header.js"></script>
+<!-- Fila logic original -->
 <script src="/js/fila.js"></script>
-
-<script>
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/html/login.html';
-}
-</script>
 
 </body>
 </html>

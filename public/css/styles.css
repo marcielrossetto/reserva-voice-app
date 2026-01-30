@@ -11,6 +11,11 @@ body {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
     /* Ajuste de contraste: Se o fundo for claro, use cores mais escuras que #999 */
     color: #333; 
+     padding-top: 98px !important; 
+    background-color: #f4f7fe;
+}
+#calendarArea {
+    margin-top: 10px !important;
 }
 
 .text-muted {
