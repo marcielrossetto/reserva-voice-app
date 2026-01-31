@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("node:path");
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
+const logoRoutes = require('./routes/empresa-logo');
 require("dotenv").config();
 
 const app = express();
@@ -25,6 +26,9 @@ app.use(express.static(PATHS.public));
 /**
  * ROTAS DA API
  */
+// Permite acessar as imagens via URL (ex: http://localhost:3001/uploads/logos/1/logo.png)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/empresa', logoRoutes);
 app.use('/api/auth', authRoutes);  // ✅ ÚNICA ROTA AUTH
 app.use('/api', apiRoutes);
 app.use("/api/fila", require("./routes/fila.routes"));
