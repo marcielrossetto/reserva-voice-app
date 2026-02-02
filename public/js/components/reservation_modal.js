@@ -745,18 +745,418 @@ function showToast(msg, tipo) {
   setTimeout(() => toast.remove(), 4000);
 }
 
-async function openReservationModal() {
-  if (!document.getElementById("modalReserva")) {
-    try {
-      const response = await fetch("/html/reservation_modal.html");
-      document.getElementById("modal-container").innerHTML =
-        await response.text();
-    } catch (err) {
-      console.error("Erro:", err);
-    }
+// ========================= MODAL RESERVA - FORMULÁRIO COMPLETO =========================
+
+// Helper para compatibilidade Bootstrap 4 e 5
+function bsModalShow(el) {
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    new bootstrap.Modal(el).show();
+  } else if (typeof $ !== 'undefined') {
+    $(el).modal('show');
   }
-  const myModal = new bootstrap.Modal(document.getElementById("modalReserva"));
-  myModal.show();
+}
+function bsModalHide(el) {
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const inst = bootstrap.Modal.getInstance(el);
+    if (inst) inst.hide();
+  } else if (typeof $ !== 'undefined') {
+    $(el).modal('hide');
+  }
 }
 
-console.log("Reservation Query v7 carregado - Final com todos os ajustes");
+const TELEFONE_REGEX = /^[1-9]{2}9\d{8}$/;
+
+function maskPhoneReserva(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.slice(0, 11);
+  if (v.length <= 10) {
+    v = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  } else {
+    v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+  input.value = v;
+}
+
+// --- TOGGLE TELEFONE ---
+function toggleTelefone(checkbox) {
+  const tel = document.getElementById('res_telefone');
+  const card = document.getElementById('card-perfil-cliente');
+  const divNome = document.getElementById('div-input-nome');
+
+  if (checkbox.checked) {
+    tel.disabled = true;
+    tel.value = '';
+    tel.style.backgroundColor = '#e9ecef';
+    card.style.display = 'none';
+    divNome.style.display = 'block';
+  } else {
+    tel.disabled = false;
+    tel.style.backgroundColor = '#f9f9fb';
+  }
+}
+
+// --- BUSCAR PERFIL CLIENTE ---
+async function buscarTelefone() {
+  const telefone = document.getElementById('res_telefone').value.replace(/\D/g, '');
+  if (telefone.length < 10) return;
+
+  try {
+    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservations/profile/${telefone}`);
+    const data = await res.json();
+
+    if (data.found) {
+      const p = data.profile;
+      document.getElementById('card-nome-display').textContent = p.nome;
+      document.getElementById('card-telefone-display').textContent = document.getElementById('res_telefone').value;
+      document.getElementById('card-ultima').textContent = p.ultima_visita_data || '--';
+      document.getElementById('card-tempo').textContent = p.tempo_atras || '--';
+      document.getElementById('card-historico').textContent = p.historico_recente || '--';
+      document.getElementById('stat-reservas').textContent = p.total_reservas || 0;
+      document.getElementById('stat-cancelada').textContent = p.canceladas || 0;
+
+      const areaObs = document.getElementById('area-obs-db');
+      if (p.obs_cliente) {
+        document.getElementById('txt-obs-db').textContent = p.obs_cliente;
+        areaObs.style.display = 'block';
+      } else {
+        areaObs.style.display = 'none';
+      }
+
+      document.getElementById('res_nome').value = p.nome;
+      document.getElementById('card-perfil-cliente').style.display = 'block';
+      document.getElementById('div-input-nome').style.display = 'none';
+    } else {
+      document.getElementById('card-perfil-cliente').style.display = 'none';
+      document.getElementById('div-input-nome').style.display = 'block';
+    }
+  } catch (err) {
+    console.log('Cliente nao encontrado');
+  }
+}
+
+// --- TROCAR / EDITAR CLIENTE ---
+function trocarCliente() {
+  document.getElementById('res_telefone').value = '';
+  document.getElementById('res_nome').value = '';
+  document.getElementById('card-perfil-cliente').style.display = 'none';
+  document.getElementById('div-input-nome').style.display = 'block';
+  document.getElementById('sem_telefone').checked = false;
+  const tel = document.getElementById('res_telefone');
+  tel.disabled = false;
+  tel.style.backgroundColor = '#f9f9fb';
+}
+
+function editarCliente() {
+  document.getElementById('input-edit-nome').value = document.getElementById('card-nome-display').textContent;
+  document.getElementById('card-nome-display').style.display = 'none';
+  document.getElementById('edit-name-container').style.display = 'flex';
+}
+
+function cancelarEdicaoNome() {
+  document.getElementById('card-nome-display').style.display = 'block';
+  document.getElementById('edit-name-container').style.display = 'none';
+}
+
+async function salvarNomeCliente() {
+  const novoNome = document.getElementById('input-edit-nome').value.trim();
+  const telefone = document.getElementById('res_telefone').value.replace(/\D/g, '');
+  if (!novoNome || !telefone) return;
+
+  try {
+    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservations/update-client-name`, {
+      method: 'POST',
+      body: JSON.stringify({ telefone, nome: novoNome })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('card-nome-display').textContent = novoNome;
+      document.getElementById('res_nome').value = novoNome;
+      cancelarEdicaoNome();
+    }
+  } catch (err) {
+    console.error('Erro ao atualizar nome:', err);
+  }
+}
+
+// --- VALIDACAO E ENVIO ---
+async function verificarEEnviar() {
+  const semTel = document.getElementById('sem_telefone').checked;
+  const tel = document.getElementById('res_telefone').value.replace(/\D/g, '');
+  const nome = document.getElementById('res_nome').value.trim();
+  const data = document.getElementById('res_data').value;
+  const horario = document.getElementById('res_horario').value;
+  const numPessoas = parseInt(document.getElementById('res_num_pessoas').value);
+  const btn = document.getElementById('btnSalvarManual');
+
+  // Campos obrigatorios
+  if (!nome || !data || !horario || !numPessoas || numPessoas <= 0) {
+    showToast('Preencha todos os campos obrigatorios (Nome, Data, Horario, Pax)', 'warning');
+    return;
+  }
+
+  // Data anterior a hoje
+  const hoje = new Date().toISOString().split('T')[0];
+  if (data < hoje) {
+    showToast('A data da reserva nao pode ser anterior a hoje.', 'danger');
+    return;
+  }
+
+  // Validar telefone se preenchido
+  if (!semTel && tel.length > 0 && !TELEFONE_REGEX.test(tel)) {
+    showToast('Telefone invalido. Use formato: (XX) 9XXXX-XXXX', 'danger');
+    return;
+  }
+
+  if (!semTel && tel.length > 0 && tel.length < 10) {
+    showToast('Telefone invalido ou incompleto.', 'danger');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  // Sem telefone - pula duplicidade
+  if (semTel || !tel) {
+    await enviarReservaAjax();
+    return;
+  }
+
+  // Checar duplicidade
+  try {
+    const res = await requisicaoAutenticada(
+      `${API_CONFIG.BASE_URL}/api/reservations/check-duplicate?phone=${tel}&date=${data}&name=${encodeURIComponent(nome)}`
+    );
+    const resp = await res.json();
+
+    if (resp.erro_data) {
+      showToast(resp.msg, 'danger');
+      btn.disabled = false;
+      btn.textContent = 'Cadastrar reserva';
+      return;
+    }
+
+    if (resp.exists) {
+      if (confirm(`Ja existe uma reserva para ${nome} nesta data. Deseja duplicar?`)) {
+        await enviarReservaAjax();
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Cadastrar reserva';
+      }
+    } else {
+      await enviarReservaAjax();
+    }
+  } catch (err) {
+    console.error('Erro na verificacao:', err);
+    showToast('Erro ao verificar duplicidade.', 'danger');
+    btn.disabled = false;
+    btn.textContent = 'Cadastrar reserva';
+  }
+}
+
+async function enviarReservaAjax() {
+  const btn = document.getElementById('btnSalvarManual');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const payload = {
+    nome: document.getElementById('res_nome').value.trim(),
+    data: document.getElementById('res_data').value,
+    horario: document.getElementById('res_horario').value + ':00',
+    numPessoas: parseInt(document.getElementById('res_num_pessoas').value),
+    telefone: document.getElementById('res_telefone').value || null,
+    telefone2: document.getElementById('res_telefone2').value || null,
+    formaPagamento: document.getElementById('res_forma_pagamento').value,
+    numMesa: document.getElementById('res_num_mesa').value || null,
+    tipoEvento: document.getElementById('res_tipo_evento').value,
+    valorRodizio: document.getElementById('res_valor_rodizio').value || null,
+    observacoes: document.getElementById('res_observacoes').value || null,
+    tortaTermoVela: document.getElementById('torta').checked,
+    churrascaria: document.getElementById('churras').checked,
+    executivo: document.getElementById('exec').checked
+  };
+
+  try {
+    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservations`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showToast(data.error || 'Erro ao salvar reserva.', 'danger');
+      btn.disabled = false;
+      btn.textContent = 'Cadastrar reserva';
+      return;
+    }
+
+    // Fechar modal de reserva
+    bsModalHide(document.getElementById('modalReserva'));
+
+    // Montar botoes de confirmacao
+    const btnsDiv = document.getElementById('confirmacao-btns');
+    let html = '';
+    if (data.waLink) {
+      html += `<button class="btn btn-success rounded-pill fw-bold" onclick="window.open('${data.waLink}', '_blank')">Confirmar via WhatsApp</button>`;
+    }
+    html += `<button class="btn btn-light border rounded-pill" onclick="fecharModalConfirmacao()">Fechar e Nova Reserva</button>`;
+    btnsDiv.innerHTML = html;
+
+    // Mostrar modal confirmacao
+    bsModalShow(document.getElementById('modalConfirmacaoReserva'));
+
+    // Atualizar listas se existir
+    if (typeof loadReservations === 'function') loadReservations();
+
+  } catch (err) {
+    console.error('Erro ao salvar:', err);
+    showToast('Erro de conexao ao salvar.', 'danger');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Cadastrar reserva';
+  }
+}
+
+function fecharModalConfirmacao() {
+  bsModalHide(document.getElementById('modalConfirmacaoReserva'));
+
+  // Reset form
+  const form = document.getElementById('formManual');
+  if (form) form.reset();
+  document.getElementById('whats_dados').value = '';
+  trocarCliente();
+}
+
+// --- IMPORTACAO WHATSAPP ---
+function importarWhatsParaFormulario() {
+  const texto = document.getElementById('whats_dados').value.trim();
+  if (!texto) return;
+
+  const linhas = texto.split('\n');
+  linhas.forEach(linha => {
+    const partes = linha.split(':');
+    if (partes.length < 2) return;
+
+    const chave = partes[0].trim().toLowerCase();
+    const valor = partes.slice(1).join(':').trim();
+
+    if (chave.includes('nome')) {
+      document.getElementById('res_nome').value = valor;
+    }
+    if (chave.includes('telefone') && !chave.includes('alt')) {
+      document.getElementById('res_telefone').value = valor.replace(/\D/g, '');
+      maskPhoneReserva(document.getElementById('res_telefone'));
+      buscarTelefone();
+    }
+    if (chave.includes('data')) {
+      if (valor.includes('/')) {
+        const p = valor.split('/');
+        if (p.length === 3) {
+          const ano = p[2].length === 2 ? '20' + p[2] : p[2];
+          document.getElementById('res_data').value = `${ano}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+        }
+      } else {
+        document.getElementById('res_data').value = valor;
+      }
+    }
+    if (chave.includes('hor')) {
+      const h = valor.replace(/[;.]/g, ':').substring(0, 5);
+      const select = document.getElementById('res_horario');
+      for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === h) { select.selectedIndex = i; break; }
+      }
+    }
+    if (chave.includes('pessoas') || chave.includes('pax')) {
+      document.getElementById('res_num_pessoas').value = valor.replace(/\D/g, '');
+    }
+    if (chave.includes('pagamento')) {
+      document.getElementById('res_forma_pagamento').value = valor;
+    }
+    if (chave.includes('mesa') || chave.includes('sal')) {
+      const sel = document.getElementById('res_num_mesa');
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === valor || sel.options[i].text.toLowerCase().includes(valor.toLowerCase())) {
+          sel.selectedIndex = i; break;
+        }
+      }
+    }
+    if (chave.includes('observa') || chave.includes('obs')) {
+      document.getElementById('res_observacoes').value = valor;
+    }
+    if (chave.includes('valor') || chave.includes('rodiz')) {
+      document.getElementById('res_valor_rodizio').value = valor;
+    }
+  });
+
+  showToast('Dados importados para o formulario!', 'info');
+}
+
+async function analisarSalvarDireto() {
+  const texto = document.getElementById('whats_dados').value.trim();
+  if (!texto) { showToast('Cole o texto do WhatsApp primeiro.', 'warning'); return; }
+
+  const btn = document.getElementById('btnSalvarDireto');
+  btn.textContent = 'Processando...';
+  btn.disabled = true;
+
+  try {
+    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservations/analyze-whatsapp`, {
+      method: 'POST',
+      body: JSON.stringify({ whatsText: texto })
+    });
+    const data = await res.json();
+
+    if (!data.success || !data.lista || data.lista.length === 0) {
+      showToast(data.error || 'Nenhuma reserva encontrada no texto.', 'warning');
+      btn.textContent = 'Salvar Direto';
+      btn.disabled = false;
+      return;
+    }
+
+    const listaParaSalvar = [];
+    for (const item of data.lista) {
+      if (!item.valido) {
+        showToast(`${item.dados.nome}: ${item.erros.join(', ')}`, 'danger');
+        continue;
+      }
+      if (item.duplicado) {
+        if (!confirm(`Duplicidade: ${item.dados.nome} ja existe nesta data. Salvar mesmo assim?`)) continue;
+      }
+      listaParaSalvar.push(item.dados);
+    }
+
+    if (listaParaSalvar.length === 0) {
+      showToast('Nenhuma reserva valida para salvar.', 'warning');
+      btn.textContent = 'Salvar Direto';
+      btn.disabled = false;
+      return;
+    }
+
+    const saveRes = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservations/save-whatsapp-list`, {
+      method: 'POST',
+      body: JSON.stringify({ listaJson: JSON.stringify(listaParaSalvar) })
+    });
+    const saveData = await saveRes.json();
+
+    if (saveData.success) {
+      const linksHtml = (saveData.links || []).map(l =>
+        l.link ? `<a href="${l.link}" target="_blank" class="btn btn-sm btn-success rounded-pill mb-1">${l.nome} - WhatsApp</a>` : `<span class="text-muted small">${l.nome} (sem tel)</span>`
+      ).join('<br>');
+
+      showToast(`${saveData.salvos} reserva(s) salva(s)!`, 'success');
+      document.getElementById('whats_dados').value = '';
+
+      if (typeof loadReservations === 'function') loadReservations();
+    } else {
+      showToast('Erro ao salvar lista.', 'danger');
+    }
+  } catch (err) {
+    console.error('Erro:', err);
+    showToast('Erro de conexao.', 'danger');
+  } finally {
+    btn.textContent = 'Salvar Direto';
+    btn.disabled = false;
+  }
+}
+
+console.log("Reservation Modal v8 carregado - validacoes completas");
