@@ -24,7 +24,8 @@ let filaData = {
 };
 
 let tempId = null;
-let autoRefreshIntervaloFila = null;
+let wsFila = null;
+let wsReconnectTimer = null;
 
 document.addEventListener('DOMContentLoaded', inicializarFila);
 
@@ -54,7 +55,7 @@ async function inicializarFila() {
         document.getElementById('telefonePessoa')?.addEventListener('keyup', (e) => maskPhone(e.target));
         document.getElementById('edTel')?.addEventListener('keyup', (e) => maskPhone(e.target));
 
-        iniciarAutoRefreshFila();
+        inicializarWebSocketFila();
         setInterval(atualizarTimers, 1000);
 
         console.log('✅ Fila inicializada!');
@@ -63,22 +64,65 @@ async function inicializarFila() {
     }
 }
 
-function iniciarAutoRefreshFila() {
-    if (autoRefreshIntervaloFila) clearInterval(autoRefreshIntervaloFila);
+function inicializarWebSocketFila() {
+    const empresaId = localStorage.getItem('empresaId');
+    if (!empresaId) return;
 
-    autoRefreshIntervaloFila = setInterval(() => {
-        const data = document.getElementById('dataSelecionada').value;
-        if (data) {
-            console.log("🔄 Auto-refresh...");
-            carregarDadosSemZerar(data);
-        }
-    }, 3000);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/api/calendar/ws`;
+
+    try {
+        wsFila = new WebSocket(wsUrl);
+
+        wsFila.onopen = () => {
+            console.log("✅ WebSocket Fila conectado!");
+            wsFila.send(JSON.stringify({
+                type: 'subscribe',
+                empresaId: empresaId,
+                timestamp: new Date().toISOString()
+            }));
+        };
+
+        wsFila.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'fila:alterada') {
+                    console.log("📢 Fila alterada via WebSocket:", msg.dados?.tipo);
+                    const data = document.getElementById('dataSelecionada').value;
+                    if (data) carregarDadosSemZerar(data);
+                }
+            } catch (e) {
+                console.error("❌ Erro ao processar mensagem WS:", e);
+            }
+        };
+
+        wsFila.onerror = (error) => {
+            console.error("❌ Erro WebSocket Fila:", error);
+        };
+
+        wsFila.onclose = () => {
+            console.warn("⚠️ WebSocket Fila desconectado. Reconectando em 5s...");
+            if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+            wsReconnectTimer = setTimeout(() => {
+                if (!wsFila || wsFila.readyState === WebSocket.CLOSED) {
+                    inicializarWebSocketFila();
+                }
+            }, 5000);
+        };
+    } catch (error) {
+        console.error("❌ Erro ao inicializar WebSocket Fila:", error);
+    }
 }
 
-function pararAutoRefreshFila() {
-    if (autoRefreshIntervaloFila) {
-        clearInterval(autoRefreshIntervaloFila);
-        autoRefreshIntervaloFila = null;
+function desconectarWebSocketFila() {
+    if (wsReconnectTimer) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = null;
+    }
+    if (wsFila) {
+        wsFila.onclose = null; // Evita reconexao ao fechar manualmente
+        wsFila.close();
+        wsFila = null;
     }
 }
 
@@ -93,7 +137,7 @@ async function carregarDados(data) {
 
         if (response.status === 401) {
             console.error("❌ Token expirado!");
-            pararAutoRefreshFila();
+            desconectarWebSocketFila();
             window.location.href = "/login.html";
             return;
         }
@@ -817,16 +861,8 @@ function atualizarTimers() {
     });
 }
 
-// Escutar eventos de fila alterada via WebSocket
-window.addEventListener('filaEspera:alterada', (event) => {
-  console.log("📢 Fila alterada!", event.detail);
-  const data = document.getElementById('dataSelecionada').value;
-  if (data) {
-    carregarDadosSemZerar(data); // Sem reload, só atualiza
-  }
-});
 window.addEventListener('beforeunload', () => {
-    pararAutoRefreshFila();
+    desconectarWebSocketFila();
 });
 
 console.log("✅ fila.js REFATORADO carregado!");

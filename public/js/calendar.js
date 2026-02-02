@@ -150,15 +150,10 @@ class Calendar {
             const wrapper = document.getElementById('calendarWrapper');
             if (wrapper) {
                 wrapper.classList.toggle('collapsed');
-                const icon = toggleBtn.querySelector('i');
-                if (icon) {
-                    if (wrapper.classList.contains('collapsed')) {
-                        toggleBtn.textContent = 'Expandir Calendário ';
-                        icon.className = 'fas fa-chevron-down';
-                    } else {
-                        toggleBtn.textContent = 'Esconder Calendário ';
-                        icon.className = 'fas fa-chevron-up';
-                    }
+                if (wrapper.classList.contains('collapsed')) {
+                    toggleBtn.innerHTML = 'Mostrar Calendário <i class="fas fa-chevron-down"></i>';
+                } else {
+                    toggleBtn.innerHTML = 'Esconder Calendário <i class="fas fa-chevron-up"></i>';
                 }
             }
         };

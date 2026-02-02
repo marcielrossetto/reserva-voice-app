@@ -2,13 +2,14 @@
 <header class="main-navbar" id="mainHeader">
     <div class="nav-wrapper">
         
-        <!-- ESQUERDA: USUÁRIO (MOBILE) OU LOGO -->
+        <!-- ESQUERDA: LOGO (MOBILE + DESKTOP) -->
         <div class="nav-left">
-            <div class="mobile-user-pilled d-lg-none">
-                <div class="user-avatar-small"><i class="fas fa-user"></i></div>
-                <span id="userNameMobile">Carregando...</span>
+            <!-- Logo mobile -->
+            <div class="mobile-logo-area d-lg-none">
+                <img src="" alt="Logo" id="headerLogoMobile" class="img-fluid" />
             </div>
-            
+
+            <!-- Logo desktop (clicavel para upload) -->
             <div class="logo-area d-none d-lg-flex" onclick="document.getElementById('logoInput').click()">
                 <img src="" alt="Logo" id="headerLogo" class="img-fluid" />
                 <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="uploadLogo(this)" />
@@ -64,22 +65,30 @@
 
         <!-- DIREITA: PERFIL E MOBILE TOGGLE -->
         <div class="nav-right">
+            <!-- Desktop: dropdown perfil -->
             <div class="user-profile d-none d-lg-flex dropdown">
                 <button class="profile-trigger" id="userProfileBtn">
                     <span id="userNameHeader">Usuário</span>
                     <div class="avatar-icon"><i class="fas fa-user-circle"></i></div>
                 </button>
                 <div class="profile-menu">
-                    <a href="#"><i class="fas fa-id-badge"></i> Perfil</a>
+                    <a href="javascript:void(0)" onclick="openProfileModal()"><i class="fas fa-id-badge"></i> Perfil</a>
                     <a href="#"><i class="fas fa-key"></i> Senha</a>
                     <hr>
                     <a href="javascript:void(0)" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
                 </div>
             </div>
 
-            <button class="hamburger d-lg-none" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
+            <!-- Mobile: usuario + hamburger -->
+            <div class="mobile-right-area d-lg-none">
+                <div class="mobile-user-pilled" onclick="openProfileModal()" style="cursor:pointer;">
+                    <div class="user-avatar-small"><i class="fas fa-user"></i></div>
+                    <span id="userNameMobile">Carregando...</span>
+                </div>
+                <button class="hamburger" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </div>
     </div>
 </header>
@@ -88,16 +97,58 @@
 <div class="mobile-drawer" id="mobileSidebar">
     <div class="drawer-content">
         <div class="drawer-header">
-            <img src="" id="sidebarLogo" alt="Logo" />
+            <span class="drawer-title">Menu</span>
             <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
         </div>
         <div class="drawer-links">
-            <a href="javascript:void(0)" onclick="goToIndex()"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="javascript:void(0)" onclick="openReservationModal()"><i class="fas fa-plus"></i> Nova Reserva</a>
-            <a href="javascript:void(0)" onclick="goToQueue()"><i class="fas fa-users-line"></i> Fila</a>
-            <a href="javascript:void(0)" onclick="goToSearch()"><i class="fas fa-search"></i> Pesquisar</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToIndex()"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); openReservationModal()"><i class="fas fa-plus"></i> Nova Reserva</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToQueue()"><i class="fas fa-users-line"></i> Fila</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToSearch()"><i class="fas fa-search"></i> Pesquisar</a>
             <hr>
-            <a href="javascript:void(0)" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); openProfileModal()"><i class="fas fa-id-badge"></i> Meu Perfil</a>
+            <a href="javascript:void(0)" onclick="toggleMobileMenu(); logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PERFIL DO USUÁRIO -->
+<div class="profile-modal-overlay" id="profileModalOverlay">
+    <div class="profile-modal">
+        <div class="profile-modal-header">
+            <h3><i class="fas fa-user-circle"></i> Meu Perfil</h3>
+            <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
+        </div>
+        <div class="profile-modal-body">
+            <div class="profile-modal-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-modal-info">
+                <div class="profile-field">
+                    <label><i class="fas fa-user"></i> Nome</label>
+                    <span id="profileNome">Carregando...</span>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-envelope"></i> E-mail</label>
+                    <span id="profileEmail">Carregando...</span>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-building"></i> Empresa</label>
+                    <span id="profileEmpresa">Carregando...</span>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-shield-alt"></i> Nivel</label>
+                    <span id="profileNivel">Carregando...</span>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-calendar-alt"></i> Membro desde</label>
+                    <span id="profileDesde">Carregando...</span>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-clock"></i> Ultimo acesso</label>
+                    <span id="profileAcesso">Carregando...</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -140,11 +191,15 @@
 
 /* MEGA MENU / DROPDOWN */
 .nav-mega-menu {
-    position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(10px);
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
     background: white; min-width: 260px; border-radius: 12px; box-shadow: var(--shadow);
-    padding: 10px; opacity: 0; visibility: hidden; transition: 0.2s;
+    padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
+    padding-top: 18px; margin-top: 0;
 }
-.nav-item-dropdown:hover .nav-mega-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.nav-mega-menu::before {
+    content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 18px;
+}
+.nav-item-dropdown:hover .nav-mega-menu { opacity: 1; visibility: visible; }
 
 .nav-mega-menu a {
     display: flex; align-items: center; gap: 15px; padding: 12px;
@@ -165,8 +220,12 @@
 .avatar-icon { font-size: 24px; }
 
 .profile-menu {
-    position: absolute; top: 110%; right: 0; background: white; width: 180px;
-    border-radius: 10px; box-shadow: var(--shadow); opacity: 0; visibility: hidden; padding: 8px;
+    position: absolute; top: 100%; right: 0; background: white; width: 180px;
+    border-radius: 10px; box-shadow: var(--shadow); opacity: 0; visibility: hidden;
+    padding: 8px; padding-top: 16px; transition: opacity 0.2s, visibility 0.2s;
+}
+.profile-menu::before {
+    content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 16px;
 }
 .user-profile:hover .profile-menu { opacity: 1; visibility: visible; }
 .profile-menu a {
@@ -176,11 +235,20 @@
 .profile-menu a:hover { background: #f4f6ff; }
 
 /* MOBILE ESPECÍFICO */
-.mobile-user-pilled {
-    display: flex; align-items: center; gap: 8px; color: white;
-    background: var(--glass); padding: 5px 12px; border-radius: 50px; font-size: 12px;
+.mobile-logo-area {
+    width: 110px; height: 38px; display: flex; align-items: center; justify-content: center;
+    background: var(--glass); border-radius: 8px; padding: 4px; overflow: hidden;
 }
-.user-avatar-small { width: 24px; height: 24px; background: white; color: var(--brand-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.mobile-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.mobile-right-area {
+    display: flex; align-items: center; gap: 10px;
+}
+.mobile-user-pilled {
+    display: flex; align-items: center; gap: 6px; color: white;
+    background: var(--glass); padding: 4px 10px; border-radius: 50px; font-size: 11px;
+}
+.user-avatar-small { width: 22px; height: 22px; background: white; color: var(--brand-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
 
 .hamburger { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
 
@@ -189,7 +257,12 @@
     background: white; z-index: 2100; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .mobile-drawer.open { right: 0; }
-.drawer-header { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+.drawer-header {
+    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #eee;
+}
+.drawer-title { font-size: 16px; font-weight: 700; color: #333; }
+.close-drawer { background: none; border: none; font-size: 22px; color: #999; cursor: pointer; padding: 4px 8px; }
 .drawer-links { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .drawer-links a { padding: 15px; text-decoration: none; color: #333; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-weight: 500; }
 .drawer-links a:hover { background: #f4f6ff; color: var(--brand-color); }
@@ -198,4 +271,50 @@
     .main-navbar { height: 60px; }
     body { padding-top: 60px; }
 }
+
+/* MODAL PERFIL */
+.profile-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 3000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: 0.3s;
+}
+.profile-modal-overlay.active { opacity: 1; visibility: visible; }
+
+.profile-modal {
+    background: white; border-radius: 16px; width: 420px; max-width: 92vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(20px) scale(0.95);
+    transition: 0.3s; overflow: hidden;
+}
+.profile-modal-overlay.active .profile-modal { transform: translateY(0) scale(1); }
+
+.profile-modal-header {
+    background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%);
+    color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;
+}
+.profile-modal-header h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.profile-modal-close {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    width: 32px; height: 32px; border-radius: 50%; font-size: 20px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.profile-modal-close:hover { background: rgba(255,255,255,0.35); }
+
+.profile-modal-body { padding: 24px; }
+
+.profile-modal-avatar {
+    text-align: center; margin-bottom: 20px; font-size: 64px; color: var(--brand-color); line-height: 1;
+}
+
+.profile-field {
+    display: flex; flex-direction: column; padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.profile-field:last-child { border-bottom: none; }
+.profile-field label {
+    font-size: 11px; text-transform: uppercase; color: #888; font-weight: 600;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+}
+.profile-field span { font-size: 15px; color: #333; font-weight: 500; }
 </style>

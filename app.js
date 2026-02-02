@@ -27,6 +27,7 @@ app.use(express.static(PATHS.public));
  * ROTAS DA API
  */
 // Permite acessar as imagens via URL (ex: http://localhost:3001/uploads/logos/1/logo.png)
+app.use('/api/usuario', require('./routes/usuario.routes'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/empresa', logoRoutes);
 app.use('/api/auth', authRoutes);  // ✅ ÚNICA ROTA AUTH

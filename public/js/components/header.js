@@ -50,23 +50,19 @@
     // 2. BUSCA LOGO NO BANCO (ID DA EMPRESA)
    async function loadCompanyLogo() {
     const logoImg = document.getElementById('headerLogo');
-    if (!logoImg || !AUTH.empresaId) return;
+    const logoMobile = document.getElementById('headerLogoMobile');
+    if (!AUTH.empresaId) return;
 
     try {
-        // Buscamos o caminho que está salvo no banco
         const res = await fetch(`${API_BASE}/empresa/${AUTH.empresaId}/path`, {
             headers: { 'Authorization': `Bearer ${AUTH.token}` }
         });
-        
+
         const data = await res.json();
-        
-        if (data && data.logoCaminho) {
-            // Se houver caminho, usamos a URL direta do servidor
-            logoImg.src = data.logoCaminho;
-        } else {
-            // Logo padrão se estiver vazio
-            logoImg.src = '/images/default-logo.png'; 
-        }
+        const src = (data && data.logoCaminho) ? data.logoCaminho : '/images/default-logo.png';
+
+        if (logoImg) logoImg.src = src;
+        if (logoMobile) logoMobile.src = src;
     } catch (e) {
         console.warn("Logo não carregada");
     }
@@ -101,7 +97,7 @@
         document.getElementById('userPopover').classList.toggle('show');
     };
 
-    globalThis.toggleMobileSidebar = () => {
+    globalThis.toggleMobileMenu = () => {
         document.getElementById('mobileSidebar').classList.toggle('open');
     };
 
@@ -125,11 +121,98 @@
         if (res.ok) loadCompanyLogo();
     };
 
-    globalThis.openReservationModal = () => {
-        document.getElementById('mobileSidebar').classList.remove('open');
+    globalThis.openReservationModal = async () => {
+        document.getElementById('mobileSidebar')?.classList.remove('open');
+
+        if (!document.getElementById('modalReserva')) {
+            try {
+                const res = await fetch('/html/reservation_modal.html');
+                const html = await res.text();
+                let container = document.getElementById('modal-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'modal-container';
+                    document.body.appendChild(container);
+                }
+                container.innerHTML = html;
+
+                // Carregar JS do modal se nao estiver carregado
+                if (typeof verificarEEnviar !== 'function') {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = '/js/components/reservation_modal.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.body.appendChild(script);
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao carregar modal de reserva:', err);
+                return;
+            }
+        }
+
+        // Setar data de hoje como padrao
+        const dataInput = document.getElementById('res_data');
+        if (dataInput && !dataInput.value) {
+            dataInput.value = new Date().toISOString().split('T')[0];
+        }
+
         const m = document.getElementById('modalReserva');
-        if (m && typeof bootstrap !== 'undefined') new bootstrap.Modal(m).show();
+        if (m) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                new bootstrap.Modal(m).show();
+            } else if (typeof $ !== 'undefined') {
+                $(m).modal('show');
+            }
+        }
     };
+
+    // MODAL PERFIL
+    globalThis.openProfileModal = async () => {
+        const overlay = document.getElementById('profileModalOverlay');
+        if (!overlay) return;
+
+        // Fecha sidebar mobile se aberto
+        document.getElementById('mobileSidebar')?.classList.remove('open');
+
+        overlay.classList.add('active');
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${AUTH.token}` }
+            });
+            if (!res.ok) throw new Error('Erro ao buscar perfil');
+            const u = await res.json();
+
+            document.getElementById('profileNome').textContent = u.nome || '—';
+            document.getElementById('profileEmail').textContent = u.email || '—';
+            document.getElementById('profileEmpresa').textContent = u.empresa?.nomeEmpresa || '—';
+            document.getElementById('profileNivel').textContent = (u.nivel || '—').charAt(0).toUpperCase() + (u.nivel || '').slice(1);
+            document.getElementById('profileDesde').textContent = u.dataEmissao ? new Date(u.dataEmissao).toLocaleDateString('pt-BR') : '—';
+            document.getElementById('profileAcesso').textContent = u.ultimoAcesso ? new Date(u.ultimoAcesso).toLocaleString('pt-BR') : '—';
+        } catch (e) {
+            console.error('Erro ao carregar perfil:', e);
+            document.getElementById('profileNome').textContent = 'Erro ao carregar';
+        }
+    };
+
+    globalThis.closeProfileModal = () => {
+        document.getElementById('profileModalOverlay')?.classList.remove('active');
+    };
+
+    // Fechar modal clicando fora
+    document.addEventListener('click', (e) => {
+        const overlay = document.getElementById('profileModalOverlay');
+        if (overlay && e.target === overlay) overlay.classList.remove('active');
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('profileModalOverlay')?.classList.remove('active');
+        }
+    });
 
     globalThis.goToIndex = () => window.location.href = '/html/index.html';
     globalThis.goToQueue = () => window.location.href = '/html/fila.html';

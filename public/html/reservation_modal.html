@@ -1,325 +1,208 @@
 <div class="modal fade" id="modalReserva" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div
-      class="modal-content"
-      style="border-radius: 22px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2)"
-    >
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 22px; box-shadow: 0 12px 30px rgba(0,0,0,0.2)">
       <div class="modal-header border-0">
         <h5 class="modal-title w-100 text-center fw-bold">Nova Reserva</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
-        <!-- ÁREA DE IMPORTAÇÃO WHATSAPP -->
+
+        <!-- AREA WHATSAPP -->
         <div class="mb-3">
-          <label class="fw-bold small text-muted"
-            >COLAR DADOS DO WHATSAPP</label
-          >
-          <textarea
-            id="whats_dados"
-            class="form-control bg-light border-0"
-            rows="3"
-            placeholder="Cole o texto aqui..."
-          ></textarea>
+          <label class="fw-bold small text-muted">COLAR DADOS DO WHATSAPP</label>
+          <textarea id="whats_dados" class="form-control bg-light border-0" rows="3" placeholder="Cole o texto aqui..."></textarea>
           <div class="d-flex gap-2 mt-2">
-            <button
-              type="button"
-              onclick="importarWhatsParaFormulario()"
-              class="btn btn-sm btn-outline-secondary rounded-pill"
-            >
-              Importar p/ Form
-            </button>
-            <button
-              type="button"
-              onclick="analisarSalvarDireto()"
-              class="btn btn-sm btn-secondary rounded-pill"
-            >
-              Salvar Direto
-            </button>
+            <button type="button" onclick="importarWhatsParaFormulario()" class="btn btn-sm btn-outline-secondary rounded-pill">Importar p/ Form</button>
+            <button type="button" id="btnSalvarDireto" onclick="analisarSalvarDireto()" class="btn btn-sm btn-secondary rounded-pill">Salvar Direto</button>
           </div>
         </div>
         <hr />
 
-        <!-- FORMULÁRIO MANUAL -->
-        <form
-          id="formManual"
-          onsubmit="
-            event.preventDefault();
-            verificarEEnviar();
-          "
-        >
+        <!-- FORMULARIO -->
+        <form id="formManual" onsubmit="event.preventDefault(); verificarEEnviar();">
+
           <!-- TELEFONE -->
-          <div class="mb-3">
+          <div class="mb-2">
             <label class="form-label small fw-bold">Telefone:</label>
-            <input
-              type="text"
-              id="res_telefone"
-              name="telefone"
-              class="form-control"
-              maxlength="15"
-              onkeyup="maskPhone(this)"
-              onblur="buscarTelefone()"
-            />
+            <input type="text" id="res_telefone" name="telefone" class="form-control" maxlength="15" onkeyup="maskPhoneReserva(this)" onblur="buscarTelefone()" />
             <div class="form-check mt-1">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="sem_telefone"
-                onclick="toggleTelefone(this)"
-              />
-              <label
-                class="form-check-label small text-muted"
-                for="sem_telefone"
-              >
-                Não possuo o número de telefone
-              </label>
+              <input class="form-check-input" type="checkbox" id="sem_telefone" onclick="toggleTelefone(this)" />
+              <label class="form-check-label small text-muted" for="sem_telefone">Sem telefone</label>
             </div>
           </div>
 
-          <!-- CARD PERFIL CLIENTE (Injetado via JS) -->
-          <div
-            id="card-perfil-cliente"
-            class="profile-card mb-3 p-3 border border-success rounded"
-            style="display: none"
-          >
+          <!-- CARD PERFIL CLIENTE -->
+          <div id="card-perfil-cliente" class="profile-card mb-2 p-3 border border-success rounded" style="display:none">
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <h6 id="card-nome-display" class="fw-bold mb-0">--</h6>
-                <p id="card-telefone-display" class="small text-muted mb-1">
-                  --
-                </p>
+                <div id="edit-name-container" style="display:none" class="d-flex gap-1 align-items-center my-1">
+                  <input type="text" id="input-edit-nome" class="form-control form-control-sm" style="width:180px" />
+                  <button type="button" class="btn btn-sm btn-primary" onclick="salvarNomeCliente()">OK</button>
+                  <button type="button" class="btn btn-sm btn-light" onclick="cancelarEdicaoNome()">X</button>
+                </div>
+                <p id="card-telefone-display" class="small text-muted mb-1">--</p>
                 <p class="small mb-0">
-                  Última visita:
-                  <span id="card-ultima" class="fw-bold">--</span> (<span
-                    id="card-tempo"
-                    class="text-primary"
-                    >--</span
-                  >)
+                  Ultima visita: <span id="card-ultima" class="fw-bold">--</span>
+                  (<span id="card-tempo" class="text-primary">--</span>)
                 </p>
-                <p class="small mb-0 text-muted" style="font-size: 0.8rem">
-                  Histórico: <span id="card-historico">--</span>
+                <p class="small mb-0 text-muted" style="font-size:0.8rem">
+                  Historico: <span id="card-historico">--</span>
                 </p>
               </div>
-              <div class="text-end">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light border mb-1"
-                  onclick="trocarCliente()"
-                >
-                  Trocar</button
-                ><br />
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light border"
-                  onclick="editarCliente()"
-                >
-                  Editar Nome
-                </button>
+              <div class="text-end d-flex flex-column gap-1">
+                <button type="button" class="btn btn-sm btn-light border" onclick="trocarCliente()">Trocar</button>
+                <button type="button" class="btn btn-sm btn-light border" onclick="editarCliente()">Editar Nome</button>
               </div>
             </div>
-            <div
-              id="area-obs-db"
-              class="alert alert-warning py-1 px-2 small mt-2"
-              style="display: none"
-            >
-              <strong>⚠️ Obs:</strong> <span id="txt-obs-db"></span>
+            <div id="area-obs-db" class="alert alert-warning py-1 px-2 small mt-2" style="display:none">
+              <strong>Obs:</strong> <span id="txt-obs-db"></span>
             </div>
             <div class="row mt-2 text-center border-top pt-2">
-              <div class="col-6">
-                <small class="d-block text-muted">Reservas</small>
-                <strong id="stat-reservas">0</strong>
-              </div>
-              <div class="col-6">
-                <small class="d-block text-muted">Canceladas</small>
-                <strong id="stat-cancelada" class="text-danger">0</strong>
-              </div>
+              <div class="col-6"><small class="d-block text-muted">Reservas</small><strong id="stat-reservas">0</strong></div>
+              <div class="col-6"><small class="d-block text-muted">Canceladas</small><strong id="stat-cancelada" class="text-danger">0</strong></div>
             </div>
           </div>
 
-          <!-- NOME (exibido apenas se sem perfil) -->
-          <div id="div-input-nome" class="mb-3">
+          <!-- NOME -->
+          <div id="div-input-nome" class="mb-2">
             <label class="form-label small fw-bold">Nome:</label>
-            <input
-              type="text"
-              id="res_nome"
-              name="nome"
-              class="form-control"
-              required
-            />
+            <input type="text" id="res_nome" name="nome" class="form-control" required />
           </div>
 
-          <!-- DATA E HORÁRIO -->
-         <!-- DATA E HORÁRIO -->
+          <!-- DATA + HORARIO -->
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-6 mb-2">
               <label class="form-label small fw-bold">Data:</label>
-              <input
-                type="date"
-                id="res_data"
-                name="data"
-                class="form-control"
-                required
-              />
+              <input type="date" id="res_data" name="data" class="form-control" required />
             </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label small fw-bold">Horário:</label>
-              <input
-                type="time"
-                id="res_horario"
-                name="horario"
-                class="form-control"
-                required
-              />
+            <div class="col-6 mb-2">
+              <label class="form-label small fw-bold">Horario:</label>
+              <select id="res_horario" name="horario" class="form-select" required>
+                <option value="">Selecione</option>
+                <optgroup label="Almoco">
+                  <option value="11:30">11:30</option>
+                  <option value="12:00">12:00</option>
+                  <option value="12:30">12:30</option>
+                  <option value="13:00">13:00</option>
+                  <option value="13:30">13:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="14:30">14:30</option>
+                  <option value="15:00">15:00</option>
+                </optgroup>
+                <optgroup label="Jantar">
+                  <option value="17:00">17:00</option>
+                  <option value="17:30">17:30</option>
+                  <option value="18:00">18:00</option>
+                  <option value="18:30">18:30</option>
+                  <option value="19:00">19:00</option>
+                  <option value="19:30">19:30</option>
+                  <option value="20:00">20:00</option>
+                  <option value="20:30">20:30</option>
+                  <option value="21:00">21:00</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 
-          <!-- NÚ PESSOAS (📌 CRÍTICO) -->
+          <!-- PAX + TEL ALT -->
           <div class="row">
-            <div class="col-md-4 mb-3">
+            <div class="col-4 mb-2">
               <label class="form-label small fw-bold">Pax:</label>
-              <input
-                type="number"
-                id="res_num_pessoas"
-                name="numPessoas"
-                class="form-control"
-                min="1"
-                required
-                placeholder="Ex: 4"
-              />
-              <small class="text-muted d-block mt-1"
-                >⚠️ Campo obrigatório</small
-              >
+              <input type="number" id="res_num_pessoas" name="numPessoas" class="form-control" min="1" required placeholder="Ex: 4" />
             </div>
-            <div class="col-md-8 mb-3">
-              <label class="form-label small fw-bold">Telefone Alt:</label>
-              <input
-                type="text"
-                id="res_telefone2"
-                name="telefone2"
-                class="form-control"
-                onkeyup="maskPhone(this)"
-              />
+            <div class="col-8 mb-2">
+              <label class="form-label small fw-bold">Tel. Alt:</label>
+              <input type="text" id="res_telefone2" name="telefone2" class="form-control" onkeyup="maskPhoneReserva(this)" />
             </div>
           </div>
 
-          <!-- FORMA PAGAMENTO -->
+          <!-- PAGAMENTO + MESA -->
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label small fw-bold"
-                >Forma de Pagamento:</label
-              >
-              <select
-                id="res_forma_pagamento"
-                name="formaPagamento"
-                class="form-select"
-              >
-                <option value="Não definido">Selecione</option>
-                <option value="unica">Única</option>
+            <div class="col-6 mb-2">
+              <label class="form-label small fw-bold">Pagamento:</label>
+              <select id="res_forma_pagamento" name="formaPagamento" class="form-select">
+                <option value="Nao definido">Selecione</option>
+                <option value="unica">Unica</option>
                 <option value="individual">Individual</option>
-                <option value="U (rod) I (beb)">
-                  Única (rod) Individual (beb)
-                </option>
+                <option value="U (rod) I (beb)">Unica (rod) Individual (beb)</option>
                 <option value="outros">Outros</option>
               </select>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-6 mb-2">
               <label class="form-label small fw-bold">Mesa:</label>
-              <input
-                type="text"
-                id="res_num_mesa"
-                name="numMesa"
-                class="form-control"
-                placeholder="Ex: Salão 1 ou Mesa 5"
-              />
+              <select id="res_num_mesa" name="numMesa" class="form-select">
+                <option value="">Selecione</option>
+                <option value="Salao 1">Salao 1</option>
+                <option value="Salao 2">Salao 2</option>
+                <option value="Salao 3">Salao 3</option>
+                <optgroup label="Mesas">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                  <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                  <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                  <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                  <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                  <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+                  <option value="19">19</option><option value="20">20</option><option value="21">21</option>
+                  <option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                  <option value="25">25</option><option value="26">26</option><option value="27">27</option>
+                  <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+                  <option value="31">31</option><option value="32">32</option><option value="33">33</option>
+                  <option value="34">34</option><option value="35">35</option><option value="36">36</option>
+                  <option value="37">37</option><option value="38">38</option><option value="39">39</option>
+                  <option value="40">40</option><option value="41">41</option><option value="42">42</option>
+                  <option value="43">43</option><option value="44">44</option><option value="45">45</option>
+                  <option value="46">46</option><option value="47">47</option><option value="48">48</option>
+                  <option value="49">49</option><option value="50">50</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 
-          <!-- TIPO EVENTO -->
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Tipo de Evento:</label>
-            <select id="res_tipo_evento" name="tipoEvento" class="form-select">
-              <option value="Manual">Manual</option>
-              <option value="Aniversario">Aniversário</option>
-              <option value="Conf. fim de ano">
-                Confraternização Fim de Ano
-              </option>
-              <option value="Formatura">Formatura</option>
-              <option value="Casamento">Casamento</option>
-              <option value="Conf. Familia">Confraternização Família</option>
-            </select>
-          </div>
-
-          <!-- VALOR RODÍZIO -->
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Valor do Rodízio:</label>
-            <input
-              type="text"
-              id="res_valor_rodizio"
-              name="valorRodizio"
-              class="form-control"
-              placeholder="Ex: 89.90"
-            />
+          <!-- TIPO EVENTO + VALOR RODIZIO -->
+          <div class="row">
+            <div class="col-6 mb-2">
+              <label class="form-label small fw-bold">Evento:</label>
+              <select id="res_tipo_evento" name="tipoEvento" class="form-select">
+                <option value="Manual">Manual</option>
+                <option value="Aniversario">Aniversario</option>
+                <option value="Conf. fim de ano">Confr. Fim de Ano</option>
+                <option value="Formatura">Formatura</option>
+                <option value="Casamento">Casamento</option>
+                <option value="Conf. Familia">Confr. Familia</option>
+              </select>
+            </div>
+            <div class="col-6 mb-2">
+              <label class="form-label small fw-bold">Valor Rodizio:</label>
+              <input type="text" id="res_valor_rodizio" name="valorRodizio" class="form-control" placeholder="Ex: 89.90" />
+            </div>
           </div>
 
           <!-- CHECKBOXES -->
-          <div class="checkbox-area p-3 bg-light rounded-3 mb-3">
-            <div class="form-check mb-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="torta"
-                name="tortaTermoVela"
-              />
-              <label class="form-check-label small fw-bold" for="torta">
-                Ciente torta, Termo e vela
-              </label>
+          <div class="checkbox-area p-2 bg-light rounded-3 mb-2">
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" id="torta" name="tortaTermoVela" />
+              <label class="form-check-label small fw-bold" for="torta">Ciente torta, Termo e vela</label>
             </div>
             <div class="d-flex gap-4">
               <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="churras"
-                  name="churrascaria"
-                />
-                <label class="form-check-label small fw-bold" for="churras"
-                  >Churrascaria</label
-                >
+                <input class="form-check-input" type="checkbox" id="churras" name="churrascaria" />
+                <label class="form-check-label small fw-bold" for="churras">Churrascaria</label>
               </div>
               <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="exec"
-                  name="executivo"
-                />
-                <label class="form-check-label small fw-bold" for="exec"
-                  >Executivo</label
-                >
+                <input class="form-check-input" type="checkbox" id="exec" name="executivo" />
+                <label class="form-check-label small fw-bold" for="exec">Executivo</label>
               </div>
             </div>
           </div>
 
-          <!-- OBSERVAÇÕES -->
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Observações:</label>
-            <textarea
-              id="res_observacoes"
-              name="observacoes"
-              class="form-control"
-              rows="2"
-            ></textarea>
+          <!-- OBS -->
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Observacoes:</label>
+            <textarea id="res_observacoes" name="observacoes" class="form-control" rows="2"></textarea>
           </div>
 
-          <button
-            type="submit"
-            id="btnSalvarManual"
-            class="btn btn-primary w-100 rounded-pill py-2 fw-bold"
-          >
+          <button type="submit" id="btnSalvarManual" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
             Cadastrar reserva
           </button>
         </form>
@@ -328,268 +211,55 @@
   </div>
 </div>
 
+<!-- MODAL CONFIRMACAO POS-SALVAR -->
+<div class="modal fade" id="modalConfirmacaoReserva" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content text-center" style="border-radius:22px">
+      <div class="modal-body p-4">
+        <div style="font-size:60px; color:#28a745; line-height:1">&#10004;</div>
+        <h5 class="fw-bold mt-2">Reserva Salva!</h5>
+        <p class="text-muted small">A reserva foi registrada com sucesso.</p>
+        <div id="confirmacao-btns" class="d-flex flex-column gap-2 mt-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
-  /* ===== LAYOUT GERAL ===== */
-  #modalReserva .modal-dialog {
-    max-width: 1200px;
-  }
+  #modalReserva .modal-dialog { max-width: 720px; }
+  #modalReserva .modal-content { border-radius: 20px; border: none; }
+  #modalReserva .modal-header { padding: 1.2rem; border-bottom: 1px solid #f0f0f0; background: #f9f9fb; }
+  #modalReserva .modal-title { font-size: 1.15rem; letter-spacing: 0.5px; }
+  #modalReserva .modal-body { padding: 1.2rem; }
 
-  #modalReserva .modal-content {
-    border-radius: 20px;
-    border: none;
-  }
+  #formManual { display: flex; flex-direction: column; }
+  #formManual .form-label { font-size: 0.8rem; font-weight: 700; color: #333; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  #formManual .row { margin: 0 -4px; }
+  #formManual .row > div { padding: 0 4px; }
 
-  #modalReserva .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #f0f0f0;
-    background: #f9f9fb;
-  }
+  .form-control, .form-select { border-radius: 10px; border: 1px solid #d1d1d6; padding: 0.6rem 0.8rem; background: #f9f9fb; font-size: 0.9rem; transition: 0.2s; }
+  .form-control:focus, .form-select:focus { border-color: #007aff; background: #fff; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
 
-  #modalReserva .modal-title {
-    font-size: 1.25rem;
-    letter-spacing: 0.5px;
-  }
+  .checkbox-area { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 10px; }
+  .form-check-input { width: 1.1rem; height: 1.1rem; cursor: pointer; }
+  .form-check-input:checked { background-color: #007aff; border-color: #007aff; }
+  .form-check-label { cursor: pointer; margin-left: 0.5rem; margin-bottom: 0; }
 
-  #modalReserva .modal-body {
-    padding: 1.5rem;
-  }
+  .profile-card { background: #f0f9f0; border: 2px solid #28a745; border-radius: 10px; }
+  .profile-card h6 { font-size: 1rem; color: #333; }
 
-  /* ===== FORMULÁRIO ===== */
-  #formManual {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
+  #whats_dados { background: #f9f9fb; border-radius: 10px; border: 1px solid #d1d1d6; resize: vertical; }
 
-  #formManual .mb-3 {
-    margin-bottom: 0.75rem !important;
-  }
+  #btnSalvarManual { background: #007aff; border: none; border-radius: 10px; padding: 0.8rem; font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem; cursor: pointer; transition: 0.2s; }
+  #btnSalvarManual:hover:not(:disabled) { background: #0056b3; }
+  #btnSalvarManual:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  #formManual .row {
-    margin: 0 -6px;
-  }
+  .btn-outline-secondary, .btn-secondary { border-radius: 20px; padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
 
-  #formManual .row > div {
-    padding: 0 6px;
-  }
+  hr { margin: 1rem 0; border: none; border-top: 1px solid #e0e0e0; }
 
-  /* ===== LABELS ===== */
-  .form-label {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* ===== INPUTS ===== */
-  .form-control,
-  .form-select {
-    border-radius: 12px;
-    border: 1px solid #d1d1d6;
-    padding: 0.75rem 1rem;
-    background: #f9f9fb;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-  }
-
-  .form-control:focus,
-  .form-select:focus {
-    border-color: #007aff;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-  }
-
-  /* ===== CHECKBOXES ===== */
-  .checkbox-area {
-    background: #f8f9fa;
-    border: 1px solid #d1d1d6;
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-  }
-
-  .form-check {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-
-  .form-check-input {
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-top: 0;
-    cursor: pointer;
-    border-radius: 4px;
-    border: 1.5px solid #d1d1d6;
-  }
-
-  .form-check-input:checked {
-    background-color: #007aff;
-    border-color: #007aff;
-  }
-
-  .form-check-label {
-    font-weight: 600;
-    color: #333;
-    cursor: pointer;
-    margin-left: 0.75rem;
-    margin-bottom: 0;
-  }
-
-  /* ===== PROFILE CARD ===== */
-  .profile-card {
-    background: #f0f9f0;
-    border: 2px solid #28a745;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .profile-card h6 {
-    font-size: 1.05rem;
-    color: #333;
-    margin-bottom: 0.25rem;
-  }
-
-  .profile-card .small {
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .profile-card .btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
-  /* ===== ALERT/WARNING ===== */
-  .alert-warning {
-    background: #fff8e1;
-    border: 1px solid #ffd700;
-    border-radius: 8px;
-    padding: 0.75rem;
-    font-size: 0.85rem;
-    margin-top: 0.75rem;
-  }
-
-  /* ===== TEXTAREA ===== */
-  textarea.form-control {
-    resize: vertical;
-    min-height: 60px;
-  }
-
-  /* ===== BOTÃO SUBMIT ===== */
-  #btnSalvarManual {
-    background: #007aff;
-    border: none;
-    color: white;
-    border-radius: 12px;
-    padding: 0.9rem 1.5rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-    margin-top: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  #btnSalvarManual:hover:not(:disabled) {
-    background: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  }
-
-  #btnSalvarManual:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  #btnSalvarManual:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  /* ===== TEXTAREA IMPORT ===== */
-  #whats_dados {
-    background: #f9f9fb;
-    border-radius: 12px;
-    border: 1px solid #d1d1d6;
-    resize: vertical;
-  }
-
-  /* ===== BOTÕES IMPORT ===== */
-  .btn-outline-secondary,
-  .btn-secondary {
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-
-  .btn-outline-secondary {
-    border-color: #d1d1d6;
-    color: #333;
-  }
-
-  .btn-outline-secondary:hover {
-    background: #f0f0f0;
-    border-color: #d1d1d6;
-  }
-
-  .btn-secondary {
-    background: #5e5e62;
-    border-color: #5e5e62;
-  }
-
-  .btn-secondary:hover {
-    background: #3a3a3d;
-    border-color: #3a3a3d;
-  }
-
-  /* ===== FORM-CHECK CHECKBOX SEM TELEFONE ===== */
-  .form-check.mt-1 {
-    margin-top: 0.5rem !important;
-  }
-
-  .form-check-label.small {
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-
-  /* ===== HR ===== */
-  hr {
-    margin: 1.25rem 0;
-    border: none;
-    border-top: 1px solid #e0e0e0;
-  }
-
-  /* ===== RESPONSIVE ===== */
   @media (max-width: 576px) {
-    #modalReserva .modal-dialog {
-      margin: 0.5rem;
-      max-width: calc(100% - 1rem);
-    }
-
-    #modalReserva .modal-body {
-      padding: 1rem;
-    }
-
-    #formManual .row > div {
-      margin-bottom: 0.5rem;
-    }
-
-    .checkbox-area {
-      padding: 1rem;
-    }
-
-    .d-flex.gap-4 {
-      gap: 1.5rem !important;
-    }
-  }
-
-  /* ===== ESTADO CARREGANDO ===== */
-  .btn:disabled {
-    pointer-events: none;
+    #modalReserva .modal-dialog { margin: 0.5rem; max-width: calc(100% - 1rem); }
+    #modalReserva .modal-body { padding: 0.8rem; }
   }
 </style>

@@ -778,11 +778,13 @@ async function abrirEditarReserva(id) {
     document.getElementById("edit_exec").checked =
       reservation.executivo || false;
 
-    // Mostrar modal
-    const modal = new bootstrap.Modal(
-      document.getElementById("modalEditarReserva"),
-    );
-    modal.show();
+    // Mostrar modal (compativel BS4 e BS5)
+    const modalEl = document.getElementById("modalEditarReserva");
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      new bootstrap.Modal(modalEl).show();
+    } else if (typeof $ !== 'undefined') {
+      $(modalEl).modal('show');
+    }
   } catch (err) {
     console.error("Erro ao abrir edição:", err);
     showToast("Erro ao carregar reserva", "danger");
@@ -856,9 +858,13 @@ async function confirmarCancelamento() {
 
     if (res.ok) {
       showToast("Reserva cancelada", "success");
-      bootstrap.Modal.getInstance(
-        document.getElementById("modalEditarReserva"),
-      ).hide();
+      const hideEl = document.getElementById("modalEditarReserva");
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const inst = bootstrap.Modal.getInstance(hideEl);
+        if (inst) inst.hide();
+      } else if (typeof $ !== 'undefined') {
+        $(hideEl).modal('hide');
+      }
       loadReservations();
     }
   } catch (err) {
@@ -892,115 +898,6 @@ function updateTotals(data, totals) {
     document.getElementById("badgeCanceladas").style.display = "none";
   }
 }
-/**
- * Funções Utilitárias
- */
 
-function maskPhone(input) {
-  let value = input.value.replace(/\D/g, '');
-  if (value.length > 11) value = value.slice(0, 11);
-  
-  if (value.length <= 10) {
-    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  } else {
-    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-  }
-  
-  input.value = value;
-}
-
-async function buscarTelefone() {
-  const telefone = document.getElementById('res_telefone').value.replace(/\D/g, '');
-  if (telefone.length < 10) return;
-
-  try {
-    const res = await requisicaoAutenticada(`/api/reservationQuery/client/${telefone}`);
-    const { success, client } = await res.json();
-    
-    if (success && client) {
-      preencherDadosCliente(client);
-    }
-  } catch (err) {
-    console.log('Cliente não encontrado');
-  }
-}
-
-function preencherDadosCliente(client) {
-  document.getElementById('res_nome').value = client.nome;
-  document.getElementById('div-input-nome').style.display = 'none';
-  
-  const cardPerfil = document.getElementById('card-perfil-cliente');
-  cardPerfil.style.display = 'block';
-  
-  document.getElementById('card-nome-display').textContent = client.nome;
-  document.getElementById('card-telefone-display').textContent = client.telefone;
-  document.getElementById('stat-reservas').textContent = client.totalReservations || 0;
-  document.getElementById('stat-cancelada').textContent = client.canceladas || 0;
-}
-
-function toggleTelefone(checkbox) {
-  const inputTelefone = document.getElementById('res_telefone');
-  inputTelefone.disabled = checkbox.checked;
-  inputTelefone.value = '';
-}
-
-async function verificarEEnviar() {
-  const nome = document.getElementById('res_nome').value.trim();
-  const data = document.getElementById('res_data').value;
-  const horario = document.getElementById('res_horario').value;
-  const numPessoas = document.getElementById('res_num_pessoas').value;
-
-  if (!nome || !data || !horario || !numPessoas) {
-    showToast('Preencha todos os campos obrigatórios', 'warning');
-    return;
-  }
-
-  await salvarNovaReserva();
-}
-
-async function salvarNovaReserva() {
-  const payload = {
-    nome: document.getElementById('res_nome').value,
-    data: document.getElementById('res_data').value,
-    horario: document.getElementById('res_horario').value + ':00',
-    numPessoas: parseInt(document.getElementById('res_num_pessoas').value),
-    telefone: document.getElementById('res_telefone').value || null,
-    telefone2: document.getElementById('res_telefone2').value || null,
-    formaPagamento: document.getElementById('res_forma_pagamento').value,
-    numMesa: document.getElementById('res_num_mesa').value || null,
-    tipoEvento: document.getElementById('res_tipo_evento').value,
-    valorRodizio: document.getElementById('res_valor_rodizio').value || null,
-    observacoes: document.getElementById('res_observacoes').value || null,
-    tortaTermoVela: document.getElementById('torta').checked,
-    churrascaria: document.getElementById('churras').checked,
-    executivo: document.getElementById('exec').checked
-  };
-
-  try {
-    const res = await requisicaoAutenticada(`${API_CONFIG.BASE_URL}/api/reservationQuery`, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      showToast('Reserva criada com sucesso!', 'success');
-      document.getElementById('modalReserva').classList.remove('show');
-      document.body.classList.remove('modal-open');
-      const backdrop = document.querySelector('.modal-backdrop');
-      if (backdrop) backdrop.remove();
-      loadReservations();
-    }
-  } catch (err) {
-    showToast('Erro ao salvar', 'danger');
-  }
-}
-
-function openReservationModal() {
-  const modal = document.getElementById('modalReserva');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    document.body.classList.add('modal-open');
-  }
-}
+// Funções de formulário de reserva movidas para reservation_modal.js
 console.log("Reservation Query iOS carregado - SEM TOKEN DUPLICADO");
