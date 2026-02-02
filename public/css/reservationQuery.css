@@ -5,7 +5,7 @@
     grid-template-columns: 1fr;
     gap: 0.75rem;
     padding: 1rem;
-    max-width: 80%;
+
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
@@ -396,7 +396,7 @@
     border-radius: 8px;
     flex-wrap: nowrap;
     margin: 1rem auto;
-    max-width: 80%;
+
     width: 100%;
     box-sizing: border-box;
     overflow-x: auto;
@@ -483,7 +483,7 @@
     border-left: 4px solid #007bff;
     flex-wrap: wrap;
     margin: 0 auto 1rem;
-    max-width: 80%;
+
     width: 100%;
     font-size: 0.9rem;
     box-sizing: border-box;
@@ -554,121 +554,157 @@
         max-width: 98%;
         gap: 0.5rem;
         padding: 0.5rem;
+        margin: 0 auto;
     }
 
     .filter-bar-horizontal {
         max-width: 98%;
-        gap: 0.4rem;
-        padding: 0.5rem;
+
     }
+
+    .filter-item-date { width: 45%; flex: none; }
+    .filter-item-search { width: 50%; flex: none; }
 
     .totais-info {
         max-width: 98%;
         gap: 0.8rem;
         padding: 0.5rem;
         font-size: 0.85rem;
+        margin: 0.5rem auto;
+    }
+
+    /* Card cabe na tela sem scroll */
+    .reservation-card {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     .card-content {
-        padding: 0.35rem 0.4rem;
-        gap: 0.3rem;
+        padding: 0.3rem 0.3rem;
+        gap: 0.15rem;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .card-id-box {
+        min-width: 25px;
+        flex-shrink: 1;
+    }
+
+    .card-center {
+        gap: 0.2rem;
+        flex-shrink: 1;
+    }
+
+    .card-main {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
     }
 
     .card-id-number {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
     }
 
     .card-id-label {
-        font-size: 0.6rem;
+        font-size: 0.55rem;
     }
 
-    /* ✅ NOME AUMENTADO: 18 letras */
     .card-name {
-        font-size: 0.95rem;
-        max-width: 130px;
+        font-size: 0.78rem;
+        max-width: 90px;
         font-weight: 600;
     }
 
     .card-name.truncated {
-        max-width: 130px;
+        max-width: 90px;
     }
 
-    /* ✅ TELEFONE MELHORADO */
     .card-phone {
-        font-size: 0.78rem;
+        font-size: 0.68rem;
         white-space: nowrap;
     }
 
-    /* ✅ NÚMEROS AUMENTADOS */
     .card-stat-value {
-        font-size: 1.08rem;
+        font-size: 0.85rem;
         font-weight: 700;
     }
 
     .card-stat-label {
-        font-size: 0.7rem;
+        font-size: 0.55rem;
     }
 
-    /* ✅ HORÁRIO MELHORADO */
+    .card-stat {
+        padding: 0.15rem 0.3rem;
+        min-height: 40px;
+    }
+
     .card-time-value {
-        font-size: 0.92rem;
+        font-size: 0.75rem;
         font-weight: 600;
     }
 
     .card-time-label {
-        font-size: 0.7rem;
+        font-size: 0.55rem;
     }
 
-    /* ✅ MESA MELHORADA */
+    .card-time {
+        padding: 0.15rem 0.3rem;
+        min-height: 40px;
+    }
+
     .card-mesa-value {
-        font-size: 0.95rem;
+        font-size: 0.75rem;
         font-weight: 600;
     }
 
     .card-mesa-label {
-        font-size: 0.7rem;
+        font-size: 0.55rem;
     }
 
-    /* ✅ OBS MAIOR */
-    .card-obs {
-        width: 85px;
-        height: 50px;
-        font-size: 0.72rem;
-        padding: 0.45rem;
+    .card-mesa-box {
+        min-width: 28px;
+        min-height: 40px;
     }
 
-    .card-obs-empty {
-        width: 85px;
-        height: 50px;
-        font-size: 0.72rem;
-        padding: 0.45rem;
+    .card-obs, .card-obs-empty {
+        width: 50px;
+        min-width: 0;
+        height: 42px;
+        font-size: 0.6rem;
+        padding: 0.3rem;
+        flex-shrink: 1;
     }
 
-    /* ✅ BOLINHA LIGEIRAMENTE MAIOR */
     .card-status-dot {
-        width: 11px;
-        height: 11px;
+        width: 9px;
+        height: 9px;
     }
 
-    /* ✅ MENU */
     .card-history-btn {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
 
     .btn-menu-ios {
-        font-size: 1.1rem;
-        padding: 0.4rem;
+        font-size: 0.9rem;
+        padding: 0.25rem;
     }
 
-    /* ✅ BOTÕES DE PERÍODO */
     .btn-period {
-        padding: 0.35rem 0.4rem;
-        font-size: 0.78rem;
+        padding: 0.3rem 0.35rem;
+        font-size: 0.75rem;
     }
 
-    /* ✅ FILTER BAR MELHORADO */
     .filter-item-checkbox label {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+    }
+
+    .filter-actions .btn {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
     }
 }
 

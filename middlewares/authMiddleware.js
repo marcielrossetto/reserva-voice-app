@@ -27,10 +27,11 @@ module.exports = async (req, res, next) => {
     console.log("✅ Empresa autenticada:", empresa.nomeEmpresa);
 
     req.user = {
-      id: empresa.id,
+      id: decoded.id,
       nomeEmpresa: empresa.nomeEmpresa,
-      email: empresa.email,
-      empresaId: empresa.id
+      email: decoded.email,
+      empresaId: empresa.id,
+      nivel: decoded.nivel
     };
 
     next();

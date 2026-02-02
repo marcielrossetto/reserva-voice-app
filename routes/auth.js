@@ -209,12 +209,41 @@ router.post('/solicitar-token-senha', async (req, res) => {
             }
         });
 
-        // Enviar e-mail (Lógica resumida)
-        console.log(`🔐 PIN para ${email}: ${pin}`);
-        
+        // Enviar e-mail com o PIN
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Código de Recuperação de Senha',
+            html: `
+                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+                    <h2 style="color:#6a5af9;">Recuperação de Senha</h2>
+                    <p>Seu código de verificação é:</p>
+                    <div style="background:#f4f6ff;padding:20px;text-align:center;border-radius:10px;margin:20px 0;">
+                        <span style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#6a5af9;">${pin}</span>
+                    </div>
+                    <p style="color:#888;font-size:13px;">Este código expira em 15 minutos.</p>
+                </div>
+            `
+        });
+
         res.json({ sucesso: true, mensagem: 'Código enviado para seu e-mail' });
     } catch (error) {
         res.status(500).json({ erro: 'Erro ao solicitar recuperação' });
+    }
+});
+
+router.post('/verificar-token-senha', async (req, res) => {
+    try {
+        const { email, token } = req.body;
+        const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } });
+
+        if (!usuario || usuario.pinRecuperacao !== token || new Date() > usuario.pinExpiracao) {
+            return res.status(401).json({ erro: 'Código inválido ou expirado' });
+        }
+
+        res.json({ sucesso: true, mensagem: 'Código verificado' });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao verificar código' });
     }
 });
 

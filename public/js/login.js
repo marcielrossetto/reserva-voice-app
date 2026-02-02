@@ -151,6 +151,8 @@ async function fazerLogin(e) {
     localStorage.setItem("token", data.token);
     localStorage.setItem("empresaId", data.empresaId);
     localStorage.setItem("email", email);
+    localStorage.setItem("userName", data.nome || "");
+    localStorage.setItem("userRole", data.nivel || "");
 
     mostrarAlerta("alertaLogin", "✅ Login realizado!", "success");
     
@@ -221,6 +223,8 @@ async function fazerCadastro(e) {
     localStorage.setItem("token", data.token);
     localStorage.setItem("empresaId", data.empresaId);
     localStorage.setItem("email", email);
+    localStorage.setItem("userName", nomeEmpresa || "");
+    localStorage.setItem("userRole", "master");
 
     mostrarAlerta(
       "alertaCadastro",

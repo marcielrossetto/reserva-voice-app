@@ -7,3 +7,7 @@ yarn-error.log*
 *.env.*
 !.env.example
 /generated/prisma
+.claude
+nul
+NUL
+uploads/

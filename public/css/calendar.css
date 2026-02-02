@@ -7,20 +7,30 @@
     --cal-text: #ffffff;
     --cal-border: #454d55;
     --cal-selected: #4e555c;
-    
+
     --color-primary: #3699ff;
-    --color-almoco: #f1c40f; /* Amarelo */
-    --color-jantar: #3699ff;  /* Azul */
+    --color-almoco: #f1c40f;
+    --color-jantar: #3699ff;
     --color-muted: #a2a3b7;
+
+    --layout-width: 90%;
 }
+
+body {
+    padding-top: 70px !important;
+    background-color: #f4f7fe;
+    overflow-x: hidden;
+}
+
 #calendarArea {
     margin-top: 10px !important;
 }
+
 /* ==========================================================================
    ESTRUTURA PRINCIPAL
    ========================================================================== */
 #calendarWrapper {
-    width: 80% !important;
+    width: var(--layout-width);
     margin: 0 auto 15px auto;
     background: var(--cal-bg);
     border-radius: 12px;
@@ -29,11 +39,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
 }
-body {
-    /* O header tem 70px, então colocamos 85px para dar um respiro */
-    padding-top: 70px !important; 
-    background-color: #f4f7fe; /* Cor de fundo suave para combinar com o novo design */
-}
+
 /* ==========================================================================
    CALENDÁRIO: CABEÇALHO E GRID
    ========================================================================== */
@@ -43,18 +49,46 @@ body {
     align-items: center;
     gap: 30px;
     padding: 15px;
+    position: relative;
 }
 
-#monthYear { 
-    font-size: 1.4rem; 
-    font-weight: 700; 
-    text-transform: capitalize; 
+#monthYear {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-transform: capitalize;
 }
+
+/* Botões de navegação de mês — fixos nos cantos */
+.btn-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.btn-nav:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+#prevMonth { left: 12px; }
+#nextMonth { right: 12px; }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 1px; /* Linhas finas entre células */
+    gap: 1px;
     background: var(--cal-border);
     border-top: 1px solid var(--cal-border);
 }
@@ -81,14 +115,14 @@ body {
 
 .day-cell:hover { background: #3d444b; }
 .day-cell.today { border: 2px solid var(--color-primary); }
-.day-cell.selected { 
-    background: var(--cal-selected) !important; 
-    box-shadow: inset 0 0 0 2px var(--color-primary); 
+.day-cell.selected {
+    background: var(--cal-selected) !important;
+    box-shadow: inset 0 0 0 2px var(--color-primary);
 }
 
 .day-num { font-weight: 700; font-size: 0.95rem; }
 
-/* Badges de Almoço/Jantar (A e J) */
+/* Badges de Almoço/Jantar */
 .pill-container {
     display: flex;
     flex-direction: column;
@@ -108,7 +142,29 @@ body {
 .pill-j { background: var(--color-jantar); color: #fff; }
 
 /* ==========================================================================
-   BARRA DE FILTROS HORIZONTAL (ESTILO CHIMARRON)
+   BOTÃO ESCONDER/EXPANDIR CALENDÁRIO
+   ========================================================================== */
+.toggle-calendar-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 8px 24px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--cal-text);
+    border-radius: 0 0 12px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.toggle-calendar-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ==========================================================================
+   BARRA DE FILTROS HORIZONTAL
    ========================================================================== */
 .filter-bar-horizontal {
     display: flex;
@@ -118,14 +174,14 @@ body {
     padding: 10px 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    flex-wrap: nowrap; /* Força única linha */
+    flex-wrap: nowrap;
 }
 
 /* Esconde labels para compactar */
 .filter-bar-horizontal label { display: none; }
 
 .filter-item-date { width: 160px; flex-shrink: 0; }
-.filter-item-search { flex-grow: 1; } /* Expande no centro */
+.filter-item-search { flex-grow: 1; }
 
 /* Períodos e Ícones */
 .period-icons {
@@ -154,49 +210,63 @@ body {
     border-color: var(--color-primary);
 }
 
-.filter-actions { 
-    display: flex; 
-    gap: 8px; 
-    flex-shrink: 0; 
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 /* ==========================================================================
-   UTILITÁRIOS E ESTADOS
+   ESTADOS: COLLAPSED
    ========================================================================== */
-
-/* Esconder somente o calendário via botão toggle */
-.collapsed #calendarGrid, 
-.collapsed .calendar-header-top, 
+.collapsed #calendarGrid,
+.collapsed .calendar-header-top,
 .collapsed #totalMonth {
     display: none !important;
 }
 
-/* Responsividade */
+/* ==========================================================================
+   RESPONSIVIDADE
+   ========================================================================== */
+
+/* Telas grandes (>1200px) */
+@media (min-width: 1201px) {
+    :root { --layout-width: 80%; }
+}
+
+/* Desktop normal (993-1200px) */
+@media (min-width: 993px) and (max-width: 1200px) {
+    :root { --layout-width: 90%; }
+}
+
+/* Tablet (até 992px) */
 @media (max-width: 992px) {
-    #calendarWrapper { width: 95% !important; }
+    :root { --layout-width: 98%; }
     .filter-bar-horizontal { flex-wrap: wrap; }
     .filter-item-date, .filter-item-search { width: 100%; }
 }
 
-/* Impressão: Foco total na query/tabela */
+/* ==========================================================================
+   IMPRESSÃO
+   ========================================================================== */
 @media print {
-    header, 
-    #calendarArea, 
-    .filter-bar-horizontal, 
-    .toggle-calendar-btn, 
-    .fab-main, 
+    header,
+    #calendarArea,
+    .filter-bar-horizontal,
+    .toggle-calendar-btn,
+    .fab-main,
     #logoutBtn {
         display: none !important;
     }
-    
-    body, #mainContent { 
-        background: white !important; 
-        margin: 0 !important; 
-        padding: 0 !important; 
+
+    body, #mainContent {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    
-    #reservasTable { 
-        width: 100% !important; 
+
+    #reservasTable {
+        width: 100% !important;
         border-collapse: collapse !important;
     }
 
