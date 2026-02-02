@@ -26,7 +26,7 @@
 <div id="header-container"></div>
 
 <!-- SEÇÃO DO CALENDÁRIO -->
-<section id="calendarArea" class="container-fluid mt-2">
+<section id="calendarArea" class="mt-2">
     <div id="calendarWrapper" class="calendar-wrapper">
         <div class="calendar-header-top">
             <button id="prevMonth" class="btn-nav">◀</button>
@@ -35,69 +35,56 @@
         </div>
         <div id="totalMonth" class="text-center small text-muted mb-2"></div>
         <div id="calendarGrid" class="calendar-grid"></div>
+        <button id="toggleCalendarBtn" class="toggle-calendar-btn">
+            Esconder Calendário <i class="fas fa-chevron-up"></i>
+        </button>
     </div>
-    <button id="toggleCalendarBtn" class="toggle-calendar-btn">
-        Esconder Calendário <i class="fas fa-chevron-up"></i>
-    </button>
 </section>
 
 <!-- BARRA DE FILTROS -->
-<div class="container-fluid mt-3">
-    <div class="filter-bar-horizontal">
-        <!-- DATA -->
-        <div class="filter-item-date">
-            <input type="date" id="filterData" class="form-control form-control-sm" onchange="loadReservations()">
-        </div>
-
-        <!-- BUSCA -->
-        <div class="filter-item-search">
-            <input type="text" id="filterBusca" class="form-control form-control-sm" placeholder="Buscar nome ou tel..." onkeyup="loadReservations()">
-        </div>
-
-        <!-- PERÍODO -->
-        <div class="period-icons">
-            <button class="btn-period active" onclick="setPeriodo('todos', this)" title="Dia Completo">
-                <i class="fas fa-calendar-day"></i>
-            </button>
-            <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Almoço (11:00 - 17:59)">
-                <i class="fas fa-sun"></i>
-            </button>
-            <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Jantar (18:00 - 23:59)">
-                <i class="fas fa-moon"></i>
-            </button>
-            <input type="hidden" id="filterPeriodo" value="todos">
-        </div>
-
-        <!-- CANCELADAS -->
-        <div class="filter-item-checkbox">
-            <label>
-                <input type="checkbox" id="incluirCanceladas" onchange="loadReservations()"> Canceladas
-            </label>
-        </div>
-
-        <!-- AÇÕES -->
-        <div class="filter-actions">
-            <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Imprimir">
-                <i class="fas fa-print"></i>
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="openReservationModal()" title="Nova Reserva">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
+<div class="filter-bar-horizontal mt-3">
+    <div class="filter-item-date">
+        <input type="date" id="filterData" class="form-control form-control-sm" onchange="loadReservations()">
+    </div>
+    <div class="filter-item-search">
+        <input type="text" id="filterBusca" class="form-control form-control-sm" placeholder="Buscar nome ou tel..." onkeyup="loadReservations()">
+    </div>
+    <div class="period-icons">
+        <button class="btn-period active" onclick="setPeriodo('todos', this)" title="Dia Completo">
+            <i class="fas fa-calendar-day"></i>
+        </button>
+        <button class="btn-period" onclick="setPeriodo('almoco', this)" title="Almoço (11:00 - 17:59)">
+            <i class="fas fa-sun"></i>
+        </button>
+        <button class="btn-period" onclick="setPeriodo('jantar', this)" title="Jantar (18:00 - 23:59)">
+            <i class="fas fa-moon"></i>
+        </button>
+        <input type="hidden" id="filterPeriodo" value="todos">
+    </div>
+    <div class="filter-item-checkbox">
+        <label>
+            <input type="checkbox" id="incluirCanceladas" onchange="loadReservations()"> Canceladas
+        </label>
+    </div>
+    <div class="filter-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Imprimir">
+            <i class="fas fa-print"></i>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openReservationModal()" title="Nova Reserva">
+            <i class="fas fa-plus"></i>
+        </button>
     </div>
 </div>
 
 <!-- TOTAIS -->
-<div class="container-fluid">
-    <div class="totais-info">
-        <span id="totalStatus">📅 Hoje</span>
-        <span class="badge badge-dark">Ativos: <span id="totalAtivos">0</span> pax | <span id="totalQtd">0</span> res</span>
-        <span class="badge badge-warning" id="badgeCanceladas" style="display:none;">Canceladas: <span id="totalCanceladas">0</span></span>
-    </div>
+<div class="totais-info">
+    <span id="totalStatus">📅 Hoje</span>
+    <span class="badge badge-dark">Ativos: <span id="totalAtivos">0</span> pax | <span id="totalQtd">0</span> res</span>
+    <span class="badge badge-warning" id="badgeCanceladas" style="display:none;">Canceladas: <span id="totalCanceladas">0</span></span>
 </div>
 
 <!-- GRID DE CARDS -->
-<div class="container-fluid mt-3" id="printArea">
+<div id="printArea">
     <div id="reservationsContainer" class="reservations-grid">
         <!-- Cards inseridos via JS -->
     </div>
@@ -130,28 +117,7 @@
 <!-- 6º: Modal de Reserva -->
 <script src="/js/components/reservation_modal.js"></script>
 
-<!-- 7º: Carregar Header HTML (DEPOIS da validação) -->
-<script>
-  // Aguarda validação do header.js
-  const esperar = setInterval(() => {
-    // Se header.js já validou o token
-    if (typeof tokenValidado !== 'undefined') {
-      clearInterval(esperar);
-      
-      if (tokenValidado) {
-        // Token válido, carrega header
-        fetch('/html/header.html')
-          .then(r => r.text())
-          .then(html => document.getElementById('header-container').innerHTML = html)
-          .then(() => {
-            if (typeof initHeaderEvents === 'function') initHeaderEvents();
-            if (typeof loadUserInfo === 'function') loadUserInfo();
-          });
-      }
-      // Se inválido, header.js já redirecionou para login
-    }
-  }, 100);
-</script>
+<!-- 7º: Header é carregado automaticamente pelo header.js (init) -->
 
 <!-- 8º: Carregar modal HTML -->
 <script>

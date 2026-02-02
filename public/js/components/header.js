@@ -8,7 +8,8 @@
         token: localStorage.getItem("token"),
         email: localStorage.getItem("email"),
         empresaId: localStorage.getItem("empresaId"),
-        role: localStorage.getItem("userRole")
+        role: localStorage.getItem("userRole"),
+        nome: localStorage.getItem("userName")
     };
 
     async function init() {
@@ -30,16 +31,21 @@
 
     // 1. FORMATA NOME DO USUÁRIO
     function formatUserName() {
-        if (!AUTH.email) return;
-        const namePart = AUTH.email.split('@')[0];
-        const formatted = namePart.split(/[\._-]/)
-            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-            .join(' ');
-        
+        let formatted = '';
+
+        if (AUTH.nome) {
+            formatted = AUTH.nome;
+        } else if (AUTH.email) {
+            const namePart = AUTH.email.split('@')[0];
+            formatted = namePart.split(/[\._-]/)
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join(' ');
+        }
+
         const desk = document.getElementById('userNameHeader');
         const mob = document.getElementById('userNameMobile');
-        if (desk) desk.innerText = formatted;
-        if (mob) mob.innerText = formatted;
+        if (desk) desk.innerText = formatted || 'Usuário';
+        if (mob) mob.innerText = formatted || 'Usuário';
 
         if (AUTH.role === 'admin' || AUTH.role === 'master') {
             const adm = document.getElementById('adminMenu');
@@ -50,25 +56,25 @@
     // 2. BUSCA LOGO NO BANCO (ID DA EMPRESA)
    async function loadCompanyLogo() {
     const logoImg = document.getElementById('headerLogo');
-    if (!logoImg || !AUTH.empresaId) return;
+    const sidebarLogo = document.getElementById('sidebarLogo');
+    if (!AUTH.empresaId) return;
 
     try {
-        // Buscamos o caminho que está salvo no banco
         const res = await fetch(`${API_BASE}/empresa/${AUTH.empresaId}/path`, {
             headers: { 'Authorization': `Bearer ${AUTH.token}` }
         });
-        
+
         const data = await res.json();
-        
+
         if (data && data.logoCaminho) {
-            // Se houver caminho, usamos a URL direta do servidor
-            logoImg.src = data.logoCaminho;
+            if (logoImg) logoImg.src = data.logoCaminho;
+            if (sidebarLogo) sidebarLogo.src = data.logoCaminho;
         } else {
-            // Logo padrão se estiver vazio
-            logoImg.src = '/images/default-logo.png'; 
+            if (logoImg) logoImg.src = '/images/default-logo.png';
+            if (sidebarLogo) sidebarLogo.src = '/images/default-logo.png';
         }
     } catch (e) {
-        console.warn("Logo não carregada");
+        console.warn("Logo não carregada:", e);
     }
 }
 
