@@ -56,7 +56,7 @@
     // 2. BUSCA LOGO NO BANCO (ID DA EMPRESA)
    async function loadCompanyLogo() {
     const logoImg = document.getElementById('headerLogo');
-    const sidebarLogo = document.getElementById('sidebarLogo');
+
     if (!AUTH.empresaId) return;
 
     try {
@@ -66,13 +66,6 @@
 
         const data = await res.json();
 
-        if (data && data.logoCaminho) {
-            if (logoImg) logoImg.src = data.logoCaminho;
-            if (sidebarLogo) sidebarLogo.src = data.logoCaminho;
-        } else {
-            if (logoImg) logoImg.src = '/images/default-logo.png';
-            if (sidebarLogo) sidebarLogo.src = '/images/default-logo.png';
-        }
     } catch (e) {
         console.warn("Logo não carregada:", e);
     }

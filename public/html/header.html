@@ -2,13 +2,12 @@
 <header class="main-navbar" id="mainHeader">
     <div class="nav-wrapper">
         
-        <!-- ESQUERDA: USUÁRIO (MOBILE) OU LOGO -->
+        <!-- ESQUERDA: LOGO (MOBILE + DESKTOP) -->
         <div class="nav-left">
-            <div class="mobile-user-pilled d-lg-none" onclick="openProfileModal()" style="cursor:pointer;">
-                <div class="user-avatar-small"><i class="fas fa-user"></i></div>
-                <span id="userNameMobile">Carregando...</span>
+
             </div>
-            
+
+            <!-- Logo desktop (clicavel para upload) -->
             <div class="logo-area d-none d-lg-flex" onclick="document.getElementById('logoInput').click()">
                 <img src="" alt="Logo" id="headerLogo" class="img-fluid" />
                 <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="uploadLogo(this)" />
@@ -64,6 +63,7 @@
 
         <!-- DIREITA: PERFIL E MOBILE TOGGLE -->
         <div class="nav-right">
+            <!-- Desktop: dropdown perfil -->
             <div class="user-profile d-none d-lg-flex dropdown">
                 <button class="profile-trigger" id="userProfileBtn">
                     <span id="userNameHeader">Usuário</span>
@@ -77,9 +77,16 @@
                 </div>
             </div>
 
-            <button class="hamburger d-lg-none" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
+            <!-- Mobile: usuario + hamburger -->
+            <div class="mobile-right-area d-lg-none">
+                <div class="mobile-user-pilled" onclick="openProfileModal()" style="cursor:pointer;">
+                    <div class="user-avatar-small"><i class="fas fa-user"></i></div>
+                    <span id="userNameMobile">Carregando...</span>
+                </div>
+                <button class="hamburger" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </div>
     </div>
 </header>
@@ -88,7 +95,7 @@
 <div class="mobile-drawer" id="mobileSidebar">
     <div class="drawer-content">
         <div class="drawer-header">
-            <img src="" id="sidebarLogo" alt="Logo" />
+            <span class="drawer-title">Menu</span>
             <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
         </div>
         <div class="drawer-links">
@@ -186,10 +193,7 @@
     background: white; min-width: 260px; border-radius: 12px; box-shadow: var(--shadow);
     padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
     padding-top: 18px; margin-top: 0;
-}
-.nav-mega-menu::before {
-    content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 18px;
-}
+
 .nav-item-dropdown:hover .nav-mega-menu { opacity: 1; visibility: visible; }
 
 .nav-mega-menu a {
@@ -226,11 +230,20 @@
 .profile-menu a:hover { background: #f4f6ff; }
 
 /* MOBILE ESPECÍFICO */
-.mobile-user-pilled {
-    display: flex; align-items: center; gap: 8px; color: white;
-    background: var(--glass); padding: 5px 12px; border-radius: 50px; font-size: 12px;
+.mobile-logo-area {
+    width: 110px; height: 38px; display: flex; align-items: center; justify-content: center;
+    background: var(--glass); border-radius: 8px; padding: 4px; overflow: hidden;
 }
-.user-avatar-small { width: 24px; height: 24px; background: white; color: var(--brand-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.mobile-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.mobile-right-area {
+    display: flex; align-items: center; gap: 10px;
+}
+.mobile-user-pilled {
+    display: flex; align-items: center; gap: 6px; color: white;
+    background: var(--glass); padding: 4px 10px; border-radius: 50px; font-size: 11px;
+}
+.user-avatar-small { width: 22px; height: 22px; background: white; color: var(--brand-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
 
 .hamburger { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
 
@@ -239,7 +252,12 @@
     background: white; z-index: 2100; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .mobile-drawer.open { right: 0; }
-.drawer-header { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+.drawer-header {
+    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #eee;
+}
+.drawer-title { font-size: 16px; font-weight: 700; color: #333; }
+.close-drawer { background: none; border: none; font-size: 22px; color: #999; cursor: pointer; padding: 4px 8px; }
 .drawer-links { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .drawer-links a { padding: 15px; text-decoration: none; color: #333; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-weight: 500; }
 .drawer-links a:hover { background: #f4f6ff; color: var(--brand-color); }

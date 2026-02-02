@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "seed": "node prisma/seed.js",
-    "prisma:push": "prisma db push --force-reset",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate",
-    "postinstall": "prisma generate"
-  },
+  "dev": "nodemon server.js",
+  "start": "node server.js",
+  "seed": "node prisma/seed.js",
+  "prisma:migrate": "prisma migrate dev",
+  "prisma:generate": "prisma generate",
+  "postinstall": "prisma generate"
+},
   "keywords": [],
   "author": "Marciel Rossetto",
   "license": "ISC",
