@@ -1,85 +1,80 @@
 <div class="modal fade" id="modalReserva" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content" style="border-radius: 22px; box-shadow: 0 12px 30px rgba(0,0,0,0.2)">
-      <div class="modal-header border-0">
-        <h5 class="modal-title w-100 text-center fw-bold">Nova Reserva</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content rm-content">
+      <div class="rm-header">
+        <span class="rm-title">Nova Reserva</span>
+        <button type="button" class="rm-btn-close-modal" data-dismiss="modal" data-bs-dismiss="modal" onclick="fecharModalReserva()">&times;</button>
       </div>
-      <div class="modal-body p-4">
+      <div class="rm-body">
 
         <!-- AREA WHATSAPP -->
-        <div class="mb-3">
-          <label class="fw-bold small text-muted">COLAR DADOS DO WHATSAPP</label>
-          <textarea id="whats_dados" class="form-control bg-light border-0" rows="3" placeholder="Cole o texto aqui..."></textarea>
-          <div class="d-flex gap-2 mt-2">
-            <button type="button" onclick="importarWhatsParaFormulario()" class="btn btn-sm btn-outline-secondary rounded-pill">Importar p/ Form</button>
-            <button type="button" id="btnSalvarDireto" onclick="analisarSalvarDireto()" class="btn btn-sm btn-secondary rounded-pill">Salvar Direto</button>
+        <div class="rm-section-wa">
+          <textarea id="whats_dados" class="rm-input" rows="2" placeholder="Cole dados do WhatsApp aqui..."></textarea>
+          <div class="rm-wa-btns">
+            <button type="button" onclick="importarWhatsParaFormulario()" class="rm-btn-outline">Importar</button>
+            <button type="button" id="btnSalvarDireto" onclick="analisarSalvarDireto()" class="rm-btn-dark">Salvar Direto</button>
           </div>
         </div>
-        <hr />
+
+        <div class="rm-divider"></div>
 
         <!-- FORMULARIO -->
         <form id="formManual" onsubmit="event.preventDefault(); verificarEEnviar();">
 
           <!-- TELEFONE -->
-          <div class="mb-2">
-            <label class="form-label small fw-bold">Telefone:</label>
-            <input type="text" id="res_telefone" name="telefone" class="form-control" maxlength="15" onkeyup="maskPhoneReserva(this)" onblur="buscarTelefone()" />
-            <div class="form-check mt-1">
-              <input class="form-check-input" type="checkbox" id="sem_telefone" onclick="toggleTelefone(this)" />
-              <label class="form-check-label small text-muted" for="sem_telefone">Sem telefone</label>
-            </div>
+          <div class="rm-field">
+            <label class="rm-label">Telefone</label>
+            <input type="text" id="res_telefone" name="telefone" class="rm-input" maxlength="15" onkeyup="maskPhoneReserva(this)" onblur="buscarTelefone()" placeholder="(00) 00000-0000" />
+            <label class="rm-check-label">
+              <input type="checkbox" id="sem_telefone" onclick="toggleTelefone(this)" />
+              <span>Sem telefone</span>
+            </label>
           </div>
 
           <!-- CARD PERFIL CLIENTE -->
-          <div id="card-perfil-cliente" class="profile-card mb-2 p-3 border border-success rounded" style="display:none">
+          <div id="card-perfil-cliente" class="rm-profile" style="display:none">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <h6 id="card-nome-display" class="fw-bold mb-0">--</h6>
+                <strong id="card-nome-display">--</strong>
                 <div id="edit-name-container" style="display:none" class="d-flex gap-1 align-items-center my-1">
-                  <input type="text" id="input-edit-nome" class="form-control form-control-sm" style="width:180px" />
-                  <button type="button" class="btn btn-sm btn-primary" onclick="salvarNomeCliente()">OK</button>
-                  <button type="button" class="btn btn-sm btn-light" onclick="cancelarEdicaoNome()">X</button>
+                  <input type="text" id="input-edit-nome" class="rm-input" style="width:160px;padding:4px 8px" />
+                  <button type="button" class="rm-btn-sm-ok" onclick="salvarNomeCliente()">OK</button>
+                  <button type="button" class="rm-btn-sm-cancel" onclick="cancelarEdicaoNome()">X</button>
                 </div>
-                <p id="card-telefone-display" class="small text-muted mb-1">--</p>
-                <p class="small mb-0">
-                  Ultima visita: <span id="card-ultima" class="fw-bold">--</span>
-                  (<span id="card-tempo" class="text-primary">--</span>)
-                </p>
-                <p class="small mb-0 text-muted" style="font-size:0.8rem">
-                  Historico: <span id="card-historico">--</span>
-                </p>
+                <div id="card-telefone-display" class="rm-profile-sub">--</div>
+                <div class="rm-profile-sub">Ultima visita: <strong id="card-ultima">--</strong> (<span id="card-tempo" class="text-primary">--</span>)</div>
+                <div class="rm-profile-sub" style="font-size:0.72rem">Historico: <span id="card-historico">--</span></div>
               </div>
-              <div class="text-end d-flex flex-column gap-1">
-                <button type="button" class="btn btn-sm btn-light border" onclick="trocarCliente()">Trocar</button>
-                <button type="button" class="btn btn-sm btn-light border" onclick="editarCliente()">Editar Nome</button>
+              <div class="d-flex flex-column gap-1">
+                <button type="button" class="rm-btn-outline rm-btn-xs" onclick="trocarCliente()">Trocar</button>
+                <button type="button" class="rm-btn-outline rm-btn-xs" onclick="editarCliente()">Editar</button>
               </div>
             </div>
-            <div id="area-obs-db" class="alert alert-warning py-1 px-2 small mt-2" style="display:none">
+            <div id="area-obs-db" class="rm-obs-alert" style="display:none">
               <strong>Obs:</strong> <span id="txt-obs-db"></span>
             </div>
-            <div class="row mt-2 text-center border-top pt-2">
-              <div class="col-6"><small class="d-block text-muted">Reservas</small><strong id="stat-reservas">0</strong></div>
-              <div class="col-6"><small class="d-block text-muted">Canceladas</small><strong id="stat-cancelada" class="text-danger">0</strong></div>
+            <div class="rm-profile-stats">
+              <div><small>Reservas</small><strong id="stat-reservas">0</strong></div>
+              <div><small>Canceladas</small><strong id="stat-cancelada" class="text-danger">0</strong></div>
             </div>
           </div>
 
           <!-- NOME -->
-          <div id="div-input-nome" class="mb-2">
-            <label class="form-label small fw-bold">Nome:</label>
-            <input type="text" id="res_nome" name="nome" class="form-control" required />
+          <div id="div-input-nome" class="rm-field">
+            <label class="rm-label">Nome</label>
+            <input type="text" id="res_nome" name="nome" class="rm-input" required />
           </div>
 
           <!-- DATA + HORARIO -->
-          <div class="row">
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Data:</label>
-              <input type="date" id="res_data" name="data" class="form-control" required />
+          <div class="rm-row">
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Data</label>
+              <input type="date" id="res_data" name="data" class="rm-input" required />
             </div>
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Horario:</label>
-              <select id="res_horario" name="horario" class="form-select" required>
-                <option value="">Selecione</option>
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Horario</label>
+              <select id="res_horario" name="horario" class="rm-input" required>
+                <option value="">--:--</option>
                 <optgroup label="Almoco">
                   <option value="11:30">11:30</option>
                   <option value="12:00">12:00</option>
@@ -106,33 +101,33 @@
           </div>
 
           <!-- PAX + TEL ALT -->
-          <div class="row">
-            <div class="col-4 mb-2">
-              <label class="form-label small fw-bold">Pax:</label>
-              <input type="number" id="res_num_pessoas" name="numPessoas" class="form-control" min="1" required placeholder="Ex: 4" />
+          <div class="rm-row">
+            <div class="rm-field" style="flex:0 0 80px">
+              <label class="rm-label">Pax</label>
+              <input type="number" id="res_num_pessoas" name="numPessoas" class="rm-input" min="1" required placeholder="4" />
             </div>
-            <div class="col-8 mb-2">
-              <label class="form-label small fw-bold">Tel. Alt:</label>
-              <input type="text" id="res_telefone2" name="telefone2" class="form-control" onkeyup="maskPhoneReserva(this)" />
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Tel. Alternativo</label>
+              <input type="text" id="res_telefone2" name="telefone2" class="rm-input" onkeyup="maskPhoneReserva(this)" />
             </div>
           </div>
 
           <!-- PAGAMENTO + MESA -->
-          <div class="row">
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Pagamento:</label>
-              <select id="res_forma_pagamento" name="formaPagamento" class="form-select">
+          <div class="rm-row">
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Pagamento</label>
+              <select id="res_forma_pagamento" name="formaPagamento" class="rm-input">
                 <option value="Nao definido">Selecione</option>
                 <option value="unica">Unica</option>
                 <option value="individual">Individual</option>
-                <option value="U (rod) I (beb)">Unica (rod) Individual (beb)</option>
+                <option value="U (rod) I (beb)">Unica (rod) Indiv (beb)</option>
                 <option value="outros">Outros</option>
               </select>
             </div>
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Mesa:</label>
-              <select id="res_num_mesa" name="numMesa" class="form-select">
-                <option value="">Selecione</option>
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Mesa</label>
+              <select id="res_num_mesa" name="numMesa" class="rm-input">
+                <option value="">--</option>
                 <option value="Salao 1">Salao 1</option>
                 <option value="Salao 2">Salao 2</option>
                 <option value="Salao 3">Salao 3</option>
@@ -160,10 +155,10 @@
           </div>
 
           <!-- TIPO EVENTO + VALOR RODIZIO -->
-          <div class="row">
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Evento:</label>
-              <select id="res_tipo_evento" name="tipoEvento" class="form-select">
+          <div class="rm-row">
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Evento</label>
+              <select id="res_tipo_evento" name="tipoEvento" class="rm-input">
                 <option value="Manual">Manual</option>
                 <option value="Aniversario">Aniversario</option>
                 <option value="Conf. fim de ano">Confr. Fim de Ano</option>
@@ -172,38 +167,27 @@
                 <option value="Conf. Familia">Confr. Familia</option>
               </select>
             </div>
-            <div class="col-6 mb-2">
-              <label class="form-label small fw-bold">Valor Rodizio:</label>
-              <input type="text" id="res_valor_rodizio" name="valorRodizio" class="form-control" placeholder="Ex: 89.90" />
+            <div class="rm-field rm-flex-1">
+              <label class="rm-label">Valor Rodizio</label>
+              <input type="text" id="res_valor_rodizio" name="valorRodizio" class="rm-input" placeholder="89.90" />
             </div>
           </div>
 
           <!-- CHECKBOXES -->
-          <div class="checkbox-area p-2 bg-light rounded-3 mb-2">
-            <div class="form-check mb-1">
-              <input class="form-check-input" type="checkbox" id="torta" name="tortaTermoVela" />
-              <label class="form-check-label small fw-bold" for="torta">Ciente torta, Termo e vela</label>
-            </div>
-            <div class="d-flex gap-4">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="churras" name="churrascaria" />
-                <label class="form-check-label small fw-bold" for="churras">Churrascaria</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="exec" name="executivo" />
-                <label class="form-check-label small fw-bold" for="exec">Executivo</label>
-              </div>
-            </div>
+          <div class="rm-checks">
+            <label class="rm-check-label"><input type="checkbox" id="torta" name="tortaTermoVela" /><span>Torta/Termo/Vela</span></label>
+            <label class="rm-check-label"><input type="checkbox" id="churras" name="churrascaria" /><span>Churrascaria</span></label>
+            <label class="rm-check-label"><input type="checkbox" id="exec" name="executivo" /><span>Executivo</span></label>
           </div>
 
           <!-- OBS -->
-          <div class="mb-2">
-            <label class="form-label small fw-bold">Observacoes:</label>
-            <textarea id="res_observacoes" name="observacoes" class="form-control" rows="2"></textarea>
+          <div class="rm-field">
+            <label class="rm-label">Observacoes</label>
+            <textarea id="res_observacoes" name="observacoes" class="rm-input" rows="2"></textarea>
           </div>
 
-          <button type="submit" id="btnSalvarManual" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
-            Cadastrar reserva
+          <button type="submit" id="btnSalvarManual" class="rm-btn-submit">
+            Cadastrar Reserva
           </button>
         </form>
       </div>
@@ -212,54 +196,220 @@
 </div>
 
 <!-- MODAL CONFIRMACAO POS-SALVAR -->
-<div class="modal fade" id="modalConfirmacaoReserva" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content text-center" style="border-radius:22px">
-      <div class="modal-body p-4">
-        <div style="font-size:60px; color:#28a745; line-height:1">&#10004;</div>
-        <h5 class="fw-bold mt-2">Reserva Salva!</h5>
-        <p class="text-muted small">A reserva foi registrada com sucesso.</p>
-        <div id="confirmacao-btns" class="d-flex flex-column gap-2 mt-3"></div>
-      </div>
+<div id="rm-confirmacao-overlay" class="rm-overlay" style="display:none">
+  <div class="rm-confirm-box">
+    <div class="rm-confirm-icon">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" fill="#28a745"/>
+        <path d="M7 12.5l3 3 7-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
+    <h5 class="rm-confirm-title">Reserva Salva!</h5>
+    <div id="rm-confirm-resumo" class="rm-confirm-resumo"></div>
+    <div id="confirmacao-btns" class="rm-confirm-btns"></div>
   </div>
 </div>
 
 <style>
-  #modalReserva .modal-dialog { max-width: 720px; }
-  #modalReserva .modal-content { border-radius: 20px; border: none; }
-  #modalReserva .modal-header { padding: 1.2rem; border-bottom: 1px solid #f0f0f0; background: #f9f9fb; }
-  #modalReserva .modal-title { font-size: 1.15rem; letter-spacing: 0.5px; }
-  #modalReserva .modal-body { padding: 1.2rem; }
+/* ============================================
+   MODAL RESERVA - COMPACTO & QUADRADO
+   ============================================ */
 
-  #formManual { display: flex; flex-direction: column; }
-  #formManual .form-label { font-size: 0.8rem; font-weight: 700; color: #333; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
-  #formManual .row { margin: 0 -4px; }
-  #formManual .row > div { padding: 0 4px; }
+/* OVERLAY CONFIRMACAO */
+.rm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10050;
+  display: flex; align-items: center; justify-content: center;
+  animation: rmFadeIn 0.2s;
+}
+.rm-confirm-box {
+  background: #fff;
+  border-radius: 6px;
+  padding: 32px 28px;
+  text-align: center;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  animation: rmSlideUp 0.25s;
+}
+.rm-confirm-icon { margin-bottom: 12px; }
+.rm-confirm-title { font-weight: 700; font-size: 1.2rem; color: #1a1a1a; margin: 0 0 8px; }
+.rm-confirm-resumo {
+  background: #f5f7f5; border-radius: 4px; padding: 10px 14px;
+  font-size: 0.82rem; color: #555; text-align: left; margin-bottom: 16px; line-height: 1.5;
+}
+.rm-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
+.rm-confirm-btns .rm-btn-wa {
+  background: #25d366; color: #fff; border: none; border-radius: 4px;
+  padding: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer;
+}
+.rm-confirm-btns .rm-btn-wa:hover { background: #1ebe5d; }
+.rm-confirm-btns .rm-btn-close-confirm {
+  background: none; border: 1px solid #ddd; border-radius: 4px;
+  padding: 8px; font-size: 0.82rem; color: #666; cursor: pointer;
+}
+.rm-confirm-btns .rm-btn-close-confirm:hover { background: #f5f5f5; }
 
-  .form-control, .form-select { border-radius: 10px; border: 1px solid #d1d1d6; padding: 0.6rem 0.8rem; background: #f9f9fb; font-size: 0.9rem; transition: 0.2s; }
-  .form-control:focus, .form-select:focus { border-color: #007aff; background: #fff; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
+/* MODAL PRINCIPAL */
+.rm-content {
+  border-radius: 6px !important;
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.rm-header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rm-title { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
+.rm-btn-close-modal {
+  background: none; border: none; color: rgba(255,255,255,0.7);
+  font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+.rm-btn-close-modal:hover { color: #fff; }
+.rm-body { padding: 12px 16px 16px; max-height: 78vh; overflow-y: auto; }
 
-  .checkbox-area { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 10px; }
-  .form-check-input { width: 1.1rem; height: 1.1rem; cursor: pointer; }
-  .form-check-input:checked { background-color: #007aff; border-color: #007aff; }
-  .form-check-label { cursor: pointer; margin-left: 0.5rem; margin-bottom: 0; }
+/* DIVIDER */
+.rm-divider { height: 1px; background: #e5e5e5; margin: 10px 0; }
 
-  .profile-card { background: #f0f9f0; border: 2px solid #28a745; border-radius: 10px; }
-  .profile-card h6 { font-size: 1rem; color: #333; }
+/* WHATSAPP SECTION */
+.rm-section-wa { margin-bottom: 0; }
+.rm-wa-btns { display: flex; gap: 6px; margin-top: 6px; }
 
-  #whats_dados { background: #f9f9fb; border-radius: 10px; border: 1px solid #d1d1d6; resize: vertical; }
+/* ROWS */
+.rm-row { display: flex; gap: 8px; }
+.rm-flex-1 { flex: 1; }
 
-  #btnSalvarManual { background: #007aff; border: none; border-radius: 10px; padding: 0.8rem; font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem; cursor: pointer; transition: 0.2s; }
-  #btnSalvarManual:hover:not(:disabled) { background: #0056b3; }
-  #btnSalvarManual:disabled { opacity: 0.6; cursor: not-allowed; }
+/* FIELDS */
+.rm-field { margin-bottom: 8px; }
+.rm-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
 
-  .btn-outline-secondary, .btn-secondary { border-radius: 20px; padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
+/* INPUTS - QUADRADOS */
+.rm-input {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  color: #333;
+  background: #f7f7f8;
+  border: 1px solid #d5d5d8;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.rm-input:focus {
+  border-color: #007aff;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0,122,255,0.12);
+}
+textarea.rm-input { resize: vertical; }
+select.rm-input { cursor: pointer; }
 
-  hr { margin: 1rem 0; border: none; border-top: 1px solid #e0e0e0; }
+/* CHECKBOXES */
+.rm-checks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #f7f7f8;
+  border: 1px solid #e8e8ea;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.rm-check-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.78rem; font-weight: 600; color: #444; cursor: pointer;
+}
+.rm-check-label input[type="checkbox"] {
+  width: 15px; height: 15px; cursor: pointer;
+  accent-color: #007aff;
+}
 
-  @media (max-width: 576px) {
-    #modalReserva .modal-dialog { margin: 0.5rem; max-width: calc(100% - 1rem); }
-    #modalReserva .modal-body { padding: 0.8rem; }
-  }
+/* PROFILE CARD */
+.rm-profile {
+  background: #f5faf5;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.rm-profile strong { font-size: 0.95rem; color: #222; }
+.rm-profile-sub { font-size: 0.76rem; color: #777; margin-top: 1px; }
+.rm-profile-stats {
+  display: flex; gap: 24px;
+  border-top: 1px solid #d4edda;
+  margin-top: 8px;
+  padding-top: 6px;
+}
+.rm-profile-stats div { text-align: center; }
+.rm-profile-stats small { font-size: 0.68rem; color: #999; display: block; }
+.rm-profile-stats strong { font-size: 1rem; }
+.rm-obs-alert {
+  background: #fff8e1; border-radius: 4px; padding: 6px 10px;
+  font-size: 0.78rem; color: #856404; margin-top: 6px;
+}
+
+/* BUTTONS */
+.rm-btn-outline {
+  background: #fff; border: 1px solid #ccc; border-radius: 4px;
+  padding: 5px 12px; font-size: 0.76rem; font-weight: 600; color: #555; cursor: pointer;
+}
+.rm-btn-outline:hover { background: #f5f5f5; border-color: #aaa; }
+.rm-btn-dark {
+  background: #333; color: #fff; border: none; border-radius: 4px;
+  padding: 5px 12px; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+}
+.rm-btn-dark:hover { background: #111; }
+.rm-btn-xs { padding: 3px 8px; font-size: 0.7rem; }
+.rm-btn-sm-ok {
+  background: #007aff; color: #fff; border: none; border-radius: 4px;
+  padding: 3px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+}
+.rm-btn-sm-cancel {
+  background: #eee; color: #666; border: none; border-radius: 4px;
+  padding: 3px 8px; font-size: 0.78rem; cursor: pointer;
+}
+
+.rm-btn-submit {
+  width: 100%;
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+.rm-btn-submit:hover:not(:disabled) { background: #0062d1; }
+.rm-btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ANIMATIONS */
+@keyframes rmFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rmSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* RESPONSIVE */
+#modalReserva .modal-dialog { max-width: 520px; }
+@media (max-width: 576px) {
+  #modalReserva .modal-dialog { margin: 8px; max-width: calc(100% - 16px); }
+  .rm-body { padding: 10px 12px 14px; }
+  .rm-row { gap: 6px; }
+}
 </style>

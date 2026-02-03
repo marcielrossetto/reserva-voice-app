@@ -13,7 +13,7 @@
     --color-jantar: #3699ff;
     --color-muted: #a2a3b7;
 
-    --layout-width: 90%;
+    --layout-width: var(--layout-w, 80%);
 }
 
 body {
@@ -21,6 +21,11 @@ body {
     background-color: #f4f7fe;
     overflow-x: hidden;
 }
+
+/* ===== LAYOUT GLOBAL (mesma variavel que reservationQuery.css) ===== */
+:root { --layout-w: 80%; }
+@media (max-width: 968px) { :root { --layout-w: 98%; } }
+@media (max-width: 480px) { :root { --layout-w: 98%; } }
 
 #calendarArea {
     margin-top: 10px !important;
@@ -53,12 +58,12 @@ body {
 }
 
 #monthYear {
-    font-size: 1.4rem;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
     font-weight: 700;
     text-transform: capitalize;
 }
 
-/* Botões de navegação de mês — fixos nos cantos */
+/* Botões de navegação de mês — fixos nos cantos, SEM deslocamento */
 .btn-nav {
     position: absolute;
     top: 50%;
@@ -74,12 +79,23 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: background 0.2s, border-color 0.2s;
     z-index: 10;
+    /* IMPEDIR deslocamento no hover */
+    margin: 0;
+    padding: 0;
 }
 
 .btn-nav:hover {
     background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    /* Manter posicao fixa - sem transform adicional */
+    transform: translateY(-50%);
+}
+
+.btn-nav:active {
+    background: rgba(255,255,255,0.35);
+    transform: translateY(-50%);
 }
 
 #prevMonth { left: 12px; }
@@ -98,7 +114,7 @@ body {
     color: var(--color-muted);
     text-align: center;
     padding: 8px;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 1.3vw, 0.75rem);
     font-weight: 800;
     text-transform: uppercase;
 }
@@ -120,7 +136,7 @@ body {
     box-shadow: inset 0 0 0 2px var(--color-primary);
 }
 
-.day-num { font-weight: 700; font-size: 0.95rem; }
+.day-num { font-weight: 700; font-size: clamp(0.75rem, 1.6vw, 0.95rem); }
 
 /* Badges de Almoço/Jantar */
 .pill-container {
@@ -131,7 +147,7 @@ body {
 }
 
 .pill {
-    font-size: 10px;
+    font-size: clamp(7px, 1.2vw, 10px);
     padding: 2px 6px;
     border-radius: 4px;
     width: fit-content;
@@ -229,19 +245,11 @@ body {
    RESPONSIVIDADE
    ========================================================================== */
 
-/* Telas grandes (>1200px) */
-@media (min-width: 1201px) {
-    :root { --layout-width: 80%; }
-}
+/* Largura do calendario segue --layout-w global */
+/* Desktop: 80% | Tablet/Mobile: 98% (definido no :root acima) */
 
-/* Desktop normal (993-1200px) */
-@media (min-width: 993px) and (max-width: 1200px) {
-    :root { --layout-width: 90%; }
-}
-
-/* Tablet (até 992px) */
-@media (max-width: 992px) {
-    :root { --layout-width: 98%; }
+/* Tablet (até 968px) */
+@media (max-width: 968px) {
     .filter-bar-horizontal { flex-wrap: wrap; }
     .filter-item-date, .filter-item-search { width: 100%; }
 }

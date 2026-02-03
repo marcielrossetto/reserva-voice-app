@@ -749,19 +749,39 @@ function showToast(msg, tipo) {
 
 // Helper para compatibilidade Bootstrap 4 e 5
 function bsModalShow(el) {
-  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-    new bootstrap.Modal(el).show();
-  } else if (typeof $ !== 'undefined') {
-    $(el).modal('show');
+  try {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      new bootstrap.Modal(el).show();
+    } else if (typeof $ !== 'undefined') {
+      $(el).modal('show');
+    }
+  } catch (e) {
+    console.warn('bsModalShow fallback:', e);
+    if (el) { el.classList.add('show'); el.style.display = 'block'; }
   }
 }
 function bsModalHide(el) {
-  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-    const inst = bootstrap.Modal.getInstance(el);
-    if (inst) inst.hide();
-  } else if (typeof $ !== 'undefined') {
-    $(el).modal('hide');
+  try {
+    if (typeof $ !== 'undefined' && $.fn && $.fn.modal) {
+      $(el).modal('hide');
+    } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      const inst = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
+      if (inst) inst.hide();
+    }
+  } catch (e) {
+    console.warn('bsModalHide fallback:', e);
+    if (el) { el.classList.remove('show'); el.style.display = 'none'; }
+    // Remover backdrop manualmente
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
   }
+}
+
+// Fechar modal reserva (botao X)
+function fecharModalReserva() {
+  bsModalHide(document.getElementById('modalReserva'));
 }
 
 const TELEFONE_REGEX = /^[1-9]{2}9\d{8}$/;
@@ -958,11 +978,16 @@ async function enviarReservaAjax() {
   btn.disabled = true;
   btn.textContent = 'Salvando...';
 
+  const nome = document.getElementById('res_nome').value.trim();
+  const dataVal = document.getElementById('res_data').value;
+  const horarioVal = document.getElementById('res_horario').value;
+  const numPessoasVal = parseInt(document.getElementById('res_num_pessoas').value);
+
   const payload = {
-    nome: document.getElementById('res_nome').value.trim(),
-    data: document.getElementById('res_data').value,
-    horario: document.getElementById('res_horario').value + ':00',
-    numPessoas: parseInt(document.getElementById('res_num_pessoas').value),
+    nome,
+    data: dataVal,
+    horario: horarioVal + ':00',
+    numPessoas: numPessoasVal,
     telefone: document.getElementById('res_telefone').value || null,
     telefone2: document.getElementById('res_telefone2').value || null,
     formaPagamento: document.getElementById('res_forma_pagamento').value,
@@ -986,24 +1011,33 @@ async function enviarReservaAjax() {
     if (!res.ok || !data.success) {
       showToast(data.error || 'Erro ao salvar reserva.', 'danger');
       btn.disabled = false;
-      btn.textContent = 'Cadastrar reserva';
+      btn.textContent = 'Cadastrar Reserva';
       return;
     }
 
     // Fechar modal de reserva
     bsModalHide(document.getElementById('modalReserva'));
 
+    // Montar resumo da reserva
+    const dataFormatada = dataVal.split('-').reverse().join('/');
+    const resumoDiv = document.getElementById('rm-confirm-resumo');
+    resumoDiv.innerHTML = `
+      <strong>${nome}</strong><br>
+      ${dataFormatada} as ${horarioVal} - ${numPessoasVal} pessoa(s)
+    `;
+
     // Montar botoes de confirmacao
     const btnsDiv = document.getElementById('confirmacao-btns');
     let html = '';
     if (data.waLink) {
-      html += `<button class="btn btn-success rounded-pill fw-bold" onclick="window.open('${data.waLink}', '_blank')">Confirmar via WhatsApp</button>`;
+      html += `<button class="rm-btn-wa" onclick="window.open('${data.waLink}', '_blank')">Confirmar via WhatsApp</button>`;
     }
-    html += `<button class="btn btn-light border rounded-pill" onclick="fecharModalConfirmacao()">Fechar e Nova Reserva</button>`;
+    html += `<button class="rm-btn-close-confirm" onclick="fecharModalConfirmacao()">Fechar</button>`;
+    html += `<button class="rm-btn-close-confirm" onclick="fecharModalConfirmacaoENova()">Nova Reserva</button>`;
     btnsDiv.innerHTML = html;
 
-    // Mostrar modal confirmacao
-    bsModalShow(document.getElementById('modalConfirmacaoReserva'));
+    // Mostrar overlay de confirmacao
+    document.getElementById('rm-confirmacao-overlay').style.display = 'flex';
 
     // Atualizar listas se existir
     if (typeof loadReservations === 'function') loadReservations();
@@ -1013,18 +1047,32 @@ async function enviarReservaAjax() {
     showToast('Erro de conexao ao salvar.', 'danger');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Cadastrar reserva';
+    btn.textContent = 'Cadastrar Reserva';
   }
 }
 
 function fecharModalConfirmacao() {
-  bsModalHide(document.getElementById('modalConfirmacaoReserva'));
+  document.getElementById('rm-confirmacao-overlay').style.display = 'none';
+}
+
+function fecharModalConfirmacaoENova() {
+  document.getElementById('rm-confirmacao-overlay').style.display = 'none';
 
   // Reset form
   const form = document.getElementById('formManual');
   if (form) form.reset();
-  document.getElementById('whats_dados').value = '';
+  const whats = document.getElementById('whats_dados');
+  if (whats) whats.value = '';
   trocarCliente();
+
+  // Reabrir modal de reserva
+  bsModalShow(document.getElementById('modalReserva'));
+
+  // Setar data de hoje
+  const dataInput = document.getElementById('res_data');
+  if (dataInput && !dataInput.value) {
+    dataInput.value = new Date().toISOString().split('T')[0];
+  }
 }
 
 // --- IMPORTACAO WHATSAPP ---

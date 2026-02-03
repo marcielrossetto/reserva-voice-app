@@ -4,9 +4,7 @@
  */
 
 // No login.js e em outros arquivos JS de componente
-const API_URL = window.location.origin.includes('localhost') 
-  ? "http://localhost:3001/api" 
-  : "/api"; // Em produção, ele usará a mesma URL do site
+const API_URL = "/api";
 let emailRecuperacaoGlobal = null;
 let tokenRecuperacaoGlobal = null;
 

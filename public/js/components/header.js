@@ -3,7 +3,7 @@
  */
 
 (function() {
-    const API_BASE = window.location.origin.includes('localhost') ? "http://localhost:3001/api" : "/api";
+    const API_BASE = "/api";
     const AUTH = {
         token: localStorage.getItem("token"),
         email: localStorage.getItem("email"),
@@ -54,22 +54,27 @@
     }
 
     // 2. BUSCA LOGO NO BANCO (ID DA EMPRESA)
-   async function loadCompanyLogo() {
-    const logoImg = document.getElementById('headerLogo');
+    async function loadCompanyLogo() {
+        const logoImg = document.getElementById('headerLogo');
+        const sidebarLogo = document.getElementById('sidebarLogo');
 
-    if (!AUTH.empresaId) return;
+        if (!AUTH.empresaId) return;
 
-    try {
-        const res = await fetch(`${API_BASE}/empresa/${AUTH.empresaId}/path`, {
-            headers: { 'Authorization': `Bearer ${AUTH.token}` }
-        });
+        try {
+            const res = await fetch(`${API_BASE}/empresa/${AUTH.empresaId}/path`, {
+                headers: { 'Authorization': `Bearer ${AUTH.token}` }
+            });
 
-        const data = await res.json();
+            const data = await res.json();
 
-    } catch (e) {
-        console.warn("Logo não carregada:", e);
+            if (data.logoCaminho) {
+                if (logoImg) logoImg.src = data.logoCaminho;
+                if (sidebarLogo) sidebarLogo.src = data.logoCaminho;
+            }
+        } catch (e) {
+            console.warn("Logo não carregada:", e);
+        }
     }
-}
 
     // 3. SMART SCROLL
     let lastScroll = 0;

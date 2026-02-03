@@ -11,10 +11,7 @@
 // ========================= DETECÇÃO AUTOMÁTICA DE AMBIENTE =========================
 
 const API_CONFIG = {
-  BASE_URL:
-    window.location.hostname === "localhost"
-      ? "http://localhost:3001"
-      : "https://reserva-voice-app-1.onrender.com",
+  BASE_URL: window.location.origin,
 
   get AUTH() {
     return `${this.BASE_URL}/api/auth`;

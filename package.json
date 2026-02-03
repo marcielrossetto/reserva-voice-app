@@ -3,13 +3,16 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-  "dev": "nodemon server.js",
-  "start": "node server.js",
-  "seed": "node prisma/seed.js",
-  "prisma:migrate": "prisma migrate dev",
-  "prisma:generate": "prisma generate",
-  "postinstall": "prisma generate"
-},
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "seed": "node prisma/seed.js",
+    "build": "prisma generate && prisma db push",
+    "prisma:push": "prisma db push",
+    "prisma:push:reset": "prisma db push --force-reset",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate"
+  },
   "keywords": [],
   "author": "Marciel Rossetto",
   "license": "ISC",
@@ -27,10 +30,13 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.13",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "prisma": "^6.19.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "prisma": "^6.19.2"
+    "nodemon": "^3.1.10"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   }
 }

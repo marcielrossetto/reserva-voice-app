@@ -1,315 +1,665 @@
 <!-- public/html/header.html -->
 <header class="main-navbar" id="mainHeader">
-    <div class="nav-wrapper">
-        
-        <!-- ESQUERDA: LOGO (MOBILE + DESKTOP) -->
-        <div class="nav-left">
+  <div class="nav-wrapper">
+    <!-- ESQUERDA: USUÁRIO (MOBILE) OU LOGO -->
+    <div class="nav-left">
+      <div
+        class="mobile-user-pilled d-lg-none"
+        onclick="openProfileModal()"
+        style="cursor: pointer"
+      >
+        <div class="user-avatar-small"><i class="fas fa-user"></i></div>
+        <span id="userNameMobile">Carregando...</span>
+      </div>
 
-            </div>
-
-            <!-- Logo desktop (clicavel para upload) -->
-            <div class="logo-area d-none d-lg-flex" onclick="document.getElementById('logoInput').click()">
-                <img src="" alt="Logo" id="headerLogo" class="img-fluid" />
-                <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="uploadLogo(this)" />
-            </div>
-        </div>
-
-        <!-- CENTRO: NAVEGAÇÃO PRINCIPAL (DROPDOWNS MODERNOS) -->
-        <nav class="nav-center d-none d-lg-flex">
-            <ul class="nav-links">
-                <li class="nav-item-dropdown">
-                    <a href="javascript:void(0)" class="nav-action">Início <i class="fas fa-chevron-down"></i></a>
-                    <div class="nav-mega-menu">
-                        <a href="javascript:void(0)" onclick="goToIndex()"><i class="fas fa-home"></i> <div><strong>Dashboard</strong><span>Visão geral do sistema</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-chart-pie"></i> <div><strong>Estatísticas</strong><span>Relatórios de desempenho</span></div></a>
-                    </div>
-                </li>
-
-                <li class="nav-item-dropdown">
-                    <a href="javascript:void(0)" class="nav-action">Reservas <i class="fas fa-chevron-down"></i></a>
-                    <div class="nav-mega-menu">
-                        <a href="javascript:void(0)" onclick="openReservationModal()"><i class="fas fa-plus-circle"></i> <div><strong>Nova Reserva</strong><span>Cadastrar manualmente</span></div></a>
-                        <a href="javascript:void(0)" onclick="goToSearch()"><i class="fas fa-search"></i> <div><strong>Pesquisa Total</strong><span>Relatórios avançados</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-th-large"></i> <div><strong>Cards</strong><span>Visualizar em blocos</span></div></a>
-                    </div>
-                </li>
-
-                <li class="nav-item-dropdown">
-                    <a href="javascript:void(0)" class="nav-action">Operação <i class="fas fa-chevron-down"></i></a>
-                    <div class="nav-mega-menu">
-                        <a href="javascript:void(0)" onclick="goToQueue()"><i class="fas fa-users-line"></i> <div><strong>Fila de Espera</strong><span>Gestão de fluxo</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-utensils"></i> <div><strong>Cardápio</strong><span>Itens e Preços</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-print"></i> <div><strong>Impressões</strong><span>Mural e Salão</span></div></a>
-                    </div>
-                </li>
-
-                <li class="nav-item-dropdown" id="adminMenu" style="display:none;">
-                    <a href="javascript:void(0)" class="nav-action">Gestão <i class="fas fa-chevron-down"></i></a>
-                    <div class="nav-mega-menu">
-                        <a href="javascript:void(0)"><i class="fas fa-users-cog"></i> <div><strong>Equipe</strong><span>Usuários e Permissões</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-sliders-h"></i> <div><strong>Configurações</strong><span>Regras de Negócio</span></div></a>
-                    </div>
-                </li>
-
-                <li class="nav-item-dropdown">
-                    <a href="javascript:void(0)" class="nav-action">Ajuda <i class="fas fa-chevron-down"></i></a>
-                    <div class="nav-mega-menu">
-                        <a href="javascript:void(0)"><i class="fas fa-question-circle"></i> <div><strong>Suporte</strong><span>Fale conosco</span></div></a>
-                        <a href="javascript:void(0)"><i class="fas fa-shield-alt"></i> <div><strong>Privacidade</strong><span>Termos e LGPD</span></div></a>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- DIREITA: PERFIL E MOBILE TOGGLE -->
-        <div class="nav-right">
-            <!-- Desktop: dropdown perfil -->
-            <div class="user-profile d-none d-lg-flex dropdown">
-                <button class="profile-trigger" id="userProfileBtn">
-                    <span id="userNameHeader">Usuário</span>
-                    <div class="avatar-icon"><i class="fas fa-user-circle"></i></div>
-                </button>
-                <div class="profile-menu">
-                    <a href="javascript:void(0)" onclick="openProfileModal()"><i class="fas fa-id-badge"></i> Perfil</a>
-                    <a href="#"><i class="fas fa-key"></i> Senha</a>
-                    <hr>
-                    <a href="javascript:void(0)" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                </div>
-            </div>
-
-            <!-- Mobile: usuario + hamburger -->
-            <div class="mobile-right-area d-lg-none">
-                <div class="mobile-user-pilled" onclick="openProfileModal()" style="cursor:pointer;">
-                    <div class="user-avatar-small"><i class="fas fa-user"></i></div>
-                    <span id="userNameMobile">Carregando...</span>
-                </div>
-                <button class="hamburger" onclick="toggleMobileMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-        </div>
+      <div
+        class="logo-area d-none d-lg-flex"
+        onclick="document.getElementById('logoInput').click()"
+      >
+        <img src="" alt="Logo" id="headerLogo" class="img-fluid" />
+        <input
+          type="file"
+          id="logoInput"
+          accept="image/*"
+          style="display: none"
+          onchange="uploadLogo(this)"
+        />
+      </div>
     </div>
+
+    <!-- CENTRO: NAVEGAÇÃO PRINCIPAL (DROPDOWNS MODERNOS) -->
+    <nav class="nav-center d-none d-lg-flex">
+      <ul class="nav-links">
+        <li class="nav-item-dropdown">
+          <a href="javascript:void(0)" class="nav-action"
+            >Início <i class="fas fa-chevron-down"></i
+          ></a>
+          <div class="nav-mega-menu">
+            <a href="javascript:void(0)" onclick="goToIndex()"
+              ><i class="fas fa-home"></i>
+              <div>
+                <strong>Dashboard</strong><span>Visão geral do sistema</span>
+              </div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-chart-pie"></i>
+              <div>
+                <strong>Estatísticas</strong
+                ><span>Relatórios de desempenho</span>
+              </div></a
+            >
+          </div>
+        </li>
+
+        <li class="nav-item-dropdown">
+          <a href="javascript:void(0)" class="nav-action"
+            >Reservas <i class="fas fa-chevron-down"></i
+          ></a>
+          <div class="nav-mega-menu">
+            <a href="javascript:void(0)" onclick="openReservationModal()"
+              ><i class="fas fa-plus-circle"></i>
+              <div>
+                <strong>Nova Reserva</strong><span>Cadastrar manualmente</span>
+              </div></a
+            >
+            <a href="javascript:void(0)" onclick="goToSearch()"
+              ><i class="fas fa-search"></i>
+              <div>
+                <strong>Pesquisa Total</strong><span>Relatórios avançados</span>
+              </div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-th-large"></i>
+              <div>
+                <strong>Cards</strong><span>Visualizar em blocos</span>
+              </div></a
+            >
+          </div>
+        </li>
+
+        <li class="nav-item-dropdown">
+          <a href="javascript:void(0)" class="nav-action"
+            >Operação <i class="fas fa-chevron-down"></i
+          ></a>
+          <div class="nav-mega-menu">
+            <a href="javascript:void(0)" onclick="goToQueue()"
+              ><i class="fas fa-users-line"></i>
+              <div>
+                <strong>Fila de Espera</strong><span>Gestão de fluxo</span>
+              </div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-utensils"></i>
+              <div><strong>Cardápio</strong><span>Itens e Preços</span></div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-print"></i>
+              <div>
+                <strong>Impressões</strong><span>Mural e Salão</span>
+              </div></a
+            >
+          </div>
+        </li>
+
+        <li class="nav-item-dropdown" id="adminMenu" style="display: none">
+          <a href="javascript:void(0)" class="nav-action"
+            >Gestão <i class="fas fa-chevron-down"></i
+          ></a>
+          <div class="nav-mega-menu">
+            <a href="javascript:void(0)"
+              ><i class="fas fa-users-cog"></i>
+              <div>
+                <strong>Equipe</strong><span>Usuários e Permissões</span>
+              </div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-sliders-h"></i>
+              <div>
+                <strong>Configurações</strong><span>Regras de Negócio</span>
+              </div></a
+            >
+          </div>
+        </li>
+
+        <li class="nav-item-dropdown">
+          <a href="javascript:void(0)" class="nav-action"
+            >Ajuda <i class="fas fa-chevron-down"></i
+          ></a>
+          <div class="nav-mega-menu">
+            <a href="javascript:void(0)"
+              ><i class="fas fa-question-circle"></i>
+              <div><strong>Suporte</strong><span>Fale conosco</span></div></a
+            >
+            <a href="javascript:void(0)"
+              ><i class="fas fa-shield-alt"></i>
+              <div>
+                <strong>Privacidade</strong><span>Termos e LGPD</span>
+              </div></a
+            >
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- DIREITA: PERFIL E MOBILE TOGGLE -->
+    <div class="nav-right">
+      <div class="user-profile d-none d-lg-flex dropdown">
+        <button class="profile-trigger" id="userProfileBtn">
+          <span id="userNameHeader">Usuário</span>
+          <div class="avatar-icon"><i class="fas fa-user-circle"></i></div>
+        </button>
+        <div class="profile-menu">
+          <a href="javascript:void(0)" onclick="openProfileModal()"
+            ><i class="fas fa-id-badge"></i> Perfil</a
+          >
+          <a href="#"><i class="fas fa-key"></i> Senha</a>
+          <hr />
+          <a href="javascript:void(0)" onclick="logout()" class="text-danger"
+            ><i class="fas fa-sign-out-alt"></i> Sair</a
+          >
+        </div>
+      </div>
+
+      <button class="hamburger d-lg-none" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
 </header>
 
 <!-- SIDEBAR MOBILE -->
 <div class="mobile-drawer" id="mobileSidebar">
-    <div class="drawer-content">
-        <div class="drawer-header">
-            <span class="drawer-title">Menu</span>
-            <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
-        </div>
-        <div class="drawer-links">
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToIndex()"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); openReservationModal()"><i class="fas fa-plus"></i> Nova Reserva</a>
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToQueue()"><i class="fas fa-users-line"></i> Fila</a>
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToSearch()"><i class="fas fa-search"></i> Pesquisar</a>
-            <hr>
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); openProfileModal()"><i class="fas fa-id-badge"></i> Meu Perfil</a>
-            <a href="javascript:void(0)" onclick="toggleMobileMenu(); logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a>
-        </div>
+  <div class="drawer-content">
+    <div class="drawer-header">
+      <img src="" id="sidebarLogo" alt="Logo" />
+      <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
     </div>
+    <div class="drawer-links">
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          goToIndex();
+        "
+        ><i class="fas fa-home"></i> Dashboard</a
+      >
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          openReservationModal();
+        "
+        ><i class="fas fa-plus"></i> Nova Reserva</a
+      >
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          goToQueue();
+        "
+        ><i class="fas fa-users-line"></i> Fila</a
+      >
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          goToSearch();
+        "
+        ><i class="fas fa-search"></i> Pesquisar</a
+      >
+      <hr />
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          openProfileModal();
+        "
+        ><i class="fas fa-id-badge"></i> Meu Perfil</a
+      >
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          logout();
+        "
+        class="text-danger"
+        ><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a
+      >
+    </div>
+  </div>
 </div>
 
 <!-- MODAL PERFIL DO USUÁRIO -->
 <div class="profile-modal-overlay" id="profileModalOverlay">
-    <div class="profile-modal">
-        <div class="profile-modal-header">
-            <h3><i class="fas fa-user-circle"></i> Meu Perfil</h3>
-            <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
-        </div>
-        <div class="profile-modal-body">
-            <div class="profile-modal-avatar">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <div class="profile-modal-info">
-                <div class="profile-field">
-                    <label><i class="fas fa-user"></i> Nome</label>
-                    <span id="profileNome">Carregando...</span>
-                </div>
-                <div class="profile-field">
-                    <label><i class="fas fa-envelope"></i> E-mail</label>
-                    <span id="profileEmail">Carregando...</span>
-                </div>
-                <div class="profile-field">
-                    <label><i class="fas fa-building"></i> Empresa</label>
-                    <span id="profileEmpresa">Carregando...</span>
-                </div>
-                <div class="profile-field">
-                    <label><i class="fas fa-shield-alt"></i> Nivel</label>
-                    <span id="profileNivel">Carregando...</span>
-                </div>
-                <div class="profile-field">
-                    <label><i class="fas fa-calendar-alt"></i> Membro desde</label>
-                    <span id="profileDesde">Carregando...</span>
-                </div>
-                <div class="profile-field">
-                    <label><i class="fas fa-clock"></i> Ultimo acesso</label>
-                    <span id="profileAcesso">Carregando...</span>
-                </div>
-            </div>
-        </div>
+  <div class="profile-modal">
+    <div class="profile-modal-header">
+      <h3><i class="fas fa-user-circle"></i> Meu Perfil</h3>
+      <button class="profile-modal-close" onclick="closeProfileModal()">
+        &times;
+      </button>
     </div>
+    <div class="profile-modal-body">
+      <div class="profile-modal-avatar">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="profile-modal-info">
+        <div class="profile-field">
+          <label><i class="fas fa-user"></i> Nome</label>
+          <span id="profileNome">Carregando...</span>
+        </div>
+        <div class="profile-field">
+          <label><i class="fas fa-envelope"></i> E-mail</label>
+          <span id="profileEmail">Carregando...</span>
+        </div>
+        <div class="profile-field">
+          <label><i class="fas fa-building"></i> Empresa</label>
+          <span id="profileEmpresa">Carregando...</span>
+        </div>
+        <div class="profile-field">
+          <label><i class="fas fa-shield-alt"></i> Nivel</label>
+          <span id="profileNivel">Carregando...</span>
+        </div>
+        <div class="profile-field">
+          <label><i class="fas fa-calendar-alt"></i> Membro desde</label>
+          <span id="profileDesde">Carregando...</span>
+        </div>
+        <div class="profile-field">
+          <label><i class="fas fa-clock"></i> Ultimo acesso</label>
+          <span id="profileAcesso">Carregando...</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
-:root {
+  :root {
     --nav-height: 70px;
     --brand-color: #6a5af9;
     --brand-dark: #3d2d43;
     --glass: rgba(255, 255, 255, 0.1);
-    --shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
 
-.main-navbar {
-    position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height);
-    background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%);
-    z-index: 2000; box-shadow: var(--shadow); transition: transform 0.3s ease;
-}
+  .main-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    background: linear-gradient(
+      135deg,
+      var(--brand-color) 0%,
+      var(--brand-dark) 100%
+    );
+    z-index: 2000;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+  }
 
-.nav-wrapper {
-    max-width: 1400px; margin: 0 auto; height: 100%;
-    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-}
+  .nav-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
 
-/* LOGO LARGA */
-.logo-area {
-    width: 160px; height: 45px; cursor: pointer; background: var(--glass);
-    border-radius: 10px; padding: 5px; display: flex; align-items: center; justify-content: center;
-}
-.logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  /* LOGO LARGA */
+  .logo-area {
+    width: 160px;
+    height: 45px;
+    cursor: pointer;
+    background: var(--glass);
+    border-radius: 10px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-area img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
 
-/* NAVEGAÇÃO */
-.nav-links { list-style: none; display: flex; gap: 5px; margin: 0; padding: 0; }
-.nav-item-dropdown { position: relative; }
-.nav-action {
-    color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px;
-    font-size: 14px; font-weight: 500; transition: 0.2s; display: flex; align-items: center; gap: 8px;
-}
-.nav-action:hover { background: var(--glass); }
-
-/* MEGA MENU / DROPDOWN */
-.nav-mega-menu {
-    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-    background: white; min-width: 260px; border-radius: 12px; box-shadow: var(--shadow);
-    padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
-    padding-top: 18px; margin-top: 0;
-
-.nav-item-dropdown:hover .nav-mega-menu { opacity: 1; visibility: visible; }
-
-.nav-mega-menu a {
-    display: flex; align-items: center; gap: 15px; padding: 12px;
-    text-decoration: none; border-radius: 8px; transition: 0.2s;
-}
-.nav-mega-menu a:hover { background: #f4f6ff; }
-.nav-mega-menu i { font-size: 18px; color: var(--brand-color); width: 25px; text-align: center; }
-.nav-mega-menu strong { display: block; font-size: 14px; color: #333; }
-.nav-mega-menu span { font-size: 11px; color: #888; }
-
-/* PERFIL */
-.user-profile { position: relative; }
-.profile-trigger {
-    background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
-    color: white; padding: 5px 15px; border-radius: 50px; cursor: pointer;
-    display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600;
-}
-.avatar-icon { font-size: 24px; }
-
-.profile-menu {
-    position: absolute; top: 100%; right: 0; background: white; width: 180px;
-    border-radius: 10px; box-shadow: var(--shadow); opacity: 0; visibility: hidden;
-    padding: 8px; padding-top: 16px; transition: opacity 0.2s, visibility 0.2s;
-}
-.profile-menu::before {
-    content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 16px;
-}
-.user-profile:hover .profile-menu { opacity: 1; visibility: visible; }
-.profile-menu a {
-    display: flex; align-items: center; gap: 10px; padding: 10px;
-    text-decoration: none; color: #333; font-size: 14px; border-radius: 6px;
-}
-.profile-menu a:hover { background: #f4f6ff; }
-
-/* MOBILE ESPECÍFICO */
-.mobile-logo-area {
-    width: 110px; height: 38px; display: flex; align-items: center; justify-content: center;
-    background: var(--glass); border-radius: 8px; padding: 4px; overflow: hidden;
-}
-.mobile-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-.mobile-right-area {
-    display: flex; align-items: center; gap: 10px;
-}
-.mobile-user-pilled {
-    display: flex; align-items: center; gap: 6px; color: white;
-    background: var(--glass); padding: 4px 10px; border-radius: 50px; font-size: 11px;
-}
-.user-avatar-small { width: 22px; height: 22px; background: white; color: var(--brand-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-
-.hamburger { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-
-.mobile-drawer {
-    position: fixed; top: 0; right: -100%; width: 300px; height: 100vh;
-    background: white; z-index: 2100; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.mobile-drawer.open { right: 0; }
-.drawer-header {
-    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid #eee;
-}
-.drawer-title { font-size: 16px; font-weight: 700; color: #333; }
-.close-drawer { background: none; border: none; font-size: 22px; color: #999; cursor: pointer; padding: 4px 8px; }
-.drawer-links { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-.drawer-links a { padding: 15px; text-decoration: none; color: #333; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-weight: 500; }
-.drawer-links a:hover { background: #f4f6ff; color: var(--brand-color); }
-
-@media (max-width: 991px) {
-    .main-navbar { height: 60px; }
-    body { padding-top: 60px; }
-}
-
-/* MODAL PERFIL */
-.profile-modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); z-index: 3000;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; visibility: hidden; transition: 0.3s;
-}
-.profile-modal-overlay.active { opacity: 1; visibility: visible; }
-
-.profile-modal {
-    background: white; border-radius: 16px; width: 420px; max-width: 92vw;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(20px) scale(0.95);
-    transition: 0.3s; overflow: hidden;
-}
-.profile-modal-overlay.active .profile-modal { transform: translateY(0) scale(1); }
-
-.profile-modal-header {
-    background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%);
-    color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;
-}
-.profile-modal-header h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-.profile-modal-close {
-    background: rgba(255,255,255,0.2); border: none; color: white;
-    width: 32px; height: 32px; border-radius: 50%; font-size: 20px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  /* NAVEGAÇÃO */
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-item-dropdown {
+    position: relative;
+  }
+  .nav-action {
+    color: white;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
     transition: 0.2s;
-}
-.profile-modal-close:hover { background: rgba(255,255,255,0.35); }
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-action:hover {
+    background: var(--glass);
+  }
 
-.profile-modal-body { padding: 24px; }
+  /* MEGA MENU / DROPDOWN */
+  .nav-mega-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    min-width: 260px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s,
+      visibility 0.2s;
+    padding-top: 18px;
+    margin-top: 0;
+  }
+  .nav-mega-menu::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 18px;
+  }
+  .nav-item-dropdown:hover .nav-mega-menu {
+    opacity: 1;
+    visibility: visible;
+  }
 
-.profile-modal-avatar {
-    text-align: center; margin-bottom: 20px; font-size: 64px; color: var(--brand-color); line-height: 1;
-}
+  .nav-mega-menu a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.2s;
+  }
+  .nav-mega-menu a:hover {
+    background: #f4f6ff;
+  }
+  .nav-mega-menu i {
+    font-size: 18px;
+    color: var(--brand-color);
+    width: 25px;
+    text-align: center;
+  }
+  .nav-mega-menu strong {
+    display: block;
+    font-size: 14px;
+    color: #333;
+  }
+  .nav-mega-menu span {
+    font-size: 11px;
+    color: #888;
+  }
 
-.profile-field {
-    display: flex; flex-direction: column; padding: 10px 0;
+  /* PERFIL */
+  .user-profile {
+    position: relative;
+  }
+  .profile-trigger {
+    background: var(--glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .avatar-icon {
+    font-size: 24px;
+  }
+
+  .profile-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    width: 180px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    padding: 8px;
+    padding-top: 16px;
+    transition:
+      opacity 0.2s,
+      visibility 0.2s;
+  }
+  .profile-menu::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 16px;
+  }
+  .user-profile:hover .profile-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+  .profile-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+  .profile-menu a:hover {
+    background: #f4f6ff;
+  }
+
+  /* MOBILE ESPECÍFICO */
+  .mobile-user-pilled {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    background: var(--glass);
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+  }
+  .user-avatar-small {
+    width: 24px;
+    height: 24px;
+    background: white;
+    color: var(--brand-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 300px;
+    height: 100vh;
+    background: white;
+    z-index: 2100;
+    transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mobile-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+  }
+  .drawer-links {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .drawer-links a {
+    padding: 15px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+  }
+  .drawer-links a:hover {
+    background: #f4f6ff;
+    color: var(--brand-color);
+  }
+
+  @media (max-width: 991px) {
+    .main-navbar {
+      height: 60px;
+    }
+    body {
+      padding-top: 60px;
+    }
+  }
+
+  /* MODAL PERFIL */
+  .profile-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+  }
+  .profile-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .profile-modal {
+    background: white;
+    border-radius: 16px;
+    width: 420px;
+    max-width: 92vw;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    transform: translateY(20px) scale(0.95);
+    transition: 0.3s;
+    overflow: hidden;
+  }
+  .profile-modal-overlay.active .profile-modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .profile-modal-header {
+    background: linear-gradient(
+      135deg,
+      var(--brand-color) 0%,
+      var(--brand-dark) 100%
+    );
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .profile-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .profile-modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+  }
+  .profile-modal-close:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .profile-modal-body {
+    padding: 24px;
+  }
+
+  .profile-modal-avatar {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 64px;
+    color: var(--brand-color);
+    line-height: 1;
+  }
+
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
     border-bottom: 1px solid #f0f0f0;
-}
-.profile-field:last-child { border-bottom: none; }
-.profile-field label {
-    font-size: 11px; text-transform: uppercase; color: #888; font-weight: 600;
-    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
-}
-.profile-field span { font-size: 15px; color: #333; font-weight: 500; }
+  }
+  .profile-field:last-child {
+    border-bottom: none;
+  }
+  .profile-field label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #888;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .profile-field span {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+  }
 </style>

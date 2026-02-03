@@ -38,7 +38,7 @@ window.carregarReservas = async function() {
     }
 
     try {
-        const res = await fetch(`http://localhost:3001/api/reservas?data=${dataValue}`, {
+        const res = await fetch(`/api/reservas?data=${dataValue}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         

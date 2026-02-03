@@ -2,7 +2,7 @@
 // reservas.js - Gerenciar Reservas
 // ============================================
 
-const API_RESERVAS = 'http://localhost:3001/api/reservas';
+const API_RESERVAS = '/api/reservas';
 
 
 /**

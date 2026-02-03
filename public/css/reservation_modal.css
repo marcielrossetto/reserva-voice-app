@@ -1,111 +1,14 @@
 /* ==========================================================================
-   CSS EXCLUSIVO DO MODAL DE RESERVA (ESTILO iOS)
+   CSS COMPLEMENTAR DO MODAL DE RESERVA
+   Estilos base estao no reservation_modal.html <style>
    ========================================================================== */
 
-/* Arredondamento e Sombra do Modal */
-#modalReserva .modal-content {
-    border-radius: 22px;
-    border: none;
-    background-color: #fff;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-}
-
-/* Cabeçalho */
-#modalReserva .modal-header {
-    border-bottom: none;
-    padding: 20px 25px 10px;
-}
-
-#modalReserva .modal-title {
-    font-weight: 800;
-    color: #1c1c1e;
-    letter-spacing: -0.5px;
-}
-
-/* Inputs e Selects */
-#modalReserva .form-control, 
-#modalReserva .form-select {
-    border-radius: 12px;
-    border: 1px solid #d1d1d6;
-    background-color: #f9f9fb;
-    padding: 10px 15px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-}
-
-#modalReserva .form-control:focus, 
-#modalReserva .form-select:focus {
-    background-color: #fff;
-    border-color: #007AFF;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-    outline: none;
-}
-
-/* Labels Pequenas e Cinzas */
-#modalReserva .form-label.small.fw-bold {
-    color: #8e8e93;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    margin-bottom: 4px;
-    margin-left: 4px;
-}
-
-/* Área de Importação WhatsApp (Borda tracejada) */
-#whats_dados {
-    font-size: 0.85rem;
-    color: #48484a;
-    border: 1px dashed #d1d1d6 !important;
-}
-
-/* Card de Perfil do Cliente (Verde quando encontrado) */
-.profile-card {
-    background: #ffffff;
-    border: 1px solid #28a745 !important;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    padding: 15px;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.1);
-}
-
-.profile-card h6 {
-    color: #1c1c1e;
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-#stat-reservas, #stat-cancelada {
-    font-size: 1.2rem;
-    font-weight: 800;
-}
-
-/* Checkboxes Agrupados */
-.checkbox-area {
-    background: #f2f2f7;
-    border-radius: 14px;
-    padding: 15px;
-}
-
-.checkbox-area .form-check-label {
-    font-weight: 600;
-    color: #3a3a3c;
-    cursor: pointer;
-}
-
-/* Botões Arredondados */
-#modalReserva .rounded-pill {
-    padding: 10px 25px;
-    font-weight: 700;
-}
-
-#modalReserva .btn-primary {
-    background-color: #007AFF;
-    border: none;
-}
-
-#modalReserva .btn-primary:hover {
-    background-color: #0056b3;
-}
-
-/* Select Horários - Cores para Almoço/Jantar */
-#res_horario optgroup[label="Almoço"] { color: #f39c12; }
+/* Select Horarios - Cores para Almoco/Jantar */
+#res_horario optgroup[label="Almoco"] { color: #f39c12; }
 #res_horario optgroup[label="Jantar"] { color: #3498db; }
+
+/* Scrollbar compacta no body do modal */
+.rm-body::-webkit-scrollbar { width: 4px; }
+.rm-body::-webkit-scrollbar-track { background: transparent; }
+.rm-body::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+.rm-body::-webkit-scrollbar-thumb:hover { background: #aaa; }
