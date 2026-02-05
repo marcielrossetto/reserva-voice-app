@@ -39,6 +39,7 @@ app.use("/api/reservationQuery", require("./routes/reservationQuery.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/dashboard", require("./routes/dashboard.routes"));
+app.use("/api/relatorio-fila", require("./routes/relatorio-fila.routes"));
 
 app.use("/", require("./routes/search"));
 

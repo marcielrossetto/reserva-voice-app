@@ -232,6 +232,7 @@
     globalThis.goToSearch = () => window.location.href = '/search';
     globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
     globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';
+    globalThis.goToRelatorioFila = () => window.location.href = '/html/relatorio-fila.html';
 
     init();
 })();
