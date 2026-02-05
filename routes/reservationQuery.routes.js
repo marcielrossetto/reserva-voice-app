@@ -26,7 +26,7 @@ function normalizeDateForDb(date) {
 /**
  * Registrar alteração no histórico
  */
-async function registrarAlteracao(clienteId, campo, valorAnterior, valorNovo) {
+async function registrarAlteracao(clienteId, campo, valorAnterior, valorNovo, usuarioNome) {
     try {
         if (String(valorAnterior || '') !== String(valorNovo || '')) {
             await prisma.clienteAlteracao.create({
@@ -34,10 +34,11 @@ async function registrarAlteracao(clienteId, campo, valorAnterior, valorNovo) {
                     clienteId: parseInt(clienteId),
                     campo,
                     valorAnterior: String(valorAnterior || ''),
-                    valorNovo: String(valorNovo || '')
+                    valorNovo: String(valorNovo || ''),
+                    usuarioNome: usuarioNome || null
                 }
             });
-            console.log(`📝 Alteração registrada: reserva ${clienteId} campo ${campo}`);
+            console.log(`📝 Alteração: reserva ${clienteId} | ${campo} | por ${usuarioNome}`);
         }
     } catch (err) {
         console.error('❌ Erro ao registrar alteração:', err);
@@ -70,12 +71,7 @@ router.put("/:id/status", auth, async (req, res) => {
         });
 
         // Registrar alteração
-        await registrarAlteracao(
-            id,
-            'confirmado',
-            anterior.confirmado,
-            status === 'confirmed'
-        );
+        await registrarAlteracao(id, 'confirmado', anterior.confirmado, status === 'confirmed', req.user.nome);
 
         res.json({ success: true, reservation: atualizado });
     } catch (err) {
@@ -111,8 +107,8 @@ router.put("/:id/reactivate", auth, async (req, res) => {
         });
 
         // Registrar alterações
-        await registrarAlteracao(id, 'status', false, true);
-        await registrarAlteracao(id, 'confirmado', anterior.confirmado, false);
+        await registrarAlteracao(id, 'status', false, true, req.user.nome);
+        await registrarAlteracao(id, 'confirmado', anterior.confirmado, false, req.user.nome);
 
         console.log(`✅ Reservation ${id} reactivated`);
 
@@ -150,13 +146,8 @@ router.put("/:id/cancel", auth, async (req, res) => {
         });
 
         // Registrar alterações
-        await registrarAlteracao(id, 'status', true, false);
-        await registrarAlteracao(
-            id,
-            'motivoCancelamento',
-            anterior.motivoCancelamento,
-            reason || "Cancelled by user"
-        );
+        await registrarAlteracao(id, 'status', true, false, req.user.nome);
+        await registrarAlteracao(id, 'motivoCancelamento', anterior.motivoCancelamento, reason || "Cancelled by user", req.user.nome);
 
         console.log(`❌ Reservation ${id} cancelled. Reason: ${reason}`);
 
@@ -193,7 +184,7 @@ router.put("/:id/confirm", auth, async (req, res) => {
         });
 
         // Registrar alteração
-        await registrarAlteracao(id, 'confirmado', anterior.confirmado, true);
+        await registrarAlteracao(id, 'confirmado', anterior.confirmado, true, req.user.nome);
 
         console.log(`✅ Reservation ${id} confirmed`);
 
@@ -504,12 +495,7 @@ router.put("/:id", auth, async (req, res) => {
         const idInt = parseInt(id);
         for (const field of updatableFields) {
             if (d[field] !== undefined && String(d[field]) !== String(reservationCurrent[field])) {
-                await registrarAlteracao(
-                    idInt,
-                    field,
-                    reservationCurrent[field],
-                    d[field]
-                );
+                await registrarAlteracao(idInt, field, reservationCurrent[field], d[field], req.user.nome);
             }
         }
 
