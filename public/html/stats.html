@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Treinamento de Performance | RossApp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+
+    <style>
+      :root {
+        --brand: #6a5af9;
+        --bg: #f2f2f7;
+        --text-dark: #1c1c1e;
+      }
+      body {
+        background-color: var(--bg);
+        padding-top: 100px;
+        font-family: -apple-system, sans-serif;
+      }
+
+      .training-card {
+        background: #fff;
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        margin-bottom: 30px;
+        border: none;
+      }
+
+      .section-title {
+        font-weight: 800;
+        color: var(--brand);
+        margin-bottom: 25px;
+        border-bottom: 2px solid #f2f2f7;
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .concept-box {
+        background: #f8f9ff;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid #eef0ff;
+      }
+      .concept-box h5 {
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 15px;
+      }
+      .concept-box p {
+        font-size: 1rem;
+        color: #48484a;
+        line-height: 1.7;
+        text-align: justify;
+      }
+
+      .trigger-pill {
+        background: var(--brand);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: inline-block;
+      }
+
+      .script-example {
+        background: #fff;
+        border-left: 5px solid #34c759;
+        padding: 20px;
+        border-radius: 0 15px 15px 0;
+        margin: 15px 0;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.02);
+      }
+      .script-example em {
+        color: #1da851;
+        font-weight: 600;
+        font-style: normal;
+      }
+
+      .highlight-text {
+        color: var(--brand);
+        font-weight: 700;
+      }
+
+      .psychology-list {
+        list-style: none;
+        padding: 0;
+      }
+      .psychology-list li {
+        margin-bottom: 20px;
+        padding-left: 35px;
+        position: relative;
+      }
+      .psychology-list li i {
+        position: absolute;
+        left: 0;
+        top: 5px;
+        color: var(--brand);
+      }
+
+      .footer-brand {
+        text-align: center;
+        margin-top: 50px;
+        padding-bottom: 50px;
+        color: #8e8e93;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-container"></div>
+
+    <div class="container">
+      <div class="training-card">
+        <div class="text-center mb-5">
+          <h1 class="fw-900">Guia RossApp: Inteligência em Reservas</h1>
+          <p class="text-muted">
+            Transformando atendentes em especialistas em conversão e fidelidade.
+          </p>
+        </div>
+
+        <!-- SEÇÃO 1: O QUE O CLIENTE PENSA -->
+        <section class="mb-5">
+          <h2 class="section-title">
+            <i class="fas fa-brain"></i> A Psicologia do Cliente de Reserva
+          </h2>
+          <div class="concept-box">
+            <p>
+              Quando um cliente entra em contato para reservar uma mesa, ele não
+              está apenas buscando um lugar para comer; ele está buscando
+              <strong>segurança e validação social</strong>. O ato de reservar
+              elimina a ansiedade do desconhecido. O cliente pensa:
+              <em>"Eu tenho um lugar garantido, eu sou esperado."</em>
+            </p>
+            <p>
+              Se o cliente está reservando para um grupo, a pressão é maior. Ele
+              é o responsável pela experiência dos outros. Por isso, a sua voz
+              ou texto deve transmitir
+              <strong>autoridade e acolhimento</strong>. Ele precisa sentir que,
+              ao falar com você, o problema de "onde vamos jantar" foi resolvido
+              com excelência.
+            </p>
+          </div>
+        </section>
+
+        <!-- SEÇÃO 2: GATILHOS MENTAIS -->
+        <section class="mb-5">
+          <h2 class="section-title">
+            <i class="fas fa-bolt"></i> Gatilhos Mentais de Alta Conversão
+          </h2>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="concept-box">
+                <span class="trigger-pill">Gatilho da Escassez</span>
+                <h5>Crie Senso de Urgência</h5>
+                <p>
+                  As pessoas valorizam mais o que é limitado. Em vez de dizer
+                  "temos mesa", diga que o salão está com alta procura. Isso
+                  aumenta a percepção de valor do restaurante.
+                </p>
+                <div class="script-example">
+                  "Olá [Nome]! Para este sábado as nossas mesas no salão
+                  principal já estão quase esgotadas, mas
+                  <em>consegui separar uma das últimas</em> para o seu grupo às
+                  20h. Posso confirmar?"
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="concept-box">
+                <span class="trigger-pill">Gatilho da Afeição</span>
+                <h5>O Poder do Nome</h5>
+                <p>
+                  O som mais doce para qualquer ser humano é o seu próprio nome.
+                  Ao usar o RossApp, veja o histórico e chame o cliente pelo
+                  nome imediatamente. Isso quebra a barreira comercial e vira
+                  uma relação pessoal.
+                </p>
+                <div class="script-example">
+                  "Que bom falar com você novamente, <em>Marciel</em>! Vejo que
+                  esteve conosco no mês passado. Vamos repetir aquela
+                  experiência excelente hoje?"
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO 3: ABORDAGEM RossApp -->
+        <section class="mb-5">
+          <h2 class="section-title">
+            <i class="fas fa-comments"></i> A Arte da Conversação
+          </h2>
+          <div class="concept-box">
+            <h5>Como Falar e Como Escrever</h5>
+            <ul class="psychology-list">
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <strong>Não seja um anotador de pedidos:</strong> Em vez de
+                perguntar "Quantas pessoas?", diga "Para quantas pessoas será a
+                sua celebração?". A palavra <em>celebração</em> eleva o nível do
+                jantar na mente do cliente.
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <strong>Confirmação de Compromisso:</strong> Ao finalizar, use o
+                gatilho do compromisso. "Marciel, sua mesa está separada. Posso
+                contar com sua pontualidade para garantirmos o melhor lugar do
+                salão?". Quando o cliente responde "Sim", ele assume um
+                compromisso moral com você, reduzindo drasticamente o No-Show.
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <strong>Venda antecipada:</strong> Se o RossApp te mostrar que o
+                cliente gosta de vinhos ou é aniversário, já antecipe: "Já
+                deixarei nossa carta de vinhos selecionada na sua mesa" ou "O
+                brinde de aniversário já está sendo preparado pela nossa
+                equipe".
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- SEÇÃO 4: O QUE O CLIENTE ESPERA -->
+        <section class="mb-5">
+          <h2 class="section-title">
+            <i class="fas fa-star"></i> O que o Cliente Espera de você?
+          </h2>
+          <div class="row g-4">
+            <div class="col-md-4 text-center">
+              <i class="fas fa-stopwatch fa-2x mb-3 text-primary"></i>
+              <h6>Velocidade</h6>
+              <p class="small text-muted">
+                Na era do WhatsApp, 10 minutos de espera por uma resposta
+                parecem 1 hora. Responda rápido, mesmo que seja para dizer que
+                está verificando.
+              </p>
+            </div>
+            <div class="col-md-4 text-center">
+              <i class="fas fa-handshake fa-2x mb-3 text-primary"></i>
+              <h6>Reconhecimento</h6>
+              <p class="small text-muted">
+                O cliente espera que você lembre dele. Use o campo de
+                <strong>Observações do Cliente</strong> no RossApp para anotar
+                preferências (ex: "gosta da mesa 5", "alérgico a camarão").
+              </p>
+            </div>
+            <div class="col-md-4 text-center">
+              <i class="fas fa-shield-check fa-2x mb-3 text-primary"></i>
+              <h6>Confiança</h6>
+              <p class="small text-muted">
+                Ele espera que a reserva seja real. Enviar o link de confirmação
+                do RossApp gera um documento visual que dá tranquilidade ao
+                cliente.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO 5: CONCLUSÃO -->
+        <section>
+          <div class="logic-card text-center">
+            <h3 class="fw-800">Lembre-se: Você é o Cartão de Visitas</h3>
+            <p class="mb-0">
+              A experiência do cliente começa no momento em que ele decide
+              reservar. O RossApp te dá os dados, mas a
+              <strong>inteligência emocional</strong> é sua. Use as informações
+              de fidelidade para tratar cada cliente como único.
+            </p>
+          </div>
+        </section>
+
+        <div class="footer-brand">
+          <strong>RossApp - Inteligência para Gastronomia</strong><br />
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/components/header.js"></script>
+  </body>
+</html>

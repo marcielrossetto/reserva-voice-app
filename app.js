@@ -58,6 +58,11 @@ app.get("/reservationQuery", (req, res) => {
     res.render("reservationQuery");
 });
 
+
+// app.js
+app.get("/stats", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "html", "stats.html"));
+});
 // No seu app.js (raiz), adicione esta rota antes do fallback (*)
 app.get("/dashboard", (req, res) => {
     // Certifique-se que o nome do arquivo na pasta public/html é dashboard.html

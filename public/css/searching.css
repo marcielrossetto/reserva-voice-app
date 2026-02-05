@@ -189,16 +189,35 @@ body {
 
 /* Scroll Box */
 .scroll-box {
-  max-width: 180px;
-  max-height: 55px;
-  overflow-y: auto;
-  font-size: 0.75rem;
-  background: #fff;
-  padding: 4px;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  white-space: normal;
-  line-height: 1.2;
+  width: 200px !important;  /* Largura fixa */
+  height: 100px !important; /* Altura fixa */
+  overflow-y: auto;       /* Scroll vertical */
+  overflow-x: hidden;     /* Trava horizontal */
+  word-wrap: break-word;
+}
+/* Caixa de Observação com Scroll Fixo */
+.obs-scroll-box {
+    width: 100px;         /* Largura exata pedida */
+    height: 50px;        /* Altura exata pedida */
+    overflow-y: auto;    /* Ativa o scroll vertical */
+    overflow-x: hidden;  /* Esconde scroll horizontal */
+    background: #f9f9fb;
+    border: 1px solid #eef0ff;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    word-wrap: break-word; /* Força a quebra de texto para não estourar a largura */
+    color: #444;
+}
+
+/* Deixa a barra de rolagem fininha */
+.obs-scroll-box::-webkit-scrollbar {
+    width: 4px;
+}
+.obs-scroll-box::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
 }
 
 .scroll-box::-webkit-scrollbar {

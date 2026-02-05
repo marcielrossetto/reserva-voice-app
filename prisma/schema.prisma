@@ -58,24 +58,30 @@ model Empresa {
 // ============================================================================
 
 model Usuario {
-id            Int       @id @default(autoincrement())
-empresaId     Int
-nome          String    @db.VarChar(255)
-email         String    @unique @db.VarChar(255)
-senha         String    @db.VarChar(255)
-nivel         String    @db.VarChar(50)
-status        Boolean   @default(true)
-dataEmissao   DateTime  @default(now())
-ultimoAcesso  DateTime?
-// ✅ NOVOS CAMPOS
-pinVerificacao  String?   @db.VarChar(6)
-pinRecuperacao  String?   @db.VarChar(6)
-pinExpiracao    DateTime?
-empresa       Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-@@index([empresaId])
-@@index([email])
-@@index([status])
-@@map("login")
+  id              Int       @id @default(autoincrement())
+  empresaId       Int
+  nome            String    @db.VarChar(255)
+  email           String    @unique @db.VarChar(255)
+  senha           String    @db.VarChar(255)
+  nivel           String    @db.VarChar(50)
+  status          Boolean   @default(true)
+  dataEmissao     DateTime  @default(now())
+  ultimoAcesso    DateTime?
+
+  // ✅ NOVOS CAMPOS DE SEGURANÇA
+  pinVerificacao  String?   @db.VarChar(6)
+  pinRecuperacao  String?   @db.VarChar(6)
+  pinExpiracao    DateTime?
+
+  // ✅ RELAÇÃO INVERSA (Adicione esta linha para permitir o include na pesquisa)
+  clientes        Cliente[] 
+
+  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@index([email])
+  @@index([status])
+  @@map("login")
 }
 // ============================================================================
 // CLIENTES - CORRIGIDO: horario como String (HH:MM:SS)
@@ -85,9 +91,9 @@ model Cliente {
   id                    Int       @id @default(autoincrement())
   empresaId             Int
   nome                  String    @db.VarChar(255)
-  data                  DateTime
+  data                  DateTime  // Sugestão: Use @db.Date se quiser apenas o dia
   numPessoas            Int
-  horario               String    @db.VarChar(8)
+  horario               String    @db.VarChar(8) // Formato HH:mm:ss
   telefone              String?   @db.VarChar(20)
   telefone2             String?   @db.VarChar(20)
   tipoEvento            String?   @db.VarChar(100)
@@ -99,7 +105,11 @@ model Cliente {
   dataEmissao           DateTime  @default(now())
   status                Boolean   @default(true)
   confirmado            Boolean   @default(false)
+  
+  // RELAÇÃO COM USUÁRIO (Corrigido)
   usuarioId             Int?
+  usuario               Usuario?  @relation(fields: [usuarioId], references: [id])
+
   motivoCancelamento    String?   @db.Text
   tortaTermoVela        Boolean   @default(false)
   churrascaria          Boolean   @default(false)
@@ -113,7 +123,6 @@ model Cliente {
   @@index([status])
   @@map("clientes")
 }
-
 // ============================================================================
 // HISTÓRICO DE ALTERAÇÕES DE CLIENTES
 // ============================================================================

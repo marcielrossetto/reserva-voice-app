@@ -63,15 +63,16 @@ router.get("/search", authMiddleware, async (req, res) => {
 
     console.log("🔍 Where clause:", JSON.stringify(where, null, 2));
 
-    const reservas = await prisma.cliente.findMany({
-      where,
-      include: {
-        empresa: {
-          select: { nomeEmpresa: true },
-        },
-      },
-      orderBy: { id: "desc" },
-    });
+   // Dentro da rota GET /search, mude o findMany para:
+const reservas = await prisma.cliente.findMany({
+  where,
+  include: {
+    empresa: { select: { nomeEmpresa: true } },
+    // Adicione a relação com o usuário para saber quem registrou
+    usuario: { select: { nome: true } } 
+  },
+  orderBy: { id: "desc" },
+});
 
     console.log(`✅ ${reservas.length} reservas encontradas com filtro status=${where.status}`);
     

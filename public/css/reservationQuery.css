@@ -429,7 +429,7 @@
     display: flex;
     padding: 0.75rem 1rem;
     background: #fff;
-    border-radius: 8px;
+    border-radius: 0px;
     border-left: 4px solid #007bff;
     flex-wrap: wrap;
     margin: 0 auto 1rem;
@@ -437,7 +437,11 @@
     font-size: clamp(0.78rem, 1.5vw, 0.9rem);
     box-sizing: border-box;
 }
-.totais-info span { font-weight: 600; }
+.totais-info span { font-weight: 600;
+margin-left: 15px;
+align-items: center;
+text-align: center;
+font-size: 1rem; }
 
 /* ===== RESPONSIVE - TABLET (<=968px) ===== */
 @media (max-width: 968px) {
