@@ -231,6 +231,7 @@
     globalThis.goToQueue = () => window.location.href = '/html/fila.html';
     globalThis.goToSearch = () => window.location.href = '/search';
     globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
+    globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';
 
     init();
 })();

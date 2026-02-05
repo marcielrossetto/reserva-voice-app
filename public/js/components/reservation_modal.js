@@ -455,6 +455,13 @@ async function openEditModal(id) {
 }
 
 function showEditModal(reservation) {
+  // Formatar data para input date (YYYY-MM-DD)
+  let dataFormatada = '';
+  if (reservation.data) {
+    const d = new Date(reservation.data);
+    dataFormatada = d.toISOString().split('T')[0];
+  }
+
   const html = `
         <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 10000;">
             <div class="modal-dialog modal-dialog-centered">
@@ -465,35 +472,47 @@ function showEditModal(reservation) {
                     </div>
                     <div class="modal-body">
                         <form id="editForm">
-                            <div class="form-group">
+                            <div class="form-group mb-2">
                                 <label class="fw-bold">Nome</label>
                                 <input type="text" id="edit_nome" class="form-control" value="${reservation.nome}" required>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="fw-bold">Pessoas</label>
-                                        <input type="number" id="edit_pax" class="form-control" value="${reservation.numPessoas}" min="1" required>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label class="fw-bold">Data</label>
+                                        <input type="date" id="edit_data" class="form-control" value="${dataFormatada}" required>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
                                         <label class="fw-bold">Horario</label>
                                         <input type="time" id="edit_horario" class="form-control" value="${reservation.horario.substring(0, 5)}" required>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label class="fw-bold">Pessoas</label>
+                                        <input type="number" id="edit_pax" class="form-control" value="${reservation.numPessoas}" min="1" required>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label class="fw-bold">Telefone</label>
-                                <input type="tel" id="edit_telefone" class="form-control" value="${reservation.telefone || ""}" placeholder="(11) 99999-9999">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-2">
+                                        <label class="fw-bold">Telefone</label>
+                                        <input type="tel" id="edit_telefone" class="form-control" value="${reservation.telefone || ""}" placeholder="(11) 99999-9999">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-2">
+                                        <label class="fw-bold">Mesa</label>
+                                        <input type="text" id="edit_mesa" class="form-control" value="${reservation.numMesa || ""}">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label class="fw-bold">Mesa</label>
-                                <input type="text" id="edit_mesa" class="form-control" value="${reservation.numMesa || ""}">
-                            </div>
-                            <div class="form-group">
+                            <div class="form-group mb-2">
                                 <label class="fw-bold">Observacoes</label>
-                                <textarea id="edit_obs" class="form-control" rows="3">${reservation.observacoes || ""}</textarea>
+                                <textarea id="edit_obs" class="form-control" rows="2">${reservation.observacoes || ""}</textarea>
                             </div>
                         </form>
                     </div>
@@ -511,6 +530,7 @@ function showEditModal(reservation) {
 async function saveEdit(id) {
   const payload = {
     nome: document.getElementById("edit_nome").value,
+    data: document.getElementById("edit_data").value,
     numPessoas: parseInt(document.getElementById("edit_pax").value),
     horario: document.getElementById("edit_horario").value + ":00",
     telefone: document.getElementById("edit_telefone").value || null,
@@ -519,19 +539,23 @@ async function saveEdit(id) {
   };
 
   try {
+    const tkn = localStorage.getItem("token");
     const res = await fetch(`/api/reservationQuery/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${tkn}`,
       },
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) {
+    const data = await res.json();
+    if (data.success) {
       document.querySelector(".modal").remove();
       showToast("Reserva atualizada", "success");
       loadReservations();
+    } else {
+      showToast(data.error || "Erro ao salvar", "danger");
     }
   } catch (err) {
     showToast("Erro ao salvar", "danger");

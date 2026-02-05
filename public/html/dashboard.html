@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard BI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>body { padding-top: 80px; background: #f0f2f5; }
+    @media (max-width: 991px) { body { padding-top: 60px; } }</style>
+</head>
+<body>
+
+<div id="header-container"></div>
+
+<div class="container-fluid px-3 px-md-4" style="max-width: 1400px;">
+
+    <!-- Toolbar -->
+    <div class="dash-toolbar">
+        <div class="dash-toolbar-left">
+            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Dashboard BI</h5>
+        </div>
+        <div class="dash-toolbar-right">
+            <div class="btn-group btn-group-sm" id="periodoBtns">
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('7d', this)">7 dias</button>
+                <button class="btn btn-outline-primary active" onclick="trocarPeriodo('30d', this)">30 dias</button>
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('90d', this)">90 dias</button>
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('12m', this)">12 meses</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingDash" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Carregando metricas...</p>
+    </div>
+
+    <!-- Conteudo -->
+    <div id="dashContent" style="display: none;">
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4" id="kpiCards">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e8f0fe;"><i class="fas fa-calendar-check" style="color: #1a73e8;"></i></div>
+                    <div class="kpi-value" id="kpiReservas">0</div>
+                    <div class="kpi-label">Reservas</div>
+                    <div class="kpi-variacao" id="kpiReservasVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e6f4ea;"><i class="fas fa-users" style="color: #1e8e3e;"></i></div>
+                    <div class="kpi-value" id="kpiPax">0</div>
+                    <div class="kpi-label">Pessoas (Pax)</div>
+                    <div class="kpi-variacao" id="kpiPaxVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #fce8e6;"><i class="fas fa-times-circle" style="color: #d93025;"></i></div>
+                    <div class="kpi-value" id="kpiCancelamento">0%</div>
+                    <div class="kpi-label">Cancelamento</div>
+                    <div class="kpi-variacao" id="kpiCancelVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e8f0fe;"><i class="fas fa-check-double" style="color: #1a73e8;"></i></div>
+                    <div class="kpi-value" id="kpiConfirmacao">0%</div>
+                    <div class="kpi-label">Confirmacao</div>
+                    <div class="kpi-variacao" id="kpiConfirmVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #fef7e0;"><i class="fas fa-dollar-sign" style="color: #e37400;"></i></div>
+                    <div class="kpi-value" id="kpiTicket">R$ 0</div>
+                    <div class="kpi-label">Ticket Medio</div>
+                    <div class="kpi-variacao" id="kpiTicketVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f3e8fd;"><i class="fas fa-user-friends" style="color: #8430ce;"></i></div>
+                    <div class="kpi-value" id="kpiMediaPax">0</div>
+                    <div class="kpi-label">Media Pax/Res</div>
+                    <div class="kpi-variacao" id="kpiMediaVar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graficos Row 1 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-chart-area"></i> Evolucao no Periodo</h6>
+                    <canvas id="chartEvolucao"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-sun"></i> Almoco vs Jantar</h6>
+                    <canvas id="chartPeriodo"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graficos Row 2 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-calendar-week"></i> Reservas por Dia da Semana</h6>
+                    <canvas id="chartDiaSemana"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-trophy"></i> Top 10 Clientes Frequentes</h6>
+                    <canvas id="chartTopClientes"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graficos Row 3 -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-credit-card"></i> Formas de Pagamento</h6>
+                    <canvas id="chartPagamento"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-ban"></i> Motivos de Cancelamento</h6>
+                    <canvas id="chartCancelamento"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>
