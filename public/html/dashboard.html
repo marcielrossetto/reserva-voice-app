@@ -7,19 +7,39 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>body { padding-top: 80px; background: #f0f2f5; }
-    @media (max-width: 991px) { body { padding-top: 60px; } }</style>
+    <style>
+        body { padding-top: 80px; background: #f0f2f5; overflow-x: hidden; overflow-y: auto; min-height: 100vh; }
+        @media (max-width: 991px) { body { padding-top: 65px; } }
+    </style>
 </head>
 <body>
 
 <div id="header-container"></div>
 
-<div class="container-fluid px-3 px-md-4" style="max-width: 1400px;">
+<div class="container-fluid px-3 px-md-4 pb-4" style="max-width: 1400px;">
 
     <!-- Toolbar -->
     <div class="dash-toolbar">
         <div class="dash-toolbar-left">
             <h5 class="mb-0"><i class="fas fa-chart-line"></i> Dashboard BI</h5>
+        </div>
+        <div class="dash-toolbar-center">
+            <div class="filtro-datas">
+                <div class="filtro-data-group">
+                    <label for="dataInicio"><i class="fas fa-calendar"></i> De</label>
+                    <input type="date" id="dataInicio" class="form-control form-control-sm">
+                </div>
+                <div class="filtro-data-group">
+                    <label for="dataFim"><i class="fas fa-calendar"></i> Ate</label>
+                    <input type="date" id="dataFim" class="form-control form-control-sm">
+                </div>
+                <button class="btn btn-sm btn-primary btn-filtrar-datas" onclick="filtrarPorDatas()">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <button class="btn btn-sm btn-outline-secondary btn-limpar-datas" onclick="limparFiltro()" title="Limpar filtro de datas">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
         <div class="dash-toolbar-right">
             <div class="btn-group btn-group-sm" id="periodoBtns">
@@ -97,13 +117,17 @@
             <div class="col-12 col-lg-8">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-chart-area"></i> Evolucao no Periodo</h6>
-                    <canvas id="chartEvolucao"></canvas>
+                    <div class="chart-wrapper" style="height: 320px;">
+                        <canvas id="chartEvolucao"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-12 col-lg-4">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-sun"></i> Almoco vs Jantar</h6>
-                    <canvas id="chartPeriodo"></canvas>
+                    <div class="chart-wrapper" style="height: 320px;">
+                        <canvas id="chartPeriodo"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,13 +137,17 @@
             <div class="col-12 col-lg-6">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-calendar-week"></i> Reservas por Dia da Semana</h6>
-                    <canvas id="chartDiaSemana"></canvas>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartDiaSemana"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-12 col-lg-6">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-trophy"></i> Top 10 Clientes Frequentes</h6>
-                    <canvas id="chartTopClientes"></canvas>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartTopClientes"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -129,13 +157,17 @@
             <div class="col-12 col-lg-6">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-credit-card"></i> Formas de Pagamento</h6>
-                    <canvas id="chartPagamento"></canvas>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartPagamento"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-12 col-lg-6">
                 <div class="chart-card">
                     <h6 class="chart-title"><i class="fas fa-ban"></i> Motivos de Cancelamento</h6>
-                    <canvas id="chartCancelamento"></canvas>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartCancelamento"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
