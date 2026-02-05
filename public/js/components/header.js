@@ -111,8 +111,13 @@
 
     globalThis.logout = () => {
         if (confirm("Deseja sair do sistema?")) {
-            localStorage.clear();
-            window.location.replace("/login.html");
+            if (typeof fazerLogout === 'function') {
+                fazerLogout();
+            } else {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.replace("/login.html");
+            }
         }
     };
 
@@ -225,6 +230,7 @@
     globalThis.goToIndex = () => window.location.href = '/html/index.html';
     globalThis.goToQueue = () => window.location.href = '/html/fila.html';
     globalThis.goToSearch = () => window.location.href = '/search';
+    globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
 
     init();
 })();

@@ -4,6 +4,8 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Auth já verificada pelo config.js - não duplicar
+  if (!localStorage.getItem("token")) return;
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("filterData").value = today;
   loadReservations();

@@ -222,7 +222,7 @@ class Calendar {
                 console.error("❌ Token expirado!");
                 this.pararAutoRefresh();
                 this.desconectarWebSocket();
-                window.location.href = "/login.html";
+                if (typeof redirecionarParaLogin === 'function') redirecionarParaLogin();
                 return;
             }
 

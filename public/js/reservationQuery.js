@@ -7,7 +7,8 @@
 // ❌ NÃO DECLARE TOKEN AQUI - use o de config.js
 
 document.addEventListener("DOMContentLoaded", () => {
-  verificarAutenticacao();
+  // Auth já verificada pelo config.js - não duplicar
+  if (!localStorage.getItem("token")) return;
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("filterData").value = today;
   loadReservations();

@@ -35,6 +35,18 @@ const API_CONFIG = {
 // ✅ SEM let/const - deixar global!
 token = localStorage.getItem("token");
 
+// ========================= CONTROLE DE REDIRECIONAMENTO =========================
+
+let _redirecionando = false;
+
+function redirecionarParaLogin() {
+  if (_redirecionando) return;
+  _redirecionando = true;
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = "/login.html";
+}
+
 // ========================= INTERCEPTAR FETCH - TOKEN EXPIRADO =========================
 
 /**
@@ -45,25 +57,22 @@ const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   let response = await originalFetch.apply(this, args);
 
+  // Não interceptar se já está na página de login
+  if (window.location.pathname.includes("login")) {
+    return response;
+  }
+
   // ✅ Se status 401 (não autorizado/token expirado)
   if (response.status === 401) {
     try {
-      const data = await response.json();
+      const cloned = response.clone();
+      const data = await cloned.json();
 
       // Se backend indicou que é token expirado
       if (data.redirect || data.erro?.includes("expirado")) {
         console.warn("⚠️ SESSÃO EXPIRADA! Redirecionando para login...");
-
-        // Limpar dados
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Mostrar mensagem
         alert("⏰ Sua sessão expirou!\nPor favor, faça login novamente.");
-
-        // Redirecionar para login
-        window.location.href = "/login.html";
-
+        redirecionarParaLogin();
         return response;
       }
     } catch (e) {
@@ -85,7 +94,7 @@ function verificarAutenticacao() {
   // Se não tem token → vai para login
   if (!tokenAtual) {
     console.log("❌ Sem token. Redirecionando para login...");
-    window.location.href = "/login.html";
+    redirecionarParaLogin();
     return false;
   }
 
@@ -102,9 +111,7 @@ function verificarTokenValido(tokenParam) {
   // Token vazio = inválido
   if (!tokenParam) {
     console.warn("⚠️ Token inválido!");
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/login.html";
+    redirecionarParaLogin();
     return false;
   }
 
@@ -128,10 +135,7 @@ function atualizarToken(novoToken) {
 function fazerLogout() {
   console.log("🚪 Fazendo logout...");
   token = null;
-  localStorage.clear();
-  sessionStorage.clear();
-  console.log("✅ Logout realizado");
-  window.location.href = "/login.html";
+  redirecionarParaLogin();
 }
 
 // ========================= REQUISIÇÕES AUTENTICADAS =========================
@@ -278,6 +282,7 @@ globalThis.verificarAutenticacao = verificarAutenticacao;
 globalThis.verificarTokenValido = verificarTokenValido;
 globalThis.atualizarToken = atualizarToken;
 globalThis.fazerLogout = fazerLogout;
+globalThis.redirecionarParaLogin = redirecionarParaLogin;
 globalThis.showToast = showToast;
 globalThis.formatarData = formatarData;
 
@@ -302,13 +307,13 @@ console.log("✅ Variáveis globais:", {
 document.addEventListener("DOMContentLoaded", () => {
   const currentPage = window.location.pathname;
   const tokenLocal = localStorage.getItem("token");
-  const usuario = localStorage.getItem("usuario");
+  const usuario = localStorage.getItem("userName");
 
   console.log("📄 Página:", currentPage);
   console.log("🔐 Token:", tokenLocal ? "✅ OK" : "❌ Não encontrado");
 
-  // ✅ Se está em login.html, deixa carregar
-  if (currentPage.includes("login.html") || currentPage === "/") {
+  // ✅ Se está em login.html ou raiz, deixa carregar
+  if (currentPage.includes("login") || currentPage === "/") {
     console.log("📄 Página de login/home - permitido");
     return;
   }
@@ -316,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ Se não tem token e NÃO está em login, redireciona
   if (!tokenLocal) {
     console.log("❌ Sem token! Redirecionando para login...");
-    window.location.href = "/login.html";
+    redirecionarParaLogin();
     return;
   }
 

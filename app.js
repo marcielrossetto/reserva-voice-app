@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("node:path");
+const fs = require("node:fs");
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
 const logoRoutes = require('./routes/empresa-logo');
@@ -68,10 +69,21 @@ app.get("*", (req, res) => {
         return res.status(404).json({ success: false, error: "API Route not found" });
     }
 
-    if (req.path.includes("login.html")) {
-        return res.sendFile(path.join(PATHS.html, "login.html"));
+    if (req.path.endsWith('.html')) {
+        // 1. Tenta em public/ (ex: /html/index.html → public/html/index.html)
+        const inPublic = path.join(PATHS.public, req.path);
+        if (fs.existsSync(inPublic)) {
+            return res.sendFile(inPublic);
+        }
+
+        // 2. Tenta em public/html/ (ex: /login.html → public/html/login.html)
+        const inHtml = path.join(PATHS.html, path.basename(req.path));
+        if (fs.existsSync(inHtml)) {
+            return res.sendFile(inHtml);
+        }
     }
 
+    // Fallback: index.html
     res.sendFile(path.join(PATHS.html, "index.html"));
 });
 

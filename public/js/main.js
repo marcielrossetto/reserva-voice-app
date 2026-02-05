@@ -4,11 +4,8 @@
 
 console.log("🚀 Iniciando aplicação...");
 
-// Verificar token
+// Auth já verificada pelo config.js - não duplicar redirect
 const TOKEN = localStorage.getItem("token");
-if (!TOKEN) {
-    window.location.href = "/login.html";
-}
 
 // Inicializar quando documento estiver pronto
 document.addEventListener("DOMContentLoaded", async () => {

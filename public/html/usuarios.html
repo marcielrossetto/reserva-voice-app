@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipe - Gestao de Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/usuarios.css">
+    <style>
+        body { padding-top: 80px; background-color: #f8fafc; }
+        @media (max-width: 991px) { body { padding-top: 60px; } }
+    </style>
+</head>
+<body>
+
+<div id="header-container"></div>
+
+<div class="container-fluid px-3 px-md-4" style="max-width: 1200px;">
+
+    <!-- Toolbar -->
+    <div class="toolbar-usuarios">
+        <div class="toolbar-left">
+            <h5 class="mb-0"><i class="fas fa-users-cog"></i> Equipe</h5>
+            <span class="badge bg-secondary" id="totalUsuarios">0</span>
+        </div>
+        <div class="toolbar-right">
+            <input type="text" id="buscaUsuario" class="form-control form-control-sm" placeholder="Buscar..." oninput="filtrarTabela()">
+            <button class="btn btn-primary btn-sm" onclick="abrirModalCriar()">
+                <i class="fas fa-plus"></i> Novo
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="table-responsive">
+        <table class="table table-hover" id="tabelaUsuarios">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Nivel</th>
+                    <th>Status</th>
+                    <th class="d-none d-md-table-cell">Ultimo Acesso</th>
+                    <th>Acoes</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela">
+                <tr><td colspan="6" class="text-center text-muted py-4">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Criar/Editar Usuario -->
+<div class="modal fade" id="modalUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitulo">Novo Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuarioId">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nome</label>
+                    <input type="text" class="form-control" id="inputNome" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email</label>
+                    <input type="email" class="form-control" id="inputEmail" required>
+                </div>
+                <div class="mb-3" id="grupoSenha">
+                    <label class="form-label fw-bold">Senha</label>
+                    <input type="password" class="form-control" id="inputSenha" oninput="validarSenhaForm()">
+                    <div class="requisitos-senha" id="requisitosBox">
+                        <small id="reqMaius" class="req-item">A-Z</small>
+                        <small id="reqMinus" class="req-item">a-z</small>
+                        <small id="reqNum" class="req-item">0-9</small>
+                        <small id="reqEsp" class="req-item">!@#</small>
+                        <small id="reqLen" class="req-item">8+</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nivel</label>
+                    <select class="form-select" id="inputNivel">
+                        <option value="usuario">Usuario</option>
+                        <option value="admin">Admin</option>
+                        <option value="master">Master</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSalvar" onclick="salvarUsuario()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Alterar Senha -->
+<div class="modal fade" id="modalSenha" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Alterar Senha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="senhaUsuarioId">
+                <p class="small text-muted mb-2">Usuario: <strong id="senhaUsuarioNome"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nova Senha</label>
+                    <input type="password" class="form-control" id="inputNovaSenha" oninput="validarNovaSenhaForm()">
+                    <div class="requisitos-senha" id="requisitosNovaSenha">
+                        <small id="reqMaius2" class="req-item">A-Z</small>
+                        <small id="reqMinus2" class="req-item">a-z</small>
+                        <small id="reqNum2" class="req-item">0-9</small>
+                        <small id="reqEsp2" class="req-item">!@#</small>
+                        <small id="reqLen2" class="req-item">8+</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="salvarNovaSenha()">Alterar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/usuarios.js"></script>
+</body>
+</html>
