@@ -26,8 +26,15 @@ module.exports = async (req, res, next) => {
 
     console.log("✅ Empresa autenticada:", empresa.nomeEmpresa);
 
+    // Buscar nome do usuario
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: decoded.id },
+      select: { nome: true }
+    });
+
     req.user = {
       id: decoded.id,
+      nome: usuario?.nome || decoded.email,
       nomeEmpresa: empresa.nomeEmpresa,
       email: decoded.email,
       empresaId: empresa.id,

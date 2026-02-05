@@ -656,13 +656,42 @@ async function viewReservationHistory(id) {
   }
 }
 
+// Mapa de nomes amigaveis para campos do banco
+const CAMPOS_LABELS = {
+  nome: 'Nome',
+  numPessoas: 'Qtd. Pessoas',
+  horario: 'Horario',
+  numMesa: 'Mesa',
+  observacoes: 'Observacoes',
+  telefone: 'Telefone',
+  telefone2: 'Telefone 2',
+  confirmado: 'Confirmada',
+  status: 'Status',
+  motivoCancelamento: 'Motivo Cancelamento',
+  formaPagamento: 'Forma Pagamento',
+  tipoEvento: 'Tipo Evento',
+  valorRodizio: 'Valor Rodizio',
+  data: 'Data'
+};
+
+function traduzirCampo(campo) {
+  return CAMPOS_LABELS[campo] || campo;
+}
+
+function traduzirValor(campo, valor) {
+  if (valor === 'true' || valor === true) return 'Sim';
+  if (valor === 'false' || valor === false) return 'Nao';
+  if (!valor || valor === 'null' || valor === 'undefined') return '-';
+  return valor;
+}
+
 function showReservationHistory(id, changes) {
   const html = `
         <div class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 9999;">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header border-0 bg-light">
-                        <h5 class="modal-title fw-bold">Historico de Alteracoes ${id}</h5>
+                        <h5 class="modal-title fw-bold">Historico de Alteracoes - Reserva #${id}</h5>
                         <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
                     </div>
                     <div class="modal-body">
@@ -676,17 +705,19 @@ function showReservationHistory(id, changes) {
                                             <th>Campo</th>
                                             <th>Anterior</th>
                                             <th>Novo</th>
+                                            <th>Alterado por</th>
                                             <th>Data/Hora</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         ${changes
                                           .map(
-                                            (c, i) => `
+                                            (c) => `
                                             <tr style="font-size: 0.8rem;">
-                                                <td><strong>${c.campo}</strong></td>
-                                                <td><code>${c.valorAnterior || "-"}</code></td>
-                                                <td><code style="color: green;">${c.valorNovo || "-"}</code></td>
+                                                <td><strong>${traduzirCampo(c.campo)}</strong></td>
+                                                <td><code>${traduzirValor(c.campo, c.valorAnterior)}</code></td>
+                                                <td><code style="color: green;">${traduzirValor(c.campo, c.valorNovo)}</code></td>
+                                                <td>${c.usuarioNome || '<span class="text-muted">-</span>'}</td>
                                                 <td>${new Date(c.dataAlteracao).toLocaleString("pt-BR")}</td>
                                             </tr>
                                         `,

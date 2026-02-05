@@ -124,6 +124,7 @@ model ClienteAlteracao {
   campo                 String    @db.VarChar(100)
   valorAnterior         String?   @db.Text
   valorNovo             String?   @db.Text
+  usuarioNome           String?   @db.VarChar(255)
   dataAlteracao         DateTime  @default(now())
 
   cliente               Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
