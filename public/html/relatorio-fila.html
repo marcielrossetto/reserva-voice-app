@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Fila de Espera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/relatorio-fila.css">
+    <style>
+        body { padding-top: 80px; background: #f0f2f5; overflow-x: hidden; overflow-y: auto; min-height: 100vh; }
+        @media (max-width: 991px) { body { padding-top: 65px; } }
+    </style>
+</head>
+<body>
+
+<div id="header-container"></div>
+
+<div class="container-fluid px-3 px-md-4 pb-4" style="max-width: 1400px;">
+
+    <!-- Toolbar com Filtros -->
+    <div class="relatorio-toolbar">
+        <div class="toolbar-left">
+            <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Relatório Fila de Espera</h5>
+        </div>
+        <div class="toolbar-filtros">
+            <div class="filtro-grupo">
+                <label><i class="fas fa-calendar"></i> De</label>
+                <input type="date" id="dataInicio" class="form-control form-control-sm">
+            </div>
+            <div class="filtro-grupo">
+                <label><i class="fas fa-calendar"></i> Até</label>
+                <input type="date" id="dataFim" class="form-control form-control-sm">
+            </div>
+            <div class="filtro-grupo">
+                <label><i class="fas fa-clock"></i> Hora</label>
+                <input type="time" id="horaInicio" class="form-control form-control-sm" placeholder="Início">
+            </div>
+            <div class="filtro-grupo">
+                <label><i class="fas fa-clock"></i> Até</label>
+                <input type="time" id="horaFim" class="form-control form-control-sm" placeholder="Fim">
+            </div>
+            <button class="btn btn-sm btn-primary btn-filtrar" onclick="filtrar()">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            <button class="btn btn-sm btn-outline-secondary btn-limpar" onclick="limparFiltros()" title="Limpar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingRelatorio" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Carregando relatório...</p>
+    </div>
+
+    <!-- Conteúdo -->
+    <div id="relatorioContent" style="display: none;">
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-verde">
+                    <div class="kpi-icon"><i class="fas fa-users"></i></div>
+                    <div class="kpi-value" id="kpiAtendidos">0</div>
+                    <div class="kpi-label">Pessoas Atendidas</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-vermelho">
+                    <div class="kpi-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="kpi-value" id="kpiCancelados">0</div>
+                    <div class="kpi-label">Cancelamentos</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-roxo">
+                    <div class="kpi-icon"><i class="fas fa-wine-glass-alt"></i></div>
+                    <div class="kpi-value" id="kpiBebidas">0</div>
+                    <div class="kpi-label">Bebidas Vendidas</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-laranja">
+                    <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="kpi-value" id="kpiReceita">R$ 0</div>
+                    <div class="kpi-label">Receita Bebidas</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-azul">
+                    <div class="kpi-icon"><i class="fas fa-stopwatch"></i></div>
+                    <div class="kpi-value" id="kpiTempo">0 min</div>
+                    <div class="kpi-label">Tempo Médio Espera</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card kpi-verde-claro">
+                    <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="kpi-value" id="kpiTaxa">0%</div>
+                    <div class="kpi-label">Taxa Atendimento</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Row 1 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-chart-bar"></i> Pessoas Atendidas por Dia</h6>
+                    <div class="chart-wrapper" style="height: 320px;">
+                        <canvas id="chartPessoas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-users"></i> Tamanho dos Grupos</h6>
+                    <div class="chart-wrapper" style="height: 320px;">
+                        <canvas id="chartGrupos"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Row 2 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-wine-bottle"></i> Bebidas Vendidas por Dia</h6>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartBebidas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-trophy"></i> Top Bebidas Mais Vendidas</h6>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartTopBebidas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Row 3 -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-clock"></i> Distribuição por Horário</h6>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartHorario"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-star"></i> Atendimentos Prioritários</h6>
+                    <div class="chart-wrapper" style="height: 280px;">
+                        <canvas id="chartPrioridade"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/relatorio-fila.js"></script>
+</body>
+</html>

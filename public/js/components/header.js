@@ -227,22 +227,12 @@
         }
     });
 
-   // ======================================================
-    // 🔥 NAVEGAÇÃO UNIFICADA (ROSSAPP)
-    // ======================================================
-    
     globalThis.goToIndex = () => window.location.href = '/html/index.html';
     globalThis.goToQueue = () => window.location.href = '/html/fila.html';
     globalThis.goToSearch = () => window.location.href = '/search';
-    globalThis.goToUsuarios = () => window.location.href = '/html/usuarioPermissao.html';
-    
-    // CORREÇÃO: Funções separadas para Dashboard e Estatísticas
+    globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
     globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';
-    globalThis.goToStats = () => window.location.href = '/html/stats.html';
-    
-    // NOVAS ROTAS: Suporte e Privacidade
-    globalThis.goToSupport = () => window.location.href = '/html/support.html';
-    globalThis.goToPrivacy = () => window.location.href = '/html/privacy.html';
+    globalThis.goToRelatorioFila = () => window.location.href = '/html/relatorio-fila.html';
 
     init();
 })();
