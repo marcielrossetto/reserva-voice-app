@@ -475,13 +475,18 @@ router.put("/:id", auth, async (req, res) => {
         }
 
         // Campos atualizáveis
-        const updatableFields = ['nome', 'numPessoas', 'horario', 'numMesa', 'observacoes', 'confirmado', 'status', 'telefone'];
+        const updatableFields = ['nome', 'data', 'numPessoas', 'horario', 'numMesa', 'observacoes', 'confirmado', 'status', 'telefone'];
 
         // Construir objeto de update
         const updateData = {};
         for (const field of updatableFields) {
             if (d[field] !== undefined && d[field] !== null) {
-                updateData[field] = d[field];
+                // Campo data precisa ser convertido para Date
+                if (field === 'data') {
+                    updateData[field] = new Date(d[field]);
+                } else {
+                    updateData[field] = d[field];
+                }
             }
         }
 

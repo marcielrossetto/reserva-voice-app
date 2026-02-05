@@ -112,6 +112,12 @@
                 <strong>Equipe</strong><span>Usuários e Permissões</span>
               </div></a
             >
+            <a href="javascript:void(0)" onclick="goToDashboard()"
+              ><i class="fas fa-chart-line"></i>
+              <div>
+                <strong>Dashboard BI</strong><span>Métricas e Gráficos</span>
+              </div></a
+            >
             <a href="javascript:void(0)"
               ><i class="fas fa-sliders-h"></i>
               <div>
@@ -213,6 +219,23 @@
           goToSearch();
         "
         ><i class="fas fa-search"></i> Pesquisar</a
+      >
+      <hr />
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          goToDashboard();
+        "
+        ><i class="fas fa-chart-line"></i> Dashboard BI</a
+      >
+      <a
+        href="javascript:void(0)"
+        onclick="
+          toggleMobileMenu();
+          goToUsuarios();
+        "
+        ><i class="fas fa-users-cog"></i> Equipe</a
       >
       <hr />
       <a

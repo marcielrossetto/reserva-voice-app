@@ -2,162 +2,150 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>RossApp BI - Performance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard BI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-    <style>
-        :root { --ios-blue: #007AFF; --ios-green: #34C759; --ios-red: #FF3B30; --ios-bg: #F2F2F7; }
-        body { background-color: var(--ios-bg); padding-top: 80px; }
-        .kpi-card { border-radius: 18px; border: none; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .border-blue { border-left: 6px solid var(--ios-blue); }
-        .border-red { border-left: 6px solid var(--ios-red); }
-        .border-green { border-left: 6px solid var(--ios-green); }
-        .fw-900 { font-weight: 900; }
-        .chart-container { background: #fff; border-radius: 20px; padding: 20px; height: 350px; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>body { padding-top: 80px; background: #f0f2f5; }
+    @media (max-width: 991px) { body { padding-top: 60px; } }</style>
 </head>
 <body>
-    <div id="header-container"></div>
 
-    <div class="container-fluid px-4">
-        <!-- Filtros -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-800 m-0">Performance BI</h3>
-            <div class="d-flex gap-2">
-                <input type="date" id="dash_start" class="form-control form-control-sm">
-                <input type="date" id="dash_end" class="form-control form-control-sm">
-                <button onclick="loadDashboard()" class="btn btn-primary btn-sm rounded-pill px-3">Atualizar</button>
-            </div>
+<div id="header-container"></div>
+
+<div class="container-fluid px-3 px-md-4" style="max-width: 1400px;">
+
+    <!-- Toolbar -->
+    <div class="dash-toolbar">
+        <div class="dash-toolbar-left">
+            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Dashboard BI</h5>
         </div>
-
-        <!-- KPIs -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card kpi-card border-blue">
-                    <small class="text-muted fw-bold">PAX RESERVADO</small>
-                    <h2 class="fw-900 mb-0" id="kpi_pax">0</h2>
-                    <span class="small text-primary" id="kpi_res">0 Agendamentos</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card kpi-card border-red">
-                    <small class="text-muted fw-bold">NO-SHOW (CANCELADOS)</small>
-                    <h2 class="fw-900 mb-0 text-danger" id="kpi_cancel">0</h2>
-                    <span class="small text-danger" id="kpi_lost_pax">0 Pessoas perdidas</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card kpi-card border-green">
-                    <small class="text-muted fw-bold">CONVERSÃO FILA</small>
-                    <h2 class="fw-900 mb-0 text-success" id="kpi_fila_pax">0</h2>
-                    <span class="small text-success" id="kpi_fila_res">0 Sentados</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card kpi-card" style="border-left: 6px solid #5856D6;">
-                    <small class="text-muted fw-bold">DESISTÊNCIAS FILA</small>
-                    <h2 class="fw-900 mb-0" style="color:#5856D6" id="kpi_gaveup">0</h2>
-                    <span class="small text-muted">Perda de fluxo direto</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <!-- Gráfico de Grupos -->
-            <div class="col-md-4">
-                <div class="chart-container shadow-sm">
-                    <h6 class="fw-bold mb-3 text-center">Perfil de Grupos (Pax)</h6>
-                    <canvas id="chartPax"></canvas>
-                </div>
-            </div>
-            <!-- Ranking Equipe -->
-            <div class="col-md-4">
-                <div class="chart-container shadow-sm overflow-auto">
-                    <h6 class="fw-bold mb-3 border-bottom pb-2">Produtividade Equipe</h6>
-                    <div id="team_list"></div>
-                </div>
-            </div>
-            <!-- Top Clientes -->
-            <div class="col-md-4">
-                <div class="chart-container shadow-sm overflow-auto">
-                    <h6 class="fw-bold mb-3 border-bottom pb-2">Top 10 Clientes VIP</h6>
-                    <div id="client_list"></div>
-                </div>
+        <div class="dash-toolbar-right">
+            <div class="btn-group btn-group-sm" id="periodoBtns">
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('7d', this)">7 dias</button>
+                <button class="btn btn-outline-primary active" onclick="trocarPeriodo('30d', this)">30 dias</button>
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('90d', this)">90 dias</button>
+                <button class="btn btn-outline-primary" onclick="trocarPeriodo('12m', this)">12 meses</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/js/components/header.js"></script>
-    <script>
-        const TOKEN = localStorage.getItem("token");
+    <!-- Loading -->
+    <div id="loadingDash" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Carregando metricas...</p>
+    </div>
 
-        async function loadDashboard() {
-            const start = document.getElementById('dash_start').value;
-            const end = document.getElementById('dash_end').value;
+    <!-- Conteudo -->
+    <div id="dashContent" style="display: none;">
 
-            const res = await fetch(`/api/admin/stats?start=${start}&end=${end}`, {
-                headers: { 'Authorization': `Bearer ${TOKEN}` }
-            });
-            const data = await res.json();
-
-            // Atualiza KPIs
-            document.getElementById('kpi_pax').innerText = data.kpis.totalPax;
-            document.getElementById('kpi_res').innerText = `${data.kpis.totalRes} Agendamentos`;
-            document.getElementById('kpi_cancel').innerText = data.kpis.lostRes;
-            document.getElementById('kpi_lost_pax').innerText = `${data.kpis.lostPax} Pessoas perdidas`;
-            document.getElementById('kpi_fila_pax').innerText = data.kpis.seatedPax;
-            document.getElementById('kpi_fila_res').innerText = `${data.kpis.seatedRes} Sentados`;
-            document.getElementById('kpi_gaveup').innerText = data.kpis.gaveUpRes;
-
-            // Gráfico Donut
-            renderPaxChart(data.ranges);
-
-            // Listas
-            renderTeam(data.teamStats);
-            renderClients(data.topClients);
-        }
-
-        function renderPaxChart(ranges) {
-            const ctx = document.getElementById('chartPax');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(ranges),
-                    datasets: [{ data: Object.values(ranges), backgroundColor: ['#007AFF', '#5856D6', '#FF9500', '#FF3B30'] }]
-                },
-                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-
-        function renderTeam(stats) {
-            const container = document.getElementById('team_list');
-            container.innerHTML = stats.map(s => `
-                <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-3">
-                    <span class="small fw-bold">${s.nome}</span>
-                    <span class="badge bg-primary">${s.qtd}</span>
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4" id="kpiCards">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e8f0fe;"><i class="fas fa-calendar-check" style="color: #1a73e8;"></i></div>
+                    <div class="kpi-value" id="kpiReservas">0</div>
+                    <div class="kpi-label">Reservas</div>
+                    <div class="kpi-variacao" id="kpiReservasVar"></div>
                 </div>
-            `).join('');
-        }
-
-        function renderClients(clients) {
-            const container = document.getElementById('client_list');
-            container.innerHTML = clients.map(c => `
-                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
-                    <div>
-                        <div class="small fw-bold text-uppercase">${c.nome}</div>
-                        <div style="font-size:10px">${c.telefone}</div>
-                    </div>
-                    <span class="text-primary fw-bold">${c._count.id} vis.</span>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e6f4ea;"><i class="fas fa-users" style="color: #1e8e3e;"></i></div>
+                    <div class="kpi-value" id="kpiPax">0</div>
+                    <div class="kpi-label">Pessoas (Pax)</div>
+                    <div class="kpi-variacao" id="kpiPaxVar"></div>
                 </div>
-            `).join('');
-        }
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #fce8e6;"><i class="fas fa-times-circle" style="color: #d93025;"></i></div>
+                    <div class="kpi-value" id="kpiCancelamento">0%</div>
+                    <div class="kpi-label">Cancelamento</div>
+                    <div class="kpi-variacao" id="kpiCancelVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #e8f0fe;"><i class="fas fa-check-double" style="color: #1a73e8;"></i></div>
+                    <div class="kpi-value" id="kpiConfirmacao">0%</div>
+                    <div class="kpi-label">Confirmacao</div>
+                    <div class="kpi-variacao" id="kpiConfirmVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #fef7e0;"><i class="fas fa-dollar-sign" style="color: #e37400;"></i></div>
+                    <div class="kpi-value" id="kpiTicket">R$ 0</div>
+                    <div class="kpi-label">Ticket Medio</div>
+                    <div class="kpi-variacao" id="kpiTicketVar"></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f3e8fd;"><i class="fas fa-user-friends" style="color: #8430ce;"></i></div>
+                    <div class="kpi-value" id="kpiMediaPax">0</div>
+                    <div class="kpi-label">Media Pax/Res</div>
+                    <div class="kpi-variacao" id="kpiMediaVar"></div>
+                </div>
+            </div>
+        </div>
 
-        // Inicializa datas
-        document.getElementById('dash_start').value = new Date(new Date().setDate(1)).toISOString().split('T')[0];
-        document.getElementById('dash_end').value = new Date().toISOString().split('T')[0];
-        loadDashboard();
-    </script>
+        <!-- Graficos Row 1 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-chart-area"></i> Evolucao no Periodo</h6>
+                    <canvas id="chartEvolucao"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-sun"></i> Almoco vs Jantar</h6>
+                    <canvas id="chartPeriodo"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graficos Row 2 -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-calendar-week"></i> Reservas por Dia da Semana</h6>
+                    <canvas id="chartDiaSemana"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-trophy"></i> Top 10 Clientes Frequentes</h6>
+                    <canvas id="chartTopClientes"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graficos Row 3 -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-credit-card"></i> Formas de Pagamento</h6>
+                    <canvas id="chartPagamento"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h6 class="chart-title"><i class="fas fa-ban"></i> Motivos de Cancelamento</h6>
+                    <canvas id="chartCancelamento"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/dashboard.js"></script>
 </body>
 </html>
