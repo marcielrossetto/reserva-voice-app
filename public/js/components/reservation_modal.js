@@ -635,24 +635,24 @@ function showClientHistory(client, reservations) {
  */
 async function viewReservationHistory(id) {
   try {
+    const tkn = localStorage.getItem("token");
     const res = await fetch(`/api/reservationQuery/${id}/history`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${tkn}` },
     });
 
-    if (res.status === 404) {
-      showToast("Nenhuma alteracao registrada", "info");
+    if (!res.ok) {
+      console.error("Erro ao buscar historico:", res.status);
+      showToast("Erro ao buscar historico", "danger");
       return;
     }
 
     const json = await res.json();
 
-    if (json.success && json.changes && json.changes.length > 0) {
-      showReservationHistory(id, json.changes);
-    } else {
-      showToast("Nenhuma alteracao registrada", "info");
-    }
+    // Mostra modal sempre - com ou sem alteracoes
+    showReservationHistory(id, json.changes || []);
   } catch (err) {
-    showToast("Nenhuma alteracao registrada", "info");
+    console.error("Erro ao buscar historico:", err);
+    showToast("Erro ao buscar historico", "danger");
   }
 }
 
