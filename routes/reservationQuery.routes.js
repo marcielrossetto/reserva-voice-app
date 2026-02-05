@@ -28,18 +28,19 @@ function normalizeDateForDb(date) {
  */
 async function registrarAlteracao(clienteId, campo, valorAnterior, valorNovo) {
     try {
-        if (valorAnterior !== valorNovo) {
+        if (String(valorAnterior || '') !== String(valorNovo || '')) {
             await prisma.clienteAlteracao.create({
                 data: {
-                    clienteId,
+                    clienteId: parseInt(clienteId),
                     campo,
                     valorAnterior: String(valorAnterior || ''),
                     valorNovo: String(valorNovo || '')
                 }
             });
+            console.log(`📝 Alteração registrada: reserva ${clienteId} campo ${campo}`);
         }
     } catch (err) {
-        console.error('Erro ao registrar alteração:', err);
+        console.error('❌ Erro ao registrar alteração:', err);
     }
 }
 
@@ -476,7 +477,7 @@ router.put("/:id", auth, async (req, res) => {
         // Check if can edit (date not passed or admin)
         const today = new Date();
         const reservationDate = new Date(reservationCurrent.data);
-        const canEdit = reservationDate > today || ['admin', 'master'].includes(req.user.role);
+        const canEdit = reservationDate > today || ['admin', 'master'].includes(req.user.nivel);
 
         if (!canEdit) {
             return res.json({ success: false, error: "Cannot edit past reservations" });
@@ -500,10 +501,11 @@ router.put("/:id", auth, async (req, res) => {
         });
 
         // Registrar alterações
+        const idInt = parseInt(id);
         for (const field of updatableFields) {
-            if (d[field] !== undefined && d[field] !== reservationCurrent[field]) {
+            if (d[field] !== undefined && String(d[field]) !== String(reservationCurrent[field])) {
                 await registrarAlteracao(
-                    id,
+                    idInt,
                     field,
                     reservationCurrent[field],
                     d[field]
