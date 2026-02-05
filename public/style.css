@@ -27,7 +27,29 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* ========== SCROLLBAR INVISIVEL (GLOBAL) ========== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 .container {

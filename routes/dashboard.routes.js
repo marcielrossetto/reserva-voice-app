@@ -8,7 +8,27 @@ const router = express.Router();
 const prisma = require('../lib/prisma');
 const auth = require('../middlewares/authMiddleware');
 
-function calcRange(periodo) {
+/**
+ * Calcula range de datas por periodo OU por datas customizadas
+ */
+function calcRange(periodo, dataInicio, dataFim) {
+    // Se tem datas customizadas, usa elas
+    if (dataInicio && dataFim) {
+        const start = new Date(dataInicio + 'T00:00:00');
+        const end = new Date(dataFim + 'T00:00:00');
+        // end + 1 dia para incluir o ultimo dia inteiro
+        const endPlusOne = new Date(end);
+        endPlusOne.setDate(endPlusOne.getDate() + 1);
+
+        // Periodo anterior = mesma duracao antes do inicio
+        const diffMs = end.getTime() - start.getTime() + 86400000; // +1 dia em ms
+        const prevEnd = new Date(start);
+        const prevStart = new Date(start.getTime() - diffMs);
+
+        return { start, end: endPlusOne, prevStart, prevEnd };
+    }
+
+    // Range por periodo
     const now = new Date();
     const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     let start, prevStart, prevEnd;
@@ -46,12 +66,16 @@ const DIAS_SEMANA = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta',
 
 /**
  * GET /api/dashboard/metricas?periodo=7d|30d|90d|12m
+ * GET /api/dashboard/metricas?dataInicio=2025-01-01&dataFim=2025-01-31
  */
 router.get('/metricas', auth, async (req, res) => {
     try {
         const empresaId = req.user.empresaId;
         const periodo = req.query.periodo || '30d';
-        const { start, end, prevStart, prevEnd } = calcRange(periodo);
+        const dataInicio = req.query.dataInicio || null;
+        const dataFim = req.query.dataFim || null;
+
+        const { start, end, prevStart, prevEnd } = calcRange(periodo, dataInicio, dataFim);
 
         // ===== QUERIES PARALELAS =====
         const [
@@ -103,8 +127,9 @@ router.get('/metricas', auth, async (req, res) => {
 
         const somaRodizio = reservasAtual.filter(r => r.status && r.valorRodizio).reduce((s, r) => s + (r.valorRodizio || 0), 0);
         const somaRodizioPrev = reservasPrev.filter(r => r.status && r.valorRodizio).reduce((s, r) => s + (r.valorRodizio || 0), 0);
+        const ativasPrev = reservasPrev.filter(r => r.status).length;
         const ticketMedio = ativasAtual > 0 ? Math.round(somaRodizio / ativasAtual) : 0;
-        const ticketMedioPrev = totalPrev > 0 ? Math.round(somaRodizioPrev / reservasPrev.filter(r => r.status).length || 1) : 0;
+        const ticketMedioPrev = ativasPrev > 0 ? Math.round(somaRodizioPrev / ativasPrev) : 0;
 
         // ===== SERIE TEMPORAL =====
         const serieMap = {};
@@ -169,7 +194,7 @@ router.get('/metricas', auth, async (req, res) => {
 
         res.json({
             success: true,
-            periodo,
+            periodo: dataInicio ? `${dataInicio} a ${dataFim}` : periodo,
             kpis: {
                 totalReservas: { valor: totalAtual, variacao: calcVariacao(totalAtual, totalPrev) },
                 totalPax: { valor: paxAtual, variacao: calcVariacao(paxAtual, paxPrev) },

@@ -5,6 +5,7 @@
 
 let charts = {};
 let periodoAtual = '30d';
+let filtroCustom = false; // true quando usar datas manuais
 
 const CORES = {
     primaria: '#6a5af9',
@@ -22,23 +23,78 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarDashboard(periodoAtual);
 });
 
+// ========== FILTRO POR PERIODO (botoes) ==========
 function trocarPeriodo(periodo, btn) {
     periodoAtual = periodo;
+    filtroCustom = false;
+
+    // Limpar campos de data
+    const di = document.getElementById('dataInicio');
+    const df = document.getElementById('dataFim');
+    if (di) di.value = '';
+    if (df) df.value = '';
+
     document.querySelectorAll('#periodoBtns .btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     carregarDashboard(periodo);
 }
 
-async function carregarDashboard(periodo) {
+// ========== FILTRO POR DATAS (inputs) ==========
+function filtrarPorDatas() {
+    const dataInicio = document.getElementById('dataInicio').value;
+    const dataFim = document.getElementById('dataFim').value;
+
+    if (!dataInicio || !dataFim) {
+        showToast('Selecione data de inicio e fim', 'warning');
+        return;
+    }
+
+    if (dataInicio > dataFim) {
+        showToast('Data inicio deve ser anterior a data fim', 'warning');
+        return;
+    }
+
+    filtroCustom = true;
+
+    // Desmarcar botoes de periodo
+    document.querySelectorAll('#periodoBtns .btn').forEach(b => b.classList.remove('active'));
+
+    carregarDashboard(null, dataInicio, dataFim);
+}
+
+function limparFiltro() {
+    document.getElementById('dataInicio').value = '';
+    document.getElementById('dataFim').value = '';
+    filtroCustom = false;
+
+    // Reativar periodo 30d
+    periodoAtual = '30d';
+    const btns = document.querySelectorAll('#periodoBtns .btn');
+    btns.forEach(b => b.classList.remove('active'));
+    if (btns[1]) btns[1].classList.add('active');
+
+    carregarDashboard('30d');
+}
+
+// ========== CARREGAR DASHBOARD ==========
+async function carregarDashboard(periodo, dataInicio, dataFim) {
     document.getElementById('loadingDash').style.display = 'block';
     document.getElementById('dashContent').style.display = 'none';
 
     try {
-        const res = await requisicaoAutenticada(`/api/dashboard/metricas?periodo=${periodo}`);
+        let url = '/api/dashboard/metricas';
+        if (dataInicio && dataFim) {
+            url += `?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+        } else {
+            url += `?periodo=${periodo || periodoAtual}`;
+        }
+
+        const res = await requisicaoAutenticada(url);
         const data = await res.json();
 
         if (!data.success) {
             showToast(data.error || 'Erro ao carregar metricas', 'danger');
+            document.getElementById('loadingDash').style.display = 'none';
             return;
         }
 
@@ -50,6 +106,7 @@ async function carregarDashboard(periodo) {
     } catch (err) {
         console.error('Erro dashboard:', err);
         showToast('Erro ao carregar dashboard', 'danger');
+        document.getElementById('loadingDash').style.display = 'none';
     }
 }
 
@@ -80,7 +137,7 @@ function setKPI(valId, valor, varId, variacao, inverso) {
 // ========== GRAFICOS ==========
 function renderCharts(data) {
     // Destruir graficos anteriores
-    Object.values(charts).forEach(c => c.destroy());
+    Object.values(charts).forEach(c => { try { c.destroy(); } catch(e) {} });
     charts = {};
 
     charts.evolucao = criarGraficoEvolucao(data.serieTemporal);
