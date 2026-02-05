@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte e Funções | RossApp</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+
+    <style>
+        :root { --brand: #6a5af9; --bg: #F2F2F7; }
+        body { background-color: var(--bg); padding-top: 90px; }
+        
+        .support-card { 
+            background: #fff; border-radius: 22px; padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; 
+        }
+
+        .function-badge {
+            background: var(--bg); color: var(--brand);
+            padding: 5px 12px; border-radius: 8px; font-weight: 700;
+            font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .instruction-item {
+            display: flex; gap: 15px; margin-bottom: 30px;
+        }
+        .icon-box {
+            width: 50px; height: 50px; background: #f0f0ff; color: var(--brand);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 1.3rem;
+        }
+        .text-box h5 { font-weight: 800; color: #1c1c1e; margin-bottom: 5px; }
+        .text-box p { font-size: 0.92rem; color: #636366; line-height: 1.5; }
+
+        .contact-pill {
+            display: flex; align-items: center; gap: 15px; padding: 15px;
+            border-radius: 18px; text-decoration: none; color: inherit;
+            border: 1px solid #eee; transition: 0.3s; margin-top: 10px;
+        }
+        .contact-pill:hover { background: #f8f9ff; transform: translateY(-2px); }
+        .wa-color { color: #1da851; }
+    </style>
+</head>
+<body>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <div class="row">
+            <!-- COLUNA DE CONTATO -->
+            <div class="col-lg-4">
+                <div class="support-card">
+                    <h4 class="fw-bold mb-3">Fale com o RossApp</h4>
+                    <p class="small text-muted mb-4">Dúvidas técnicas ou sugestões? Nossa equipe está pronta para ajudar.</p>
+                    
+                    <a href="https://wa.me/5521996169369" target="_blank" class="contact-pill">
+                        <i class="fab fa-whatsapp fa-2x wa-color"></i>
+                        <div>
+                            <strong class="d-block">WhatsApp Suporte</strong>
+                            <span class="small text-muted">(21) 99616-9369</span>
+                        </div>
+                    </a>
+
+                    <a href="mailto:marciel.rossetto3@gmail.com" class="contact-pill">
+                        <i class="fas fa-envelope fa-2x text-primary"></i>
+                        <div>
+                            <strong class="d-block">E-mail Oficial</strong>
+                            <span class="small text-muted">marciel.rossetto3@gmail.com</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- COLUNA DE EXPLICAÇÃO DAS FUNÇÕES -->
+            <div class="col-lg-8">
+                <div class="support-card">
+                    <h4 class="fw-bold mb-4">Manual de Funções do Sistema</h4>
+
+                    <!-- FUNÇÃO 1 -->
+                    <div class="instruction-item">
+                        <div class="icon-box"><i class="fas fa-magic"></i></div>
+                        <div class="text-box">
+                            <span class="function-badge">Inteligência</span>
+                            <h5>Importação Inteligente (WhatsApp)</h5>
+                            <p>Chega de digitar tudo do zero. Copie a mensagem de reserva que o cliente enviou e cole na área de importação. O RossApp identifica automaticamente o Nome, Telefone, Data, Hora e número de Pessoas, preenchendo o formulário para você.</p>
+                        </div>
+                    </div>
+
+                    <!-- FUNÇÃO 2 -->
+                    <div class="instruction-item">
+                        <div class="icon-box"><i class="fas fa-user-check"></i></div>
+                        <div class="text-box">
+                            <span class="function-badge">Fidelização</span>
+                            <h5>Perfil e Histórico do Cliente</h5>
+                            <p>Ao inserir um telefone, o sistema faz um "Raio-X" do cliente. Você saberá na hora se ele é um <strong>Cliente VIP</strong>, quantas vezes ele já veio e, o mais importante, se ele costuma cancelar reservas (No-show), ajudando na tomada de decisão sobre a mesa.</p>
+                        </div>
+                    </div>
+
+                    <!-- FUNÇÃO 3 -->
+                    <div class="instruction-item">
+                        <div class="icon-box"><i class="fab fa-whatsapp"></i></div>
+                        <div class="text-box">
+                            <span class="function-badge">Comunicação</span>
+                            <h5>Confirmação em 1 Clique</h5>
+                            <p>Após salvar a reserva, o sistema gera automaticamente uma mensagem personalizada. Ao clicar em "Finalizar e Enviar", o sistema abre o WhatsApp do cliente com o texto pronto, bastando dar um "Enviar".</p>
+                        </div>
+                    </div>
+
+                    <!-- FUNÇÃO 4 -->
+                    <div class="instruction-item">
+                        <div class="icon-box"><i class="fas fa-edit"></i></div>
+                        <div class="text-box">
+                            <span class="function-badge">Operacional</span>
+                            <h5>Editar, Cancelar e Reativar</h5>
+                            <p>Mudança de planos? No menu <strong>Pesquisar</strong>, você pode editar qualquer detalhe. Se o cliente cancelar, o status muda para vermelho. Se ele desistir do cancelamento, você pode <strong>Reativar</strong> a reserva com um clique, mantendo seu BI sempre preciso.</p>
+                        </div>
+                    </div>
+
+                    <!-- FUNÇÃO 5 -->
+                    <div class="instruction-item">
+                        <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+                        <div class="text-box">
+                            <span class="function-badge">Estratégia</span>
+                            <h5>Gestão de Períodos (A/J)</h5>
+                            <p>O calendário organiza seu fluxo entre <strong>A (Almoço)</strong> e <strong>J (Jantar)</strong>. Isso permite que você visualize a ocupação separada por turnos, facilitando a escala de funcionários e a preparação da cozinha.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/components/header.js"></script>
+</body>
+</html>

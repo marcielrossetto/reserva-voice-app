@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termos e Privacidade | RossApp</title>
+    
+    <!-- Bibliotecas de Estilo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/css/reservation_modal.css">
+
+    <style>
+        :root { --brand: #6a5af9; --bg: #F2F2F7; }
+        body { background-color: var(--bg); padding-top: 100px; } /* Espaço para o Header Fixo */
+        
+        .content-card { 
+            background: #fff; 
+            border-radius: 22px; 
+            padding: 40px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            margin-bottom: 50px;
+        }
+
+        h1 { font-weight: 800; color: var(--brand); margin-bottom: 20px; }
+        h2 { font-weight: 700; font-size: 1.25rem; margin-top: 30px; color: #1c1c1e; display: flex; align-items: center; gap: 10px; }
+        h2 i { color: var(--brand); font-size: 1rem; }
+        
+        .instruction-box {
+            background: #f8f9ff;
+            border: 1px solid #eef0ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .legal-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+        }
+
+        p, li { color: #3a3a3c; font-size: 0.95rem; }
+        strong { color: #000; }
+    </style>
+</head>
+<body>
+
+    <!-- O HEADER SERÁ INJETADO AQUI -->
+    <div id="header-container"></div>
+
+    <div class="container">
+        <div class="content-card">
+            
+            <div class="legal-badge">
+                <i class="fas fa-gavel me-2"></i> RossApp atua como OPERADOR de dados conforme a Lei 13.709/2018 (LGPD).
+            </div>
+
+            <h1>Termos de Uso e Privacidade</h1>
+            <p class="lead text-muted">RossApp - Inteligência para Gastronomia</p>
+
+            <section>
+                <h2><i class="fas fa-user-shield"></i> 1. Isenção de Responsabilidade</h2>
+                <div class="instruction-box">
+                    O <strong>RossApp</strong> é uma plataforma de Business Intelligence e gestão de reservas. Ao utilizar este sistema, o estabelecimento (Restaurante) declara estar ciente de que:
+                    <ul class="mt-2 mb-0">
+                        <li>A responsabilidade pela veracidade e obtenção de consentimento dos dados dos clientes finais é <strong>exclusiva do estabelecimento</strong>.</li>
+                        <li>O RossApp fornece apenas o link para integração com o WhatsApp; o conteúdo das mensagens enviadas e a frequência do contato são de inteira responsabilidade do usuário (atendente/gerente).</li>
+                        <li>Não nos responsabilizamos por bloqueios de contas de WhatsApp ou reclamações de spam.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2><i class="fas fa-database"></i> 2. Papéis e Responsabilidades (LGPD)</h2>
+                <p>Para fins legais, o fluxo de dados no RossApp segue estas diretrizes:</p>
+                <ul>
+                    <li><strong>RossApp (RossApp Inteligência):</strong> Atua como <strong>Operador</strong>. Nossa função é garantir que o banco de dados esteja seguro, isolado por empresa e disponível.</li>
+                    <li><strong>O Estabelecimento:</strong> Atua como <strong>Controlador</strong>. É o dono da relação comercial com o cliente e quem insere os dados no sistema.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2><i class="fas fa-lock"></i> 3. Segurança e Isolamento SaaS</h2>
+                <p>O RossApp utiliza arquitetura <strong>Multi-Tenant</strong> rodando em containers Docker, garantindo que:</p>
+                <ul>
+                    <li>Os dados da "Empresa A" são inacessíveis para a "Empresa B".</li>
+                    <li>As senhas de funcionários são criptografadas (Hash) e nunca armazenadas em texto limpo.</li>
+                    <li>Logs de Auditoria: O sistema registra qual usuário realizou cada ação, protegendo o dono do restaurante contra erros internos.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2><i class="fas fa-info-circle"></i> 4. Instruções de Boas Práticas</h2>
+                <div class="instruction-box" style="border-left: 5px solid var(--brand);">
+                    <strong>Como manter seu restaurante seguro:</strong>
+                    <ol class="mt-2">
+                        <li>Nunca compartilhe sua senha de acesso <strong>Master</strong>.</li>
+                        <li>Ao cadastrar um funcionário, defina o nível correto (Operacional ou Admin).</li>
+                        <li>Sempre peça autorização ao cliente antes de usar o número dele para fins de marketing (promoções).</li>
+                        <li>O RossApp mantém os dados para seu BI; use-os para melhorar o atendimento, não para incomodar o cliente.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <section>
+                <h2><i class="fas fa-trash-alt"></i> 5. Retenção e Exclusão</h2>
+                <p>Os dados são de propriedade do estabelecimento. Em caso de encerramento de contrato, o RossApp manterá os dados por 90 dias para fins de conformidade fiscal e exportação, realizando a exclusão definitiva após este prazo.</p>
+            </section>
+
+            <div class="text-center mt-5 pt-4 border-top">
+                <p class="small text-muted">
+                    Atualizado em 05/02/2026<br>
+                    <strong>RossApp - Inteligência para Gastronomia</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts OBRIGATÓRIOS para o Header e Modal funcionarem -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/components/header.js"></script>
+    <script src="/js/components/reservation_modal.js"></script>
+</body>
+</html>

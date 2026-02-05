@@ -57,6 +57,20 @@ app.get("/reservationQuery", (req, res) => {
     res.render("reservationQuery");
 });
 
+// No seu app.js (raiz), adicione esta rota antes do fallback (*)
+app.get("/dashboard", (req, res) => {
+    // Certifique-se que o nome do arquivo na pasta public/html é dashboard.html
+    res.sendFile(path.join(__dirname, "public", "html", "dashboard.html"));
+});
+// app.js
+app.get("/support", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "html", "support.html"));
+});
+// app.js
+
+app.get("/privacy", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "html", "privacy.html"));
+});
 /**
  * TRATAMENTO DE ASSETS E FALLBACK
  */
