@@ -1,5 +1,5 @@
 :root {
-  --primary: #2563eb;
+  --primary: #5b4696;
   --bg-body: #f3f4f6;
   --bg-card: #ffffff;
   --border: #e5e7eb;
@@ -89,6 +89,21 @@ body {
   color: #1e40af;
 }
 
+
+/* Apenas o texto do horário, limpo */
+.res-time-badge {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important; /* Aumentei para 700 para dar mais destaque já que não tem fundo */
+    color: #5b4696 !important;
+    
+    /* Remove tudo que cria o formato de etiqueta */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    display: inline-block;
+}
 .badge.cancelled {
   background: #fee2e2;
   color: #991b1b;
@@ -119,7 +134,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: #30488a;
   transform: translateY(-1px);
 }
 
@@ -190,10 +205,18 @@ body {
 /* Scroll Box */
 .scroll-box {
   width: 200px !important;  /* Largura fixa */
-  height: 100px !important; /* Altura fixa */
+  height: 80px !important; /* Altura fixa */
   overflow-y: auto;       /* Scroll vertical */
   overflow-x: hidden;     /* Trava horizontal */
   word-wrap: break-word;
+  background: #f9f9fb;
+    border: 1px solid #eef0ff;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    word-wrap: break-word; /* Força a quebra de texto para não estourar a largura */
+    color: #444;
 }
 /* Caixa de Observação com Scroll Fixo */
 .obs-scroll-box {
@@ -239,9 +262,18 @@ body {
 }
 
 .motivo-box {
-  border-left: 3px solid var(--danger);
-  color: var(--danger);
-  font-weight: 500;
+  width: 100px;         /* Largura exata pedida */
+    height: 50px;        /* Altura exata pedida */
+    overflow-y: auto;    /* Ativa o scroll vertical */
+    overflow-x: hidden;  /* Esconde scroll horizontal */
+    background: #f9f9fb;
+    border: 1px solid #eef0ff;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    word-wrap: break-word; /* Força a quebra de texto para não estourar a largura */
+    color: #444;
 }
 
 /* Action Select */

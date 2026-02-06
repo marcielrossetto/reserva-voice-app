@@ -3,73 +3,178 @@
     <div class="modal-content rm-content">
       <div class="rm-header">
         <span class="rm-title">Nova Reserva</span>
-        <button type="button" class="rm-btn-close-modal" data-dismiss="modal" data-bs-dismiss="modal" onclick="fecharModalReserva()">&times;</button>
+        <button
+          type="button"
+          class="rm-btn-close-modal"
+          data-dismiss="modal"
+          data-bs-dismiss="modal"
+          onclick="fecharModalReserva()"
+        >
+          &times;
+        </button>
       </div>
       <div class="rm-body">
-
         <!-- AREA WHATSAPP -->
         <div class="rm-section-wa">
-          <textarea id="whats_dados" class="rm-input" rows="2" placeholder="Cole dados do WhatsApp aqui..."></textarea>
+          <textarea
+            id="whats_dados"
+            class="rm-input"
+            rows="2"
+            placeholder="Cole dados do WhatsApp aqui..."
+          ></textarea>
           <div class="rm-wa-btns">
-            <button type="button" onclick="importarWhatsParaFormulario()" class="rm-btn-outline">Importar</button>
-            <button type="button" id="btnSalvarDireto" onclick="analisarSalvarDireto()" class="rm-btn-dark">Salvar Direto</button>
+            <button
+              type="button"
+              onclick="importarWhatsParaFormulario()"
+              class="rm-btn-outline"
+            >
+              Importar
+            </button>
+            <button
+              type="button"
+              id="btnSalvarDireto"
+              onclick="analisarSalvarDireto()"
+              class="rm-btn-dark"
+            >
+              Salvar Direto
+            </button>
           </div>
         </div>
 
         <div class="rm-divider"></div>
 
         <!-- FORMULARIO -->
-        <form id="formManual" onsubmit="event.preventDefault(); verificarEEnviar();">
-
+        <form
+          id="formManual"
+          onsubmit="
+            event.preventDefault();
+            verificarEEnviar();
+          "
+        >
           <!-- TELEFONE -->
           <div class="rm-field">
             <label class="rm-label">Telefone</label>
-            <input type="text" id="res_telefone" name="telefone" class="rm-input" maxlength="15" onkeyup="maskPhoneReserva(this)" onblur="buscarTelefone()" placeholder="(00) 00000-0000" />
+            <input
+              type="text"
+              id="res_telefone"
+              name="telefone"
+              class="rm-input"
+              maxlength="15"
+              onkeyup="maskPhoneReserva(this)"
+              onblur="buscarTelefone()"
+              placeholder="(00) 00000-0000"
+            />
             <label class="rm-check-label">
-              <input type="checkbox" id="sem_telefone" onclick="toggleTelefone(this)" />
+              <input
+                type="checkbox"
+                id="sem_telefone"
+                onclick="toggleTelefone(this)"
+              />
               <span>Sem telefone</span>
             </label>
           </div>
 
           <!-- CARD PERFIL CLIENTE -->
-          <div id="card-perfil-cliente" class="rm-profile" style="display:none">
+          <div
+            id="card-perfil-cliente"
+            class="rm-profile"
+            style="display: none"
+          >
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <strong id="card-nome-display">--</strong>
-                <div id="edit-name-container" style="display:none" class="d-flex gap-1 align-items-center my-1">
-                  <input type="text" id="input-edit-nome" class="rm-input" style="width:160px;padding:4px 8px" />
-                  <button type="button" class="rm-btn-sm-ok" onclick="salvarNomeCliente()">OK</button>
-                  <button type="button" class="rm-btn-sm-cancel" onclick="cancelarEdicaoNome()">X</button>
+                <div
+                  id="edit-name-container"
+                  style="display: none"
+                  class="d-flex gap-1 align-items-center my-1"
+                >
+                  <input
+                    type="text"
+                    id="input-edit-nome"
+                    class="rm-input"
+                    style="width: 160px; padding: 4px 8px"
+                  />
+                  <button
+                    type="button"
+                    class="rm-btn-sm-ok"
+                    onclick="salvarNomeCliente()"
+                  >
+                    OK
+                  </button>
+                  <button
+                    type="button"
+                    class="rm-btn-sm-cancel"
+                    onclick="cancelarEdicaoNome()"
+                  >
+                    X
+                  </button>
                 </div>
                 <div id="card-telefone-display" class="rm-profile-sub">--</div>
-                <div class="rm-profile-sub">Ultima visita: <strong id="card-ultima">--</strong> (<span id="card-tempo" class="text-primary">--</span>)</div>
-                <div class="rm-profile-sub" style="font-size:0.72rem">Historico: <span id="card-historico">--</span></div>
+                <div class="rm-profile-sub">
+                  Ultima visita: <strong id="card-ultima">--</strong> (<span
+                    id="card-tempo"
+                    class="text-primary"
+                    >--</span
+                  >)
+                </div>
+                <div class="rm-profile-sub" style="font-size: 0.72rem">
+                  Historico: <span id="card-historico">--</span>
+                </div>
               </div>
               <div class="d-flex flex-column gap-1">
-                <button type="button" class="rm-btn-outline rm-btn-xs" onclick="trocarCliente()">Trocar</button>
-                <button type="button" class="rm-btn-outline rm-btn-xs" onclick="editarCliente()">Editar</button>
+                <button
+                  type="button"
+                  class="rm-btn-outline rm-btn-xs"
+                  onclick="trocarCliente()"
+                >
+                  Trocar
+                </button>
+                <button
+                  type="button"
+                  class="rm-btn-outline rm-btn-xs"
+                  onclick="editarCliente()"
+                >
+                  Editar
+                </button>
               </div>
             </div>
-            <div id="area-obs-db" class="rm-obs-alert" style="display:none">
+            <div id="area-obs-db" class="rm-obs-alert" style="display: none">
               <strong>Obs:</strong> <span id="txt-obs-db"></span>
             </div>
             <div class="rm-profile-stats">
-              <div><small>Reservas</small><strong id="stat-reservas">0</strong></div>
-              <div><small>Canceladas</small><strong id="stat-cancelada" class="text-danger">0</strong></div>
+              <div>
+                <small>Reservas</small><strong id="stat-reservas">0</strong>
+              </div>
+              <div>
+                <small>Canceladas</small
+                ><strong id="stat-cancelada" class="text-danger">0</strong>
+              </div>
             </div>
           </div>
 
           <!-- NOME -->
           <div id="div-input-nome" class="rm-field">
             <label class="rm-label">Nome</label>
-            <input type="text" id="res_nome" name="nome" class="rm-input" required />
+            <input
+              type="text"
+              id="res_nome"
+              name="nome"
+              class="rm-input"
+              required
+            />
           </div>
 
           <!-- DATA + HORARIO -->
           <div class="rm-row">
             <div class="rm-field rm-flex-1">
               <label class="rm-label">Data</label>
-              <input type="date" id="res_data" name="data" class="rm-input" required />
+              <input
+                type="date"
+                id="res_data"
+                name="data"
+                class="rm-input"
+                required
+              />
             </div>
             <div class="rm-field rm-flex-1">
               <label class="rm-label">Horario</label>
@@ -102,13 +207,27 @@
 
           <!-- PAX + TEL ALT -->
           <div class="rm-row">
-            <div class="rm-field" style="flex:0 0 80px">
+            <div class="rm-field" style="flex: 0 0 80px">
               <label class="rm-label">Pax</label>
-              <input type="number" id="res_num_pessoas" name="numPessoas" class="rm-input" min="1" required placeholder="4" />
+              <input
+                type="number"
+                id="res_num_pessoas"
+                name="numPessoas"
+                class="rm-input"
+                min="1"
+                required
+                placeholder="4"
+              />
             </div>
             <div class="rm-field rm-flex-1">
               <label class="rm-label">Tel. Alternativo</label>
-              <input type="text" id="res_telefone2" name="telefone2" class="rm-input" onkeyup="maskPhoneReserva(this)" />
+              <input
+                type="text"
+                id="res_telefone2"
+                name="telefone2"
+                class="rm-input"
+                onkeyup="maskPhoneReserva(this)"
+              />
             </div>
           </div>
 
@@ -116,7 +235,11 @@
           <div class="rm-row">
             <div class="rm-field rm-flex-1">
               <label class="rm-label">Pagamento</label>
-              <select id="res_forma_pagamento" name="formaPagamento" class="rm-input">
+              <select
+                id="res_forma_pagamento"
+                name="formaPagamento"
+                class="rm-input"
+              >
                 <option value="Nao definido">Selecione</option>
                 <option value="unica">Unica</option>
                 <option value="individual">Individual</option>
@@ -132,23 +255,56 @@
                 <option value="Salao 2">Salao 2</option>
                 <option value="Salao 3">Salao 3</option>
                 <optgroup label="Mesas">
-                  <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                  <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                  <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                  <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                  <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-                  <option value="16">16</option><option value="17">17</option><option value="18">18</option>
-                  <option value="19">19</option><option value="20">20</option><option value="21">21</option>
-                  <option value="22">22</option><option value="23">23</option><option value="24">24</option>
-                  <option value="25">25</option><option value="26">26</option><option value="27">27</option>
-                  <option value="28">28</option><option value="29">29</option><option value="30">30</option>
-                  <option value="31">31</option><option value="32">32</option><option value="33">33</option>
-                  <option value="34">34</option><option value="35">35</option><option value="36">36</option>
-                  <option value="37">37</option><option value="38">38</option><option value="39">39</option>
-                  <option value="40">40</option><option value="41">41</option><option value="42">42</option>
-                  <option value="43">43</option><option value="44">44</option><option value="45">45</option>
-                  <option value="46">46</option><option value="47">47</option><option value="48">48</option>
-                  <option value="49">49</option><option value="50">50</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                  <option value="13">13</option>
+                  <option value="14">14</option>
+                  <option value="15">15</option>
+                  <option value="16">16</option>
+                  <option value="17">17</option>
+                  <option value="18">18</option>
+                  <option value="19">19</option>
+                  <option value="20">20</option>
+                  <option value="21">21</option>
+                  <option value="22">22</option>
+                  <option value="23">23</option>
+                  <option value="24">24</option>
+                  <option value="25">25</option>
+                  <option value="26">26</option>
+                  <option value="27">27</option>
+                  <option value="28">28</option>
+                  <option value="29">29</option>
+                  <option value="30">30</option>
+                  <option value="31">31</option>
+                  <option value="32">32</option>
+                  <option value="33">33</option>
+                  <option value="34">34</option>
+                  <option value="35">35</option>
+                  <option value="36">36</option>
+                  <option value="37">37</option>
+                  <option value="38">38</option>
+                  <option value="39">39</option>
+                  <option value="40">40</option>
+                  <option value="41">41</option>
+                  <option value="42">42</option>
+                  <option value="43">43</option>
+                  <option value="44">44</option>
+                  <option value="45">45</option>
+                  <option value="46">46</option>
+                  <option value="47">47</option>
+                  <option value="48">48</option>
+                  <option value="49">49</option>
+                  <option value="50">50</option>
                 </optgroup>
               </select>
             </div>
@@ -169,21 +325,44 @@
             </div>
             <div class="rm-field rm-flex-1">
               <label class="rm-label">Valor Rodizio</label>
-              <input type="text" id="res_valor_rodizio" name="valorRodizio" class="rm-input" placeholder="89.90" />
+              <input
+                type="text"
+                id="res_valor_rodizio"
+                name="valorRodizio"
+                class="rm-input"
+                placeholder="89.90"
+              />
             </div>
           </div>
 
           <!-- CHECKBOXES -->
           <div class="rm-checks">
-            <label class="rm-check-label"><input type="checkbox" id="torta" name="tortaTermoVela" /><span>Torta/Termo/Vela</span></label>
-            <label class="rm-check-label"><input type="checkbox" id="churras" name="churrascaria" /><span>Churrascaria</span></label>
-            <label class="rm-check-label"><input type="checkbox" id="exec" name="executivo" /><span>Executivo</span></label>
+            <label class="rm-check-label"
+              ><input type="checkbox" id="torta" name="tortaTermoVela" /><span
+                >Torta/Termo/Vela</span
+              ></label
+            >
+            <label class="rm-check-label"
+              ><input type="checkbox" id="churras" name="churrascaria" /><span
+                >Churrascaria</span
+              ></label
+            >
+            <label class="rm-check-label"
+              ><input type="checkbox" id="exec" name="executivo" /><span
+                >Executivo</span
+              ></label
+            >
           </div>
 
           <!-- OBS -->
           <div class="rm-field">
             <label class="rm-label">Observacoes</label>
-            <textarea id="res_observacoes" name="observacoes" class="rm-input" rows="2"></textarea>
+            <textarea
+              id="res_observacoes"
+              name="observacoes"
+              class="rm-input"
+              rows="2"
+            ></textarea>
           </div>
 
           <button type="submit" id="btnSalvarManual" class="rm-btn-submit">
@@ -196,12 +375,18 @@
 </div>
 
 <!-- MODAL CONFIRMACAO POS-SALVAR -->
-<div id="rm-confirmacao-overlay" class="rm-overlay" style="display:none">
+<div id="rm-confirmacao-overlay" class="rm-overlay" style="display: none">
   <div class="rm-confirm-box">
     <div class="rm-confirm-icon">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="11" fill="#28a745"/>
-        <path d="M7 12.5l3 3 7-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="11" fill="#28a745" />
+        <path
+          d="M7 12.5l3 3 7-7"
+          stroke="#fff"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </div>
     <h5 class="rm-confirm-title">Reserva Salva!</h5>
@@ -211,205 +396,366 @@
 </div>
 
 <style>
-/* ============================================
+  /* ============================================
    MODAL RESERVA - COMPACTO & QUADRADO
    ============================================ */
 
-/* OVERLAY CONFIRMACAO */
-.rm-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 10050;
-  display: flex; align-items: center; justify-content: center;
-  animation: rmFadeIn 0.2s;
-}
-.rm-confirm-box {
-  background: #fff;
-  border-radius: 6px;
-  padding: 32px 28px;
-  text-align: center;
-  max-width: 360px;
-  width: 90%;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-  animation: rmSlideUp 0.25s;
-}
-.rm-confirm-icon { margin-bottom: 12px; }
-.rm-confirm-title { font-weight: 700; font-size: 1.2rem; color: #1a1a1a; margin: 0 0 8px; }
-.rm-confirm-resumo {
-  background: #f5f7f5; border-radius: 4px; padding: 10px 14px;
-  font-size: 0.82rem; color: #555; text-align: left; margin-bottom: 16px; line-height: 1.5;
-}
-.rm-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
-.rm-confirm-btns .rm-btn-wa {
-  background: #25d366; color: #fff; border: none; border-radius: 4px;
-  padding: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer;
-}
-.rm-confirm-btns .rm-btn-wa:hover { background: #1ebe5d; }
-.rm-confirm-btns .rm-btn-close-confirm {
-  background: none; border: 1px solid #ddd; border-radius: 4px;
-  padding: 8px; font-size: 0.82rem; color: #666; cursor: pointer;
-}
-.rm-confirm-btns .rm-btn-close-confirm:hover { background: #f5f5f5; }
+  /* OVERLAY CONFIRMACAO */
+  .rm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rmFadeIn 0.2s;
+  }
+  .rm-confirm-box {
+    background: #fff;
+    border-radius: 6px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    animation: rmSlideUp 0.25s;
+  }
+  .rm-confirm-icon {
+    margin-bottom: 12px;
+  }
+  .rm-confirm-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+  }
+  .rm-confirm-resumo {
+    background: #f5f7f5;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #555;
+    text-align: left;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .rm-confirm-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rm-confirm-btns .rm-btn-wa {
+    background: #25d366;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .rm-confirm-btns .rm-btn-wa:hover {
+    background: #1ebe5d;
+  }
+  .rm-confirm-btns .rm-btn-close-confirm {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.82rem;
+    color: #666;
+    cursor: pointer;
+  }
+  .rm-confirm-btns .rm-btn-close-confirm:hover {
+    background: #f5f5f5;
+  }
 
-/* MODAL PRINCIPAL */
-.rm-content {
-  border-radius: 6px !important;
-  border: none !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  overflow: hidden;
-}
-.rm-header {
-  background: #1a1a2e;
-  color: #fff;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.rm-title { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
-.rm-btn-close-modal {
-  background: none; border: none; color: rgba(255,255,255,0.7);
-  font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 0 4px;
-}
-.rm-btn-close-modal:hover { color: #fff; }
-.rm-body { padding: 12px 16px 16px; max-height: 78vh; overflow-y: auto; }
+  /* MODAL PRINCIPAL */
+  .rm-content {
+    border-radius: 6px !important;
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .rm-header {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rm-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+  }
+  .rm-btn-close-modal {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .rm-btn-close-modal:hover {
+    color: #fff;
+  }
+  .rm-body {
+    padding: 12px 16px 16px;
+    max-height: 78vh;
+    overflow-y: auto;
+  }
 
-/* DIVIDER */
-.rm-divider { height: 1px; background: #e5e5e5; margin: 10px 0; }
+  /* DIVIDER */
+  .rm-divider {
+    height: 1px;
+    background: #e5e5e5;
+    margin: 10px 0;
+  }
 
-/* WHATSAPP SECTION */
-.rm-section-wa { margin-bottom: 0; }
-.rm-wa-btns { display: flex; gap: 6px; margin-top: 6px; }
+  /* WHATSAPP SECTION */
+  .rm-section-wa {
+    margin-bottom: 0;
+  }
+  .rm-wa-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
 
-/* ROWS */
-.rm-row { display: flex; gap: 8px; }
-.rm-flex-1 { flex: 1; }
+  /* ROWS */
+  .rm-row {
+    display: flex;
+    gap: 8px;
+  }
+  .rm-flex-1 {
+    flex: 1;
+  }
 
-/* FIELDS */
-.rm-field { margin-bottom: 8px; }
-.rm-label {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 3px;
-}
+  /* FIELDS */
+  .rm-field {
+    margin-bottom: 8px;
+  }
+  .rm-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
 
-/* INPUTS - QUADRADOS */
-.rm-input {
-  display: block;
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 0.85rem;
-  color: #333;
-  background: #f7f7f8;
-  border: 1px solid #d5d5d8;
-  border-radius: 4px;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.rm-input:focus {
-  border-color: #007aff;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(0,122,255,0.12);
-}
-textarea.rm-input { resize: vertical; }
-select.rm-input { cursor: pointer; }
+  /* INPUTS - QUADRADOS */
+  .rm-input {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    color: #333;
+    background: #f7f7f8;
+    border: 1px solid #d5d5d8;
+    border-radius: 4px;
+    outline: none;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .rm-input:focus {
+    border-color: #007aff;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.12);
+  }
+  textarea.rm-input {
+    resize: vertical;
+  }
+  select.rm-input {
+    cursor: pointer;
+  }
 
-/* CHECKBOXES */
-.rm-checks {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  background: #f7f7f8;
-  border: 1px solid #e8e8ea;
-  border-radius: 4px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
-}
-.rm-check-label {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 0.78rem; font-weight: 600; color: #444; cursor: pointer;
-}
-.rm-check-label input[type="checkbox"] {
-  width: 15px; height: 15px; cursor: pointer;
-  accent-color: #007aff;
-}
+  /* CHECKBOXES */
+  .rm-checks {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #f7f7f8;
+    border: 1px solid #e8e8ea;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .rm-check-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+  }
+  .rm-check-label input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: #007aff;
+  }
 
-/* PROFILE CARD */
-.rm-profile {
-  background: #f5faf5;
-  border: 1px solid #28a745;
-  border-radius: 4px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-}
-.rm-profile strong { font-size: 0.95rem; color: #222; }
-.rm-profile-sub { font-size: 0.76rem; color: #777; margin-top: 1px; }
-.rm-profile-stats {
-  display: flex; gap: 24px;
-  border-top: 1px solid #d4edda;
-  margin-top: 8px;
-  padding-top: 6px;
-}
-.rm-profile-stats div { text-align: center; }
-.rm-profile-stats small { font-size: 0.68rem; color: #999; display: block; }
-.rm-profile-stats strong { font-size: 1rem; }
-.rm-obs-alert {
-  background: #fff8e1; border-radius: 4px; padding: 6px 10px;
-  font-size: 0.78rem; color: #856404; margin-top: 6px;
-}
+  /* PROFILE CARD */
+  .rm-profile {
+    background: #f5faf5;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .rm-profile strong {
+    font-size: 0.95rem;
+    color: #222;
+  }
+  .rm-profile-sub {
+    font-size: 0.76rem;
+    color: #777;
+    margin-top: 1px;
+  }
+  .rm-profile-stats {
+    display: flex;
+    gap: 24px;
+    border-top: 1px solid #d4edda;
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+  .rm-profile-stats div {
+    text-align: center;
+  }
+  .rm-profile-stats small {
+    font-size: 0.68rem;
+    color: #999;
+    display: block;
+  }
+  .rm-profile-stats strong {
+    font-size: 1rem;
+  }
+  .rm-obs-alert {
+    background: #fff8e1;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    color: #856404;
+    margin-top: 6px;
+  }
 
-/* BUTTONS */
-.rm-btn-outline {
-  background: #fff; border: 1px solid #ccc; border-radius: 4px;
-  padding: 5px 12px; font-size: 0.76rem; font-weight: 600; color: #555; cursor: pointer;
-}
-.rm-btn-outline:hover { background: #f5f5f5; border-color: #aaa; }
-.rm-btn-dark {
-  background: #333; color: #fff; border: none; border-radius: 4px;
-  padding: 5px 12px; font-size: 0.76rem; font-weight: 600; cursor: pointer;
-}
-.rm-btn-dark:hover { background: #111; }
-.rm-btn-xs { padding: 3px 8px; font-size: 0.7rem; }
-.rm-btn-sm-ok {
-  background: #007aff; color: #fff; border: none; border-radius: 4px;
-  padding: 3px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
-}
-.rm-btn-sm-cancel {
-  background: #eee; color: #666; border: none; border-radius: 4px;
-  padding: 3px 8px; font-size: 0.78rem; cursor: pointer;
-}
+  /* BUTTONS */
+  .rm-btn-outline {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+  }
+  .rm-btn-outline:hover {
+    background: #f5f5f5;
+    border-color: #aaa;
+  }
+  .rm-btn-dark {
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rm-btn-dark:hover {
+    background: #111;
+  }
+  .rm-btn-xs {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+  .rm-btn-sm-ok {
+    background: #007aff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rm-btn-sm-cancel {
+    background: #eee;
+    color: #666;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
 
-.rm-btn-submit {
-  width: 100%;
-  background: #007aff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  cursor: pointer;
-  margin-top: 4px;
-  transition: background 0.15s;
-}
-.rm-btn-submit:hover:not(:disabled) { background: #0062d1; }
-.rm-btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .rm-btn-submit {
+    width: 100%;
+    background: #007aff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.15s;
+  }
+  .rm-btn-submit:hover:not(:disabled) {
+    background: #0062d1;
+  }
+  .rm-btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-/* ANIMATIONS */
-@keyframes rmFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes rmSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  /* ANIMATIONS */
+  @keyframes rmFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rmSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-/* RESPONSIVE */
-#modalReserva .modal-dialog { max-width: 520px; }
-@media (max-width: 576px) {
-  #modalReserva .modal-dialog { margin: 8px; max-width: calc(100% - 16px); }
-  .rm-body { padding: 10px 12px 14px; }
-  .rm-row { gap: 6px; }
-}
+  /* RESPONSIVE */
+  #modalReserva .modal-dialog {
+    max-width: 520px;
+  }
+  @media (max-width: 576px) {
+    #modalReserva .modal-dialog {
+      margin: 8px;
+      max-width: calc(100% - 16px);
+    }
+    .rm-body {
+      padding: 10px 12px 14px;
+    }
+    .rm-row {
+      gap: 6px;
+    }
+  }
 </style>
