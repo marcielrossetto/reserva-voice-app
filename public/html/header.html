@@ -1,17 +1,17 @@
 <!-- public/html/header.html -->
 <header class="main-navbar" id="mainHeader">
   <div class="nav-wrapper">
-    <!-- ESQUERDA: USUÁRIO (MOBILE) OU LOGO -->
+    <!-- ESQUERDA: HAMBURGER + NOME (MOBILE) OU LOGO (DESKTOP) -->
     <div class="nav-left">
-      <div
-        class="mobile-user-pilled d-lg-none"
-        onclick="openProfileModal()"
-        style="cursor: pointer"
-      >
-        <div class="user-avatar-small"><i class="fas fa-user"></i></div>
-        <span id="userNameMobile">Carregando...</span>
+      <!-- MOBILE: Hamburger + Nome do usuário -->
+      <div class="mobile-left-group d-lg-none">
+        <button class="hamburger" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span class="mobile-user-name" id="userNameMobile">Carregando...</span>
       </div>
 
+      <!-- DESKTOP: Logo -->
       <div
         class="logo-area d-none d-lg-flex"
         onclick="document.getElementById('logoInput').click()"
@@ -152,7 +152,7 @@
       </ul>
     </nav>
 
-    <!-- DIREITA: PERFIL E MOBILE TOGGLE -->
+    <!-- DIREITA: PERFIL (DESKTOP ONLY) -->
     <div class="nav-right">
       <div class="user-profile d-none d-lg-flex dropdown">
         <button class="profile-trigger" id="userProfileBtn">
@@ -163,104 +163,99 @@
           <a href="javascript:void(0)" onclick="openProfileModal()"
             ><i class="fas fa-id-badge"></i> Perfil</a
           >
-        
+
           <a href="javascript:void(0)" onclick="logout()" class="text-danger"
             ><i class="fas fa-sign-out-alt"></i> Sair</a
           >
         </div>
       </div>
-
-      <button class="hamburger d-lg-none" onclick="toggleMobileMenu()">
-        <i class="fas fa-bars"></i>
-      </button>
     </div>
   </div>
 </header>
 
 <!-- SIDEBAR MOBILE -->
 <div class="mobile-drawer" id="mobileSidebar">
-  <div class="drawer-content">
-    <div class="drawer-header">
-      <img src="" id="sidebarLogo" alt="Logo" />
-      <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
+  <!-- HEADER FIXO: Logo + User + Fechar -->
+  <div class="drawer-header">
+    <div class="drawer-header-left">
+      <div class="drawer-logo">
+        <img src="" id="sidebarLogo" alt="Logo" />
+      </div>
+      <div class="drawer-user-info" onclick="toggleMobileMenu(); openProfileModal();">
+        <i class="fas fa-user-circle"></i>
+        <span id="drawerUserName">Usuário</span>
+      </div>
     </div>
-    <div class="drawer-links">
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToIndex();
-        "
-        ><i class="fas fa-home"></i> Dashboard</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          openReservationModal();
-        "
-        ><i class="fas fa-plus"></i> Nova Reserva</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToQueue();
-        "
-        ><i class="fas fa-users-line"></i> Fila</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToSearch();
-        "
-        ><i class="fas fa-search"></i> Pesquisar</a
-      >
-      <hr />
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToDashboard();
-        "
-        ><i class="fas fa-chart-line"></i> Dashboard BI</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToRelatorioFila();
-        "
-        ><i class="fas fa-clipboard-list"></i> Relatório Fila</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          goToUsuarios();
-        "
-        ><i class="fas fa-users-cog"></i> Equipe</a
-      >
-      <hr />
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          openProfileModal();
-        "
-        ><i class="fas fa-id-badge"></i> Meu Perfil</a
-      >
-      <a
-        href="javascript:void(0)"
-        onclick="
-          toggleMobileMenu();
-          logout();
-        "
-        class="text-danger"
-        ><i class="fas fa-sign-out-alt"></i> Sair do Sistema</a
-      >
-    </div>
+    <button class="close-drawer" onclick="toggleMobileMenu()">✕</button>
+  </div>
+
+  <!-- LINKS COM SCROLL -->
+  <div class="drawer-links">
+    <!-- INÍCIO -->
+    <div class="drawer-section-label">Início</div>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToIndex();">
+      <i class="fas fa-home"></i> Home
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToStats();">
+      <i class="fas fa-chart-pie"></i> Estatísticas
+    </a>
+
+    <!-- RESERVAS -->
+    <div class="drawer-section-label">Reservas</div>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); openReservationModal();">
+      <i class="fas fa-plus-circle"></i> Nova Reserva
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToSearch();">
+      <i class="fas fa-search"></i> Pesquisa Total
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
+      <i class="fas fa-th-large"></i> Cards
+    </a>
+
+    <!-- OPERAÇÃO -->
+    <div class="drawer-section-label">Operação</div>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToQueue();">
+      <i class="fas fa-users-line"></i> Fila de Espera
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
+      <i class="fas fa-utensils"></i> Cardápio
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
+      <i class="fas fa-print"></i> Impressões
+    </a>
+
+    <!-- GESTÃO (ADMIN) -->
+    <div class="drawer-section-label drawer-admin-section" id="adminMenuMobile" style="display:none">Gestão</div>
+    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToUsuarios();" style="display:none">
+      <i class="fas fa-users-cog"></i> Equipe
+    </a>
+    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToDashboard();" style="display:none">
+      <i class="fas fa-chart-line"></i> Dashboard BI
+    </a>
+    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToRelatorioFila();" style="display:none">
+      <i class="fas fa-clipboard-list"></i> Relatório Fila
+    </a>
+    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu();" style="display:none">
+      <i class="fas fa-sliders-h"></i> Configurações
+    </a>
+
+    <!-- AJUDA -->
+    <div class="drawer-section-label">Ajuda</div>
+    <a href="/support" onclick="toggleMobileMenu();">
+      <i class="fas fa-question-circle"></i> Suporte
+    </a>
+    <a href="/privacy" onclick="toggleMobileMenu();">
+      <i class="fas fa-shield-alt"></i> Privacidade
+    </a>
+
+    <hr />
+    <!-- PERFIL E SAIR -->
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); openProfileModal();">
+      <i class="fas fa-id-badge"></i> Meu Perfil
+    </a>
+    <a href="javascript:void(0)" onclick="toggleMobileMenu(); logout();" class="text-danger">
+      <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+    </a>
   </div>
 </div>
 
@@ -511,25 +506,19 @@
   }
 
   /* MOBILE ESPECÍFICO */
-  .mobile-user-pilled {
+  .mobile-left-group {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: white;
-    background: var(--glass);
-    padding: 5px 12px;
-    border-radius: 50px;
-    font-size: 12px;
+    gap: 10px;
   }
-  .user-avatar-small {
-    width: 24px;
-    height: 24px;
-    background: white;
-    color: var(--brand-color);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .mobile-user-name {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
   }
 
   .hamburger {
@@ -538,46 +527,147 @@
     color: white;
     font-size: 24px;
     cursor: pointer;
+    padding: 4px;
   }
 
   .mobile-drawer {
     position: fixed;
     top: 0;
-    right: -100%;
+    left: -100%;
     width: 300px;
     height: 100vh;
+    height: 100dvh;
     background: white;
     z-index: 2100;
     transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .mobile-drawer.open {
-    right: 0;
-  }
-  .drawer-header {
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #eee;
-  }
-  .drawer-links {
-    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
   }
-  .drawer-links a {
-    padding: 15px;
-    text-decoration: none;
-    color: #333;
-    border-radius: 10px;
+  .mobile-drawer.open {
+    left: 0;
+  }
+
+  /* DRAWER HEADER - FIXO NO TOPO */
+  .drawer-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%);
+    flex-shrink: 0;
+  }
+  .drawer-header-left {
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
+  }
+  .drawer-logo {
+    width: 100px;
+    height: 36px;
+    background: var(--glass);
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .drawer-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .drawer-user-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .drawer-user-info i {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .drawer-user-info span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .close-drawer {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .close-drawer:hover {
+    background: rgba(255,255,255,0.35);
+  }
+
+  /* DRAWER LINKS - SCROLLÁVEL */
+  .drawer-links {
+    padding: 8px 12px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+  .drawer-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 0.5px;
+    padding: 12px 10px 4px;
+    margin-top: 2px;
+  }
+  .drawer-section-label:first-child {
+    margin-top: 0;
+    padding-top: 6px;
+  }
+  .drawer-links a {
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
     font-weight: 500;
   }
-  .drawer-links a:hover {
+  .drawer-links a:hover,
+  .drawer-links a:active {
     background: #f4f6ff;
     color: var(--brand-color);
+  }
+  .drawer-links a i {
+    width: 18px;
+    text-align: center;
+    color: var(--brand-color);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .drawer-links hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 6px 0;
   }
 
   @media (max-width: 991px) {

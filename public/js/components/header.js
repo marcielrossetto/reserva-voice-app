@@ -44,12 +44,18 @@
 
         const desk = document.getElementById('userNameHeader');
         const mob = document.getElementById('userNameMobile');
+        const drawerName = document.getElementById('drawerUserName');
         if (desk) desk.innerText = formatted || 'Usuário';
         if (mob) mob.innerText = formatted || 'Usuário';
+        if (drawerName) drawerName.innerText = formatted || 'Usuário';
 
         if (AUTH.role === 'admin' || AUTH.role === 'master') {
             const adm = document.getElementById('adminMenu');
             if (adm) adm.style.display = 'block';
+            // Mobile admin menu
+            const admMob = document.getElementById('adminMenuMobile');
+            if (admMob) admMob.style.display = '';
+            document.querySelectorAll('.drawer-admin-link').forEach(el => el.style.display = '');
         }
     }
 
