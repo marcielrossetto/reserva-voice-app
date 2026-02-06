@@ -33,7 +33,7 @@ const API_CONFIG = {
 // ========================= TOKEN GLOBAL (ÚNICO) =========================
 
 // ✅ SEM let/const - deixar global!
-token = localStorage.getItem("token");
+let token = localStorage.getItem("token");
 
 // ========================= CONTROLE DE REDIRECIONAMENTO =========================
 

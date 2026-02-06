@@ -115,17 +115,19 @@
         document.getElementById('mobileSidebar').classList.toggle('open');
     };
 
-    globalThis.logout = () => {
-        if (confirm("Deseja sair do sistema?")) {
-            if (typeof fazerLogout === 'function') {
-                fazerLogout();
-            } else {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace("/login.html");
-            }
-        }
-    };
+   globalThis.logout = () => {
+    if (confirm("Deseja realmente sair do sistema?")) {
+        // 1. Limpa os dados do navegador (isso invalida o acesso)
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // 2. Limpa o Cookie (Essencial para as páginas EJS como /search não darem erro)
+        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // 3. Redireciona usando replace para evitar que o usuário volte com o botão "voltar"
+        window.location.replace("/html/login.html");
+    }
+};
 
     globalThis.uploadLogo = async (input) => {
         if (!input.files[0]) return;
