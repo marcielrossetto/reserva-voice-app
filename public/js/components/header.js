@@ -240,6 +240,7 @@
     globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
     globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';
     globalThis.goToRelatorioFila = () => window.location.href = '/html/relatorio-fila.html';
+    globalThis.goToConfigCardapio = () => window.location.href = '/html/configCardapio.html';
 
     init();
 })();

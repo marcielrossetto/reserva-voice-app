@@ -40,6 +40,7 @@ app.use("/api/calendar", require("./routes/calendar.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/dashboard", require("./routes/dashboard.routes"));
 app.use("/api/relatorio-fila", require("./routes/relatorio-fila.routes"));
+app.use("/api/cardapio", require("./routes/cardapio.routes"));
 
 app.use("/", require("./routes/search"));
 
@@ -77,6 +78,11 @@ app.get("/support", (req, res) => {
 
 app.get("/privacy", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "html", "privacy.html"));
+});
+
+// Cardápio público (sem login) - rota amigável para QR Code
+app.get("/cardapio/:empresaId", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "html", "cardapio-publico.html"));
 });
 /**
  * TRATAMENTO DE ASSETS E FALLBACK
