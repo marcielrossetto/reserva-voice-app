@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config. Cardápio Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/configCardapio.css">
+    <style>
+        body { padding-top: 80px; background-color: #f8fafc; }
+        @media (max-width: 991px) { body { padding-top: 60px; } }
+    </style>
+</head>
+<body>
+
+<div id="header-container"></div>
+
+<div class="container-fluid px-3 px-md-4" style="max-width: 1200px;">
+
+    <!-- Toolbar -->
+    <div class="toolbar-cardapio">
+        <div class="toolbar-left">
+            <h5 class="mb-0"><i class="fas fa-utensils"></i> Cardápio Digital</h5>
+        </div>
+        <div class="toolbar-right">
+            <a href="#" class="qr-link" id="btnQrLink" target="_blank" title="Abrir cardápio público">
+                <i class="fas fa-qrcode"></i> Ver Público
+            </a>
+            <button class="btn btn-outline-primary btn-sm" onclick="abrirModalCardapio()">
+                <i class="fas fa-plus"></i> Cardápio
+            </button>
+            <button class="btn btn-outline-success btn-sm" onclick="abrirModalCategoria()">
+                <i class="fas fa-layer-group"></i> Categoria
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalProduto()">
+                <i class="fas fa-plus"></i> Produto
+            </button>
+        </div>
+    </div>
+
+    <!-- Lista de Cardápios -->
+    <div id="listaCardapios">
+        <div class="loading-cardapio">
+            <div class="spinner-border" role="status"></div>
+            <p class="mt-3">Carregando cardápio...</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Cardápio (criar/editar)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="modal fade modal-cardapio" id="modalCardapio" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCardapioTitulo">Novo Cardápio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cardapioEditId">
+                <div class="mb-3">
+                    <label class="form-label">Nome do Cardápio</label>
+                    <input type="text" class="form-control" id="cardapioNome" placeholder="Ex: Cardápio Almoço">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary btn-sm" onclick="salvarCardapio()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Categoria (criar/editar)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="modal fade modal-cardapio" id="modalCategoria" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCategoriaTitulo">Nova Categoria</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="categoriaEditId">
+                <div class="mb-3">
+                    <label class="form-label">Cardápio</label>
+                    <select class="form-select" id="categoriaCardapioId">
+                        <option value="">Selecione o cardápio...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nome da Categoria</label>
+                    <input type="text" class="form-control" id="categoriaNome" placeholder="Ex: Vinhos Tintos">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Layout de Exibição</label>
+                    <select class="form-select" id="categoriaLayout">
+                        <option value="vinho">Vinho (cards verticais com imagem grande)</option>
+                        <option value="bebidas">Bebidas (cards horizontais)</option>
+                        <option value="sobremesa">Sobremesa (cards compactos)</option>
+                        <option value="texto">Texto (lista sem imagem)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary btn-sm" onclick="salvarCategoria()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Produto (criar/editar)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="modal fade modal-cardapio" id="modalProduto" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalProdutoTitulo">Novo Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="produtoEditId">
+
+                <div class="row g-3">
+                    <!-- Categoria -->
+                    <div class="col-12">
+                        <label class="form-label">Categoria</label>
+                        <select class="form-select" id="produtoCategoriaId">
+                            <option value="">Selecione a categoria...</option>
+                        </select>
+                    </div>
+
+                    <!-- Nome -->
+                    <div class="col-md-8">
+                        <label class="form-label">Nome do Produto</label>
+                        <input type="text" class="form-control" id="produtoNome" placeholder="Ex: Merlot Reserva 2019">
+                    </div>
+
+                    <!-- Preço -->
+                    <div class="col-md-4">
+                        <label class="form-label">Preço (R$)</label>
+                        <input type="number" class="form-control" id="produtoPreco" step="0.01" min="0" placeholder="0,00">
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="col-12">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" id="produtoDescricao" rows="2" placeholder="Breve descrição do produto..."></textarea>
+                    </div>
+
+                    <!-- Cód. PDV -->
+                    <div class="col-md-4">
+                        <label class="form-label">Cód. PDV</label>
+                        <input type="text" class="form-control" id="produtoCodPdv" placeholder="Opcional">
+                    </div>
+
+                    <!-- País -->
+                    <div class="col-md-4">
+                        <label class="form-label">País de Origem</label>
+                        <input type="text" class="form-control" id="produtoOrigem" placeholder="Ex: Chile">
+                    </div>
+
+                    <!-- Tipo Uva -->
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo de Uva</label>
+                        <input type="text" class="form-control" id="produtoUva" placeholder="Ex: Merlot">
+                    </div>
+
+                    <!-- Tamanho Dose -->
+                    <div class="col-md-4">
+                        <label class="form-label">Tamanho / Dose</label>
+                        <input type="text" class="form-control" id="produtoDose" placeholder="Ex: 750ml">
+                    </div>
+
+                    <!-- Layout -->
+                    <div class="col-md-8">
+                        <label class="form-label">Layout (herda da categoria se vazio)</label>
+                        <select class="form-select" id="produtoLayout">
+                            <option value="normal">Normal (herda da categoria)</option>
+                            <option value="vinho">Vinho</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="sobremesa">Sobremesa</option>
+                            <option value="texto">Texto</option>
+                        </select>
+                    </div>
+
+                    <!-- Foto -->
+                    <div class="col-12">
+                        <label class="form-label">Foto do Produto</label>
+                        <div class="foto-preview-area" id="fotoPreviewArea" onclick="document.getElementById('produtoFoto').click()">
+                            <div class="placeholder-text" id="fotoPlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                Clique para enviar foto<br>
+                                <small>JPG, PNG ou WebP (máx. 5MB)</small>
+                            </div>
+                            <img src="" id="fotoPreviewImg" style="display:none">
+                            <button type="button" class="btn-remove-foto" id="btnRemoveFoto" style="display:none" onclick="event.stopPropagation(); removerFotoPreview();">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <input type="file" id="produtoFoto" accept="image/*" style="display:none" onchange="previewFoto(this)">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary btn-sm" onclick="salvarProduto()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="toastCardapio" class="toast" role="alert">
+        <div class="toast-body d-flex align-items-center gap-2">
+            <i class="fas fa-check-circle text-success" id="toastIcon"></i>
+            <span id="toastMsg">Operação realizada!</span>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/configCardapio.js"></script>
+
+</body>
+</html>
