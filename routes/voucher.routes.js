@@ -209,6 +209,8 @@ router.post("/criar", authMiddleware, apenasMaster, async (req, res) => {
         const vBebida = parseFloat(valorBebida) || 0;
         const vSobremesa = parseFloat(valorSobremesa) || 0;
         const subtotal = vRodizio + vBebida + vSobremesa;
+        const taxaGarcom = +(subtotal * 0.12).toFixed(2);
+        const valorTotal = +(subtotal + taxaGarcom).toFixed(2);
 
         const voucher = await prisma.voucher.create({
             data: {
@@ -227,7 +229,7 @@ router.post("/criar", authMiddleware, apenasMaster, async (req, res) => {
                 qtdSobremesa: parseInt(qtdSobremesa) || 0,
                 tipoSobremesa: tipoSobremesa || null,
                 subtotal,
-                valorTotal: subtotal,
+                valorTotal,
                 dataValidade: new Date(dataValidade),
                 observacoes: observacoes || null,
                 pago: !!pago,
@@ -266,6 +268,8 @@ router.put("/:id", authMiddleware, apenasMaster, async (req, res) => {
         const vBebida = parseFloat(valorBebida) || 0;
         const vSobremesa = parseFloat(valorSobremesa) || 0;
         const subtotal = vRodizio + vBebida + vSobremesa;
+        const taxaGarcom = +(subtotal * 0.12).toFixed(2);
+        const valorTotal = +(subtotal + taxaGarcom).toFixed(2);
 
         const voucher = await prisma.voucher.update({
             where: { id },
@@ -282,7 +286,7 @@ router.put("/:id", authMiddleware, apenasMaster, async (req, res) => {
                 qtdSobremesa: parseInt(qtdSobremesa) || 0,
                 tipoSobremesa: tipoSobremesa !== undefined ? tipoSobremesa : existente.tipoSobremesa,
                 subtotal,
-                valorTotal: subtotal,
+                valorTotal,
                 dataValidade: dataValidade ? new Date(dataValidade) : existente.dataValidade,
                 observacoes: observacoes !== undefined ? observacoes : existente.observacoes,
                 pago: pago !== undefined ? !!pago : existente.pago,

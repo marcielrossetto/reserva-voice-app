@@ -67,6 +67,7 @@
             const badgeClass = `badge-${estado}`;
             const validade = new Date(v.dataValidade).toLocaleDateString('pt-BR');
             const criado = new Date(v.dataCriacao).toLocaleDateString('pt-BR');
+            const subtotal = parseFloat(v.subtotal || 0);
             const total = parseFloat(v.valorTotal || 0).toFixed(2);
 
             let clienteHtml = '';
@@ -117,6 +118,9 @@
                         </div>
                         <div class="text-end">
                             <div class="fw-bold" style="font-size:1.1rem;">R$ ${total}</div>
+                            <div class="voucher-meta" style="font-size:0.75rem;color:#888;">
+                                Subtotal R$ ${subtotal.toFixed(2)} + 12% garçom
+                            </div>
                             <div class="voucher-meta">
                                 <i class="fas fa-calendar"></i> Validade: ${validade}
                             </div>
@@ -287,7 +291,9 @@
                     ${v.tipoRodizio ? `<tr><th>Rodízio</th><td>${esc(v.tipoRodizio)} — R$ ${parseFloat(v.valorRodizio).toFixed(2)}</td></tr>` : ''}
                     ${v.possuiBebida ? `<tr><th>Bebida</th><td>${v.qtdBebida}x ${esc(v.tipoBebida || '—')} — R$ ${parseFloat(v.valorBebida).toFixed(2)}</td></tr>` : ''}
                     ${v.possuiSobremesa ? `<tr><th>Sobremesa</th><td>${v.qtdSobremesa}x ${esc(v.tipoSobremesa || '—')} — R$ ${parseFloat(v.valorSobremesa).toFixed(2)}</td></tr>` : ''}
-                    <tr><th>Valor Total</th><td><strong>R$ ${parseFloat(v.valorTotal).toFixed(2)}</strong></td></tr>
+                    <tr><th>Subtotal</th><td>R$ ${parseFloat(v.subtotal).toFixed(2)}</td></tr>
+                    <tr><th>Taxa garçom (12%)</th><td>R$ ${(parseFloat(v.subtotal) * 0.12).toFixed(2)}</td></tr>
+                    <tr><th>Valor Total</th><td><strong style="font-size:1.1rem;">R$ ${parseFloat(v.valorTotal).toFixed(2)}</strong></td></tr>
                     <tr><th>Validade</th><td>${new Date(v.dataValidade).toLocaleDateString('pt-BR')}</td></tr>
                     <tr><th>Criado em</th><td>${new Date(v.dataCriacao).toLocaleDateString('pt-BR')}</td></tr>
                     <tr><th>Pago</th><td>${v.pago ? 'Sim' : 'Não'}${v.formaPagamento ? ` (${esc(v.formaPagamento)})` : ''}</td></tr>
@@ -344,7 +350,10 @@
         const vr = parseFloat(document.getElementById('vValorRodizio').value) || 0;
         const vb = document.getElementById('vPossuiBebida').checked ? (parseFloat(document.getElementById('vValorBebida').value) || 0) : 0;
         const vs = document.getElementById('vPossuiSobremesa').checked ? (parseFloat(document.getElementById('vValorSobremesa').value) || 0) : 0;
-        document.getElementById('vValorTotal').value = `R$ ${(vr + vb + vs).toFixed(2)}`;
+        const subtotal = vr + vb + vs;
+        const taxa = subtotal * 0.12;
+        const total = subtotal + taxa;
+        document.getElementById('vValorTotal').value = `R$ ${subtotal.toFixed(2)} + 12% garçom (R$ ${taxa.toFixed(2)}) = R$ ${total.toFixed(2)}`;
     }
 
     // ========================================
