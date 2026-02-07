@@ -358,6 +358,9 @@ model Voucher {
   nomeCliente           String?   @db.VarChar(255)
   telefoneCliente       String?   @db.VarChar(20)
   cpfCliente            String?   @db.VarChar(20)
+  dataValidacao         DateTime?
+  dataResgate           DateTime?
+  isDeleted             Boolean   @default(false)
 
   empresa               Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
