@@ -39,6 +39,37 @@
         </div>
     </div>
 
+    <!-- Aparência do Cardápio -->
+    <div class="aparencia-section" id="secaoAparencia" style="background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h6 style="font-weight:700;margin-bottom:12px;"><i class="fas fa-palette me-2"></i>Aparência do Cardápio</h6>
+        <div class="row g-3 align-items-end">
+            <div class="col-auto">
+                <label class="form-label" style="font-size:0.85rem;font-weight:600;">Cor Principal</label>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="color" class="form-control form-control-color" id="inputCorCardapio" value="#6a5af9" title="Cor do cardápio" style="width:50px;height:38px;border-radius:8px;">
+                    <span id="labelCor" style="font-size:0.8rem;color:#666;">#6a5af9</span>
+                </div>
+            </div>
+            <div class="col">
+                <label class="form-label" style="font-size:0.85rem;font-weight:600;">Imagem de Fundo (Header)</label>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="file" class="form-control form-control-sm" id="inputBgCardapio" accept="image/*" style="border-radius:8px;">
+                    <button class="btn btn-outline-danger btn-sm" id="btnRemoverBg" onclick="removerBgImage()" style="display:none;white-space:nowrap;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div id="bgPreview" style="display:none;margin-top:8px;">
+                    <img id="bgPreviewImg" src="" style="height:60px;border-radius:8px;object-fit:cover;">
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" onclick="salvarAparencia()" style="border-radius:8px;">
+                    <i class="fas fa-save me-1"></i>Salvar Aparência
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Lista de Cardápios -->
     <div id="listaCardapios">
         <div class="loading-cardapio">

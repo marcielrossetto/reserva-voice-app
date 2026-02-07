@@ -81,8 +81,8 @@ app.get("/privacy", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "html", "privacy.html"));
 });
 
-// Cardápio público (sem login) - rota amigável para QR Code
-app.get("/cardapio/:empresaId", (req, res) => {
+// Cardápio público (sem login) - aceita slug ou empresaId
+app.get("/cardapio/:slug", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "html", "cardapio-publico.html"));
 });
 

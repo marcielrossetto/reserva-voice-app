@@ -10,17 +10,42 @@
     const HEADERS = { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' };
 
     let dadosCardapios = []; // cache local
+    let empresaSlug = null;
 
     // ─── INIT ──────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         carregarCardapios();
-        configurarQrLink();
+        // Color picker live label
+        const colorInput = document.getElementById('inputCorCardapio');
+        if (colorInput) {
+            colorInput.addEventListener('input', () => {
+                document.getElementById('labelCor').textContent = colorInput.value;
+            });
+        }
     });
 
     function configurarQrLink() {
         const link = document.getElementById('btnQrLink');
-        if (link && EMPRESA_ID) {
-            link.href = `/cardapio/${EMPRESA_ID}`;
+        if (link) {
+            link.href = `/cardapio/${empresaSlug || EMPRESA_ID}`;
+        }
+    }
+
+    function configurarAparencia(empresa) {
+        if (!empresa) return;
+        empresaSlug = empresa.cardapioSlug;
+        configurarQrLink();
+
+        // Cor
+        if (empresa.cardapioCor) {
+            document.getElementById('inputCorCardapio').value = empresa.cardapioCor;
+            document.getElementById('labelCor').textContent = empresa.cardapioCor;
+        }
+        // Bg image preview
+        if (empresa.cardapioBgCaminho) {
+            document.getElementById('bgPreviewImg').src = empresa.cardapioBgCaminho;
+            document.getElementById('bgPreview').style.display = 'block';
+            document.getElementById('btnRemoverBg').style.display = 'inline-flex';
         }
     }
 
@@ -63,6 +88,7 @@
         try {
             const data = await apiFetch(`${API}/listar`);
             dadosCardapios = data.cardapios || [];
+            if (data.empresa) configurarAparencia(data.empresa);
             renderCardapios();
         } catch (e) {
             document.getElementById('listaCardapios').innerHTML =
@@ -158,8 +184,11 @@
 
         return categoria.produtos.map(prod => {
             const pausadoClass = prod.status ? '' : 'pausado';
-            const imgTag = prod.fotoCaminho
-                ? `<img src="${prod.fotoCaminho}" alt="${esc(prod.nome)}" class="produto-img" loading="lazy">`
+            const imgSrc = prod.fotoCaminho
+                ? (prod.fotoCaminho.includes('?') ? prod.fotoCaminho : `${prod.fotoCaminho}?t=${Date.now()}`)
+                : null;
+            const imgTag = imgSrc
+                ? `<img src="${imgSrc}" alt="${esc(prod.nome)}" class="produto-img" loading="lazy">`
                 : `<div class="produto-no-img"><i class="fas fa-image"></i></div>`;
 
             const overlay = `
@@ -528,6 +557,42 @@
         document.getElementById('fotoPlaceholder').style.display = 'block';
         document.getElementById('btnRemoveFoto').style.display = 'none';
         document.getElementById('produtoFoto').value = '';
+    };
+
+    // ═══════════════════════════════════════════════════════
+    // APARÊNCIA (cor + bg)
+    // ═══════════════════════════════════════════════════════
+
+    globalThis.salvarAparencia = async () => {
+        const cor = document.getElementById('inputCorCardapio').value;
+        const bgInput = document.getElementById('inputBgCardapio');
+        const fd = new FormData();
+        fd.append('cardapioCor', cor);
+        if (bgInput.files[0]) fd.append('bgImage', bgInput.files[0]);
+
+        try {
+            const data = await apiFetch(`${API}/config-aparencia`, { method: 'PUT', body: fd });
+            mostrarToast('Aparência salva!');
+            if (data.empresa) {
+                if (data.empresa.cardapioBgCaminho) {
+                    document.getElementById('bgPreviewImg').src = data.empresa.cardapioBgCaminho;
+                    document.getElementById('bgPreview').style.display = 'block';
+                    document.getElementById('btnRemoverBg').style.display = 'inline-flex';
+                }
+            }
+            bgInput.value = '';
+        } catch (e) { /* toast */ }
+    };
+
+    globalThis.removerBgImage = async () => {
+        if (!confirm('Remover imagem de fundo?')) return;
+        try {
+            await apiFetch(`${API}/config-aparencia/bg`, { method: 'DELETE' });
+            mostrarToast('Imagem removida!');
+            document.getElementById('bgPreviewImg').src = '';
+            document.getElementById('bgPreview').style.display = 'none';
+            document.getElementById('btnRemoverBg').style.display = 'none';
+        } catch (e) { /* toast */ }
     };
 
     // ═══════════════════════════════════════════════════════
