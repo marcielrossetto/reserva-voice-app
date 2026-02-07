@@ -37,6 +37,8 @@ model Empresa {
   cardapioSlug          String?   @unique @db.VarChar(16)
   cardapioCor           String?   @db.VarChar(7)
   cardapioBgCaminho     String?
+  capacidadeAlmoco      Int?
+  capacidadeJanta       Int?
 
   usuarios              Usuario[]
   clientes              Cliente[]

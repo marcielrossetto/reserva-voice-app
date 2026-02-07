@@ -42,6 +42,7 @@ app.use("/api/dashboard", require("./routes/dashboard.routes"));
 app.use("/api/relatorio-fila", require("./routes/relatorio-fila.routes"));
 app.use("/api/cardapio", require("./routes/cardapio.routes"));
 app.use("/api/voucher", require("./routes/voucher.routes"));
+app.use("/api/empresa-config", require("./routes/empresa-config.routes"));
 
 app.use("/", require("./routes/search"));
 

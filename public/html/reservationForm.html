@@ -572,7 +572,14 @@
                 if (res.success) {
                     mostrarMensagem('✅ Reserva cadastrada com sucesso!', 'success');
                     document.getElementById('formNovaReserva').reset();
-                    
+
+                    // Aviso de capacidade excedida
+                    if (res.avisoCapacidade) {
+                        setTimeout(() => {
+                            mostrarMensagem('⚠️ ' + res.avisoCapacidade, 'error');
+                        }, 2000);
+                    }
+
                     if (res.link_wpp) {
                         setTimeout(() => {
                             if (confirm('Deseja enviar confirmação via WhatsApp?')) {

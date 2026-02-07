@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config. Empresa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #6a5af9;
+            --brand-dark: #3d2d43;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f4f6fb;
+            margin: 0;
+            padding: 70px 0 40px;
+        }
+
+        /* ─── TOOLBAR ────────────────────────────────── */
+        .toolbar-config {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 70px;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .toolbar-config h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toolbar-config h5 i {
+            color: var(--brand);
+        }
+
+        /* ─── CONFIG CARDS ──────────────────────────── */
+        .config-container {
+            max-width: 700px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e8ecf1;
+        }
+
+        .config-card h6 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .config-card h6 i {
+            color: var(--brand);
+            font-size: 16px;
+        }
+
+        .config-card .card-desc {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 18px;
+        }
+
+        /* ─── LOGO PREVIEW ──────────────────────────── */
+        .logo-preview-area {
+            width: 200px;
+            height: 90px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            overflow: hidden;
+            background: #f8fafc;
+            transition: border-color 0.2s;
+        }
+        .logo-preview-area:hover {
+            border-color: var(--brand);
+        }
+        .logo-preview-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .logo-preview-area .placeholder-icon {
+            color: #94a3b8;
+            font-size: 32px;
+        }
+
+        .logo-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .logo-actions .btn-upload {
+            background: var(--brand);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .logo-actions .btn-upload:hover {
+            opacity: 0.9;
+        }
+        .logo-actions .btn-remove {
+            background: none;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .logo-actions .btn-remove:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* ─── INPUTS ────────────────────────────────── */
+        .config-row {
+            display: flex;
+            gap: 16px;
+        }
+        .config-field {
+            flex: 1;
+        }
+        .config-field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .config-field label i {
+            margin-right: 4px;
+            color: var(--brand);
+        }
+        .config-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background: #f8fafc;
+        }
+        .config-field input:focus {
+            outline: none;
+            border-color: var(--brand);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.1);
+        }
+
+        /* ─── BOTÃO SALVAR ──────────────────────────── */
+        .save-area {
+            text-align: right;
+            margin-top: 8px;
+        }
+        .btn-salvar {
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-salvar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(106, 90, 249, 0.35);
+        }
+        .btn-salvar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ─── TOAST ─────────────────────────────────── */
+        .toast-container { z-index: 9999; }
+
+        /* ─── RESPONSIVO ────────────────────────────── */
+        @media (max-width: 768px) {
+            body { padding-top: 60px; }
+            .toolbar-config { top: 60px; padding: 12px 16px; }
+            .config-container { padding: 0 12px; }
+            .config-row { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header-container"></div>
+
+<!-- TOOLBAR -->
+<div class="toolbar-config">
+    <h5><i class="fas fa-building"></i> Configurações da Empresa</h5>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="config-container">
+
+    <!-- CARD: LOGO -->
+    <div class="config-card">
+        <h6><i class="fas fa-image"></i> Logo da Empresa</h6>
+        <p class="card-desc">A logo aparece no header do sistema e no cardápio digital público.</p>
+
+        <div class="logo-preview-area" id="logoPreviewArea">
+            <img src="" id="logoPreview" alt="Logo" style="display:none">
+            <i class="fas fa-image placeholder-icon" id="logoPlaceholder"></i>
+        </div>
+
+        <div class="logo-actions">
+            <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="previewLogo(this)">
+            <button class="btn-upload" onclick="document.getElementById('logoInput').click()">
+                <i class="fas fa-upload"></i> Escolher Logo
+            </button>
+            <button class="btn-remove" id="btnRemoverLogo" onclick="removerLogoPreview()" style="display:none">
+                <i class="fas fa-times"></i> Remover
+            </button>
+        </div>
+    </div>
+
+    <!-- CARD: CAPACIDADE DIÁRIA -->
+    <div class="config-card">
+        <h6><i class="fas fa-users"></i> Capacidade Diária de Reservas</h6>
+        <p class="card-desc">
+            Defina o limite de pessoas por período. Reservas podem exceder o limite,
+            mas o sistema avisará que a capacidade do dia foi esgotada.
+        </p>
+
+        <div class="config-row">
+            <div class="config-field">
+                <label><i class="fas fa-sun"></i> Almoço (até 15h)</label>
+                <input type="number" id="capacidadeAlmoco" min="0" step="1" placeholder="Ex: 80">
+            </div>
+            <div class="config-field">
+                <label><i class="fas fa-moon"></i> Jantar (após 15h)</label>
+                <input type="number" id="capacidadeJanta" min="0" step="1" placeholder="Ex: 60">
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÃO SALVAR -->
+    <div class="save-area">
+        <button class="btn-salvar" id="btnSalvar" onclick="salvarConfig()">
+            <i class="fas fa-save"></i> Salvar Configurações
+        </button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastConfig" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2">
+                <i id="toastIcon" class="fas fa-check-circle text-success"></i>
+                <span id="toastMsg">Salvo!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/components/header.js"></script>
+<script src="/js/configEmpresa.js"></script>
+</body>
+</html>

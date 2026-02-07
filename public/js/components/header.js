@@ -127,19 +127,6 @@
         }
     };
 
-    globalThis.uploadLogo = async (input) => {
-        if (!input.files[0]) return;
-        const fd = new FormData();
-        fd.append('logo', input.files[0]);
-
-        const res = await fetch(`${API_BASE}/empresa/${AUTH.empresaId}/logo/upload`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${AUTH.token}` },
-            body: fd
-        });
-        if (res.ok) loadCompanyLogo();
-    };
-
     globalThis.openReservationModal = async () => {
         document.getElementById('mobileSidebar')?.classList.remove('open');
 
@@ -245,6 +232,7 @@
     globalThis.goToRelatorioFila = () => window.location.href = '/html/relatorio-fila.html';
     globalThis.goToConfigCardapio = () => window.location.href = '/html/configCardapio.html';
     globalThis.goToConfigVoucher = () => window.location.href = '/html/configVoucher.html';
+    globalThis.goToConfigEmpresa = () => window.location.href = '/html/configEmpresa.html';
 
     init();
 })();

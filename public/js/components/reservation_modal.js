@@ -1093,6 +1093,11 @@ async function enviarReservaAjax() {
     html += `<button class="rm-btn-close-confirm" onclick="fecharModalConfirmacaoENova()">Nova Reserva</button>`;
     btnsDiv.innerHTML = html;
 
+    // Aviso de capacidade excedida
+    if (data.avisoCapacidade) {
+      showToast(data.avisoCapacidade, 'warning');
+    }
+
     // Mostrar overlay de confirmacao
     document.getElementById('rm-confirmacao-overlay').style.display = 'flex';
 
