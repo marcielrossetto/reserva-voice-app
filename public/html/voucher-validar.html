@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validar Voucher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 15px;
+        }
+        .voucher-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        .card-hdr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 120px; height: 50px;
+            object-fit: contain;
+            background: white;
+            padding: 8px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .card-bd {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .status-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 1s ease;
+        }
+        .icon-success { color: #28a745; }
+        .icon-error { color: #dc3545; }
+        .icon-form { color: #667eea; }
+        .voucher-code {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 3px dashed rgba(102, 126, 234, 0.5);
+            border-radius: 15px;
+            word-break: break-all;
+        }
+        .voucher-code.error {
+            border-color: rgba(220, 53, 69, 0.5);
+            background: rgba(220, 53, 69, 0.1);
+        }
+        .message {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            white-space: pre-line;
+        }
+        .msg-success { background: #d4edda; color: #155724; }
+        .msg-error { background: #f8d7da; color: #721c24; }
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .validade-info {
+            background: #e7f3ff;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 15px 0;
+            color: #004085;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: #495057;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+        .btn-validar {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-validar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+        .btn-validar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .success-message {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .success-message h3 { color: #155724; margin-bottom: 15px; }
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
+        .spinner { font-size: 3rem; color: #667eea; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 576px) {
+            .voucher-code { font-size: 1.8rem; letter-spacing: 2px; padding: 15px; }
+            .card-bd { padding: 30px 15px; }
+            .status-icon { font-size: 3.5rem; }
+            .btn-validar { padding: 12px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="voucher-card">
+        <!-- HEADER -->
+        <div class="card-hdr" id="cardHeader">
+            <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+            <h5>Validação de Voucher</h5>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading" id="loading">
+            <i class="fas fa-circle-notch spinner"></i>
+            <p class="mt-3">Carregando voucher...</p>
+        </div>
+
+        <!-- CONTEÚDO DINÂMICO -->
+        <div class="card-bd" id="conteudo" style="display:none;"></div>
+    </div>
+
+    <script src="/js/voucher-validar.js"></script>
+</body>
+</html>

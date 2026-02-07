@@ -246,6 +246,7 @@
     globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';
     globalThis.goToRelatorioFila = () => window.location.href = '/html/relatorio-fila.html';
     globalThis.goToConfigCardapio = () => window.location.href = '/html/configCardapio.html';
+    globalThis.goToConfigVoucher = () => window.location.href = '/html/configVoucher.html';
 
     init();
 })();
