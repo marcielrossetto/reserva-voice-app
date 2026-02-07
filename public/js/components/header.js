@@ -235,7 +235,10 @@
 
     globalThis.goToIndex = () => window.location.href = '/html/index.html';
     globalThis.goToQueue = () => window.location.href = '/html/fila.html';
-    globalThis.goToSearch = () => window.location.href = '/search';
+    globalThis.goToSearch = () => {
+        const token = localStorage.getItem('token');
+        window.location.href = `/search?token=${token}`;
+    };
     globalThis.goToStats = () => window.location.href = '/stats';
     globalThis.goToUsuarios = () => window.location.href = '/html/usuarios.html';
     globalThis.goToDashboard = () => window.location.href = '/html/dashboard.html';

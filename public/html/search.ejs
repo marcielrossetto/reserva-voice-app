@@ -280,8 +280,34 @@
     </div>
 
     <!-- Scripts -->
+    <script src="/js/config.js"></script>
     <script src="/js/components/header.js"></script>
     <script src="/js/searching.js"></script>
+
+    <script>
+    // Injeta token JWT em todos os links e forms para manter autenticação
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        // Adiciona token como hidden input no form de filtros
+        const form = document.getElementById('filterForm');
+        if (form) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'token';
+            input.value = token;
+            form.appendChild(input);
+        }
+
+        // Adiciona token nos links de navegação (Ativas/Canceladas)
+        document.querySelectorAll('a[href^="/search"]').forEach(link => {
+            const url = new URL(link.href, window.location.origin);
+            url.searchParams.set('token', token);
+            link.href = url.toString();
+        });
+    });
+    </script>
 </body>
 
 </html>
