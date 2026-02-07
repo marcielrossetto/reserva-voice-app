@@ -430,10 +430,42 @@ router.post("/", auth, async (req, res) => {
 
         console.log(`✅ Reservation ${novaReserva.id} created`);
 
+        // Verificar capacidade diária
+        let avisoCapacidade = null;
+        try {
+            const empresa = await prisma.empresa.findUnique({
+                where: { id: empresaId },
+                select: { capacidadeAlmoco: true, capacidadeJanta: true }
+            });
+
+            const horaReserva = horario || '';
+            const isAlmoco = horaReserva <= '15:00:00';
+            const capacidade = isAlmoco ? empresa.capacidadeAlmoco : empresa.capacidadeJanta;
+            const periodo = isAlmoco ? 'almoço' : 'jantar';
+
+            if (capacidade) {
+                const totalReservado = await prisma.cliente.aggregate({
+                    where: {
+                        empresaId,
+                        data: new Date(data),
+                        status: true,
+                        horario: isAlmoco ? { lte: '15:00:00' } : { gt: '15:00:00' }
+                    },
+                    _sum: { numPessoas: true }
+                });
+
+                const total = totalReservado._sum.numPessoas || 0;
+                if (total > capacidade) {
+                    avisoCapacidade = `Atenção: a capacidade do ${periodo} (${capacidade} pessoas) foi excedida. Total reservado: ${total} pessoas.`;
+                }
+            }
+        } catch (capErr) { console.error('Erro ao verificar capacidade:', capErr); }
+
         res.json({
             success: true,
             reservation: novaReserva,
-            message: "Reserva criada com sucesso"
+            message: "Reserva criada com sucesso",
+            avisoCapacidade
         });
 
     } catch (err) {

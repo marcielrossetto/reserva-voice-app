@@ -240,7 +240,7 @@ router.post("/", auth, async (req, res) => {
         });
         
         console.log(`✅ Salvo: data=${reservation.data}, horario=${reservation.horario}`);
-        
+
         let waLink = "";
         if (telefone) {
             const dataBr = new Date(dataDb).toLocaleDateString('pt-BR');
@@ -248,11 +248,42 @@ router.post("/", auth, async (req, res) => {
             const msg = `Olá, ${nome}. Sua reserva para ${dataBr} às ${horaCurta} para ${numPessoas} pessoas foi confirmada!`;
             waLink = `https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`;
         }
-        
+
+        // Verificar capacidade diária
+        let avisoCapacidade = null;
+        try {
+            const empresa = await prisma.empresa.findUnique({
+                where: { id: empresaId },
+                select: { capacidadeAlmoco: true, capacidadeJanta: true }
+            });
+
+            const isAlmoco = horarioDb <= '15:00:00';
+            const capacidade = isAlmoco ? empresa.capacidadeAlmoco : empresa.capacidadeJanta;
+            const periodo = isAlmoco ? 'almoço' : 'jantar';
+
+            if (capacidade) {
+                const totalReservado = await prisma.cliente.aggregate({
+                    where: {
+                        empresaId,
+                        data: dataObj,
+                        status: true,
+                        horario: isAlmoco ? { lte: '15:00:00' } : { gt: '15:00:00' }
+                    },
+                    _sum: { numPessoas: true }
+                });
+
+                const total = totalReservado._sum.numPessoas || 0;
+                if (total > capacidade) {
+                    avisoCapacidade = `Atenção: a capacidade do ${periodo} (${capacidade} pessoas) foi excedida. Total reservado: ${total} pessoas.`;
+                }
+            }
+        } catch (capErr) { console.error('Erro ao verificar capacidade:', capErr); }
+
         res.status(201).json({
             success: true,
             waLink,
-            reservation
+            reservation,
+            avisoCapacidade
         });
         
     } catch (err) {

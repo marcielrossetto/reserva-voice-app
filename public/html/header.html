@@ -11,19 +11,14 @@
         <span class="mobile-user-name" id="userNameMobile">Carregando...</span>
       </div>
 
-      <!-- DESKTOP: Logo -->
+      <!-- DESKTOP: Logo (clica → Home) -->
       <div
         class="logo-area d-none d-lg-flex"
-        onclick="document.getElementById('logoInput').click()"
+        onclick="goToIndex()"
+        style="cursor:pointer"
+        title="Ir para Home"
       >
         <img src="" alt="Logo" id="headerLogo" class="img-fluid" />
-        <input
-          type="file"
-          id="logoInput"
-          accept="image/*"
-          style="display: none"
-          onchange="uploadLogo(this)"
-        />
       </div>
     </div>
 
@@ -114,6 +109,12 @@
               ><i class="fas fa-ticket-alt"></i>
               <div>
                 <strong>Vouchers</strong><span>Cortesias e Promoções</span>
+              </div></a
+            >
+            <a href="javascript:void(0)" onclick="goToConfigEmpresa()"
+              ><i class="fas fa-building"></i>
+              <div>
+                <strong>Config. Empresa</strong><span>Logo e Capacidade</span>
               </div></a
             >
             <a href="javascript:void(0)"
@@ -297,6 +298,9 @@
     </a>
     <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToConfigVoucher();" style="display:none">
       <i class="fas fa-ticket-alt"></i> Vouchers
+    </a>
+    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToConfigEmpresa();" style="display:none">
+      <i class="fas fa-building"></i> Config. Empresa
     </a>
     <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu();" style="display:none">
       <i class="fas fa-sliders-h"></i> Configurações

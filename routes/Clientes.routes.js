@@ -221,7 +221,37 @@ router.post("/criar", auth, async (req, res) => {
             link_wpp = `https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`;
         }
 
-        res.json({ success: true, link_wpp });
+        // Verificar capacidade diária
+        let avisoCapacidade = null;
+        try {
+            const empresa = await prisma.empresa.findUnique({
+                where: { id: empresaId },
+                select: { capacidadeAlmoco: true, capacidadeJanta: true }
+            });
+
+            const isAlmoco = horario <= '15:00:00';
+            const capacidade = isAlmoco ? empresa.capacidadeAlmoco : empresa.capacidadeJanta;
+            const periodo = isAlmoco ? 'almoço' : 'jantar';
+
+            if (capacidade) {
+                const totalReservado = await prisma.cliente.aggregate({
+                    where: {
+                        empresaId,
+                        data: new Date(data),
+                        status: true,
+                        horario: isAlmoco ? { lte: new Date(`${data}T15:00:00`) } : { gt: new Date(`${data}T15:00:00`) }
+                    },
+                    _sum: { numPessoas: true }
+                });
+
+                const total = totalReservado._sum.numPessoas || 0;
+                if (total > capacidade) {
+                    avisoCapacidade = `Atenção: a capacidade do ${periodo} (${capacidade} pessoas) foi excedida. Total reservado: ${total} pessoas.`;
+                }
+            }
+        } catch (capErr) { console.error('Erro ao verificar capacidade:', capErr); }
+
+        res.json({ success: true, link_wpp, avisoCapacidade });
     } catch (err) {
         console.error("❌ Erro em POST /criar:", err);
         res.status(500).json({ success: false, message: 'Erro ao salvar' });
