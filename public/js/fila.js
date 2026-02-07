@@ -6,16 +6,6 @@
  * ✅ Cronômetro preservado
  * ✅ Auto-refresh 3s
  */
-// ✅ VERIFICAR TOKEN ANTES DE TUDO
-const token = localStorage.getItem('token');
-
-if (!token) {
-    console.log('❌ Sem token em fila.js');
-    window.location.href = '/login.html';
-}
-
-console.log('✅ Token OK em fila.js:', token.substring(0, 20) + '...');
-
 let filaData = {
     espera: [],
     historico: [],
