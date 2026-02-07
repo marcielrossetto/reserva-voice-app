@@ -1,7 +1,7 @@
 /**
  * cardapio-publico.js
  * Renderiza o cardápio digital público (sem autenticação)
- * Extrai empresaId da URL: /cardapio/:empresaId
+ * Aceita slug (16 chars) ou empresaId na URL: /cardapio/:slug
  */
 
 (function () {
@@ -12,14 +12,14 @@
     document.addEventListener('DOMContentLoaded', carregarCardapio);
 
     async function carregarCardapio() {
-        const empresaId = extrairEmpresaId();
-        if (!empresaId) {
+        const identificador = extrairIdentificador();
+        if (!identificador) {
             mostrarErro('Cardápio não encontrado');
             return;
         }
 
         try {
-            const res = await fetch(`/api/cardapio/publico/${empresaId}`);
+            const res = await fetch(`/api/cardapio/publico/${identificador}`);
             const data = await res.json();
 
             if (!res.ok || !data.success) {
@@ -29,6 +29,7 @@
             dadosEmpresa = data.empresa;
             dadosCardapios = data.cardapios || [];
 
+            aplicarCores();
             renderHeader();
             renderTabs();
             renderContent();
@@ -39,14 +40,44 @@
         }
     }
 
-    function extrairEmpresaId() {
-        // URL: /cardapio/10 → empresaId = 10
+    function extrairIdentificador() {
+        // URL: /cardapio/AbCd1234XyZw5678 ou /cardapio/2
         const parts = window.location.pathname.split('/');
         const idx = parts.indexOf('cardapio');
         if (idx >= 0 && parts[idx + 1]) {
-            return parseInt(parts[idx + 1]);
+            return parts[idx + 1]; // retorna string (slug ou número)
         }
         return null;
+    }
+
+    // ─── CORES DINÂMICAS ─────────────────────────────────────
+    function aplicarCores() {
+        if (dadosEmpresa.cardapioCor) {
+            const cor = dadosEmpresa.cardapioCor;
+            document.documentElement.style.setProperty('--brand', cor);
+            // Gerar brand-dark (escurecer 30%)
+            const dark = escurecerCor(cor, 40);
+            document.documentElement.style.setProperty('--brand-dark', dark);
+            // Gerar brand-light
+            const light = clarearCor(cor, 90);
+            document.documentElement.style.setProperty('--brand-light', light);
+        }
+    }
+
+    function escurecerCor(hex, porcento) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const r = Math.max(0, (num >> 16) - Math.round(2.55 * porcento));
+        const g = Math.max(0, ((num >> 8) & 0x00FF) - Math.round(2.55 * porcento));
+        const b = Math.max(0, (num & 0x0000FF) - Math.round(2.55 * porcento));
+        return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+    }
+
+    function clarearCor(hex, porcento) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const r = Math.min(255, (num >> 16) + Math.round(2.55 * porcento));
+        const g = Math.min(255, ((num >> 8) & 0x00FF) + Math.round(2.55 * porcento));
+        const b = Math.min(255, (num & 0x0000FF) + Math.round(2.55 * porcento));
+        return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
     }
 
     // ─── HEADER ────────────────────────────────────────────
@@ -57,6 +88,14 @@
         if (dadosEmpresa.logoCaminho) {
             document.getElementById('logoPub').src = dadosEmpresa.logoCaminho;
             document.getElementById('logoPubArea').style.display = 'flex';
+        }
+
+        // Background image
+        const header = document.getElementById('cardapioHeader');
+        if (dadosEmpresa.cardapioBgCaminho && header) {
+            header.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.55)), url('${dadosEmpresa.cardapioBgCaminho}')`;
+            header.style.backgroundSize = 'cover';
+            header.style.backgroundPosition = 'center';
         }
     }
 

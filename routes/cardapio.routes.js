@@ -49,6 +49,33 @@ const upload = multer({
     }
 });
 
+// ─── Helper: gerar slug 16 chars ────────────────────────────
+function gerarSlug() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let slug = '';
+    for (let i = 0; i < 16; i++) slug += chars[Math.floor(Math.random() * chars.length)];
+    return slug;
+}
+
+// ─── Multer: upload de bg image ─────────────────────────────
+const bgStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const empresaId = req.user.empresaId;
+        const dir = `./uploads/cardapio/${empresaId}`;
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `bg_${Date.now()}${ext}`);
+    }
+});
+const uploadBg = multer({ storage: bgStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp|gif/;
+    if (allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype)) return cb(null, true);
+    cb(new Error('Apenas imagens'));
+}});
+
 // ─── Helper: remover arquivo do disco ──────────────────────
 function removerImagem(fotoCaminho) {
     if (!fotoCaminho) return;
@@ -68,24 +95,33 @@ function removerImagem(fotoCaminho) {
 // ═════════════════════════════════════════════════════════════
 
 /**
- * GET /api/cardapio/publico/:empresaId
- * Retorna cardápio completo para exibição pública
+ * GET /api/cardapio/publico/:identificador
+ * Aceita slug (16 chars) OU empresaId numérico (retrocompat)
  */
-router.get('/publico/:empresaId', async (req, res) => {
+router.get('/publico/:identificador', async (req, res) => {
     try {
-        const empresaId = parseInt(req.params.empresaId);
+        const param = req.params.identificador;
+        const isNumeric = /^\d+$/.test(param);
 
-        const empresa = await prisma.empresa.findUnique({
-            where: { id: empresaId },
-            select: { id: true, nomeEmpresa: true, logoCaminho: true }
-        });
+        let empresa;
+        if (isNumeric) {
+            empresa = await prisma.empresa.findUnique({
+                where: { id: parseInt(param) },
+                select: { id: true, nomeEmpresa: true, logoCaminho: true, cardapioCor: true, cardapioBgCaminho: true }
+            });
+        } else {
+            empresa = await prisma.empresa.findFirst({
+                where: { cardapioSlug: param },
+                select: { id: true, nomeEmpresa: true, logoCaminho: true, cardapioCor: true, cardapioBgCaminho: true }
+            });
+        }
 
         if (!empresa) {
             return res.status(404).json({ erro: 'Empresa não encontrada' });
         }
 
         const cardapios = await prisma.menuCardapio.findMany({
-            where: { empresaId, status: true },
+            where: { empresaId: empresa.id, status: true },
             orderBy: { ordem: 'asc' },
             include: {
                 categorias: {
@@ -103,7 +139,7 @@ router.get('/publico/:empresaId', async (req, res) => {
 
         res.json({ success: true, empresa, cardapios });
     } catch (error) {
-        console.error('❌ Erro ao buscar cardápio público:', error);
+        console.error('Erro ao buscar cardápio público:', error);
         res.status(500).json({ erro: error.message });
     }
 });
@@ -118,8 +154,30 @@ router.get('/publico/:empresaId', async (req, res) => {
  */
 router.get('/listar', authMiddleware, apenasMaster, async (req, res) => {
     try {
+        const empresaId = req.user.empresaId;
+
+        // Auto-gerar slug se não existir
+        let empresa = await prisma.empresa.findUnique({
+            where: { id: empresaId },
+            select: { cardapioSlug: true, cardapioCor: true, cardapioBgCaminho: true }
+        });
+
+        if (!empresa.cardapioSlug) {
+            let slug;
+            let existe = true;
+            while (existe) {
+                slug = gerarSlug();
+                existe = await prisma.empresa.findFirst({ where: { cardapioSlug: slug } });
+            }
+            empresa = await prisma.empresa.update({
+                where: { id: empresaId },
+                data: { cardapioSlug: slug },
+                select: { cardapioSlug: true, cardapioCor: true, cardapioBgCaminho: true }
+            });
+        }
+
         const cardapios = await prisma.menuCardapio.findMany({
-            where: { empresaId: req.user.empresaId },
+            where: { empresaId },
             orderBy: { ordem: 'asc' },
             include: {
                 categorias: {
@@ -133,9 +191,55 @@ router.get('/listar', authMiddleware, apenasMaster, async (req, res) => {
             }
         });
 
-        res.json({ success: true, cardapios });
+        res.json({ success: true, cardapios, empresa });
     } catch (error) {
-        console.error('❌ Erro ao listar cardápios:', error);
+        console.error('Erro ao listar cardápios:', error);
+        res.status(500).json({ erro: error.message });
+    }
+});
+
+// ─── APARÊNCIA ─────────────────────────────────────────────
+
+/**
+ * PUT /api/cardapio/config-aparencia
+ * Salvar cor + bg image do cardápio
+ */
+router.put('/config-aparencia', authMiddleware, apenasMaster, uploadBg.single('bgImage'), async (req, res) => {
+    try {
+        const empresaId = req.user.empresaId;
+        const { cardapioCor } = req.body;
+        const data = {};
+
+        if (cardapioCor !== undefined) data.cardapioCor = cardapioCor || null;
+
+        if (req.file) {
+            // Remover bg anterior
+            const empresa = await prisma.empresa.findUnique({ where: { id: empresaId }, select: { cardapioBgCaminho: true } });
+            if (empresa?.cardapioBgCaminho) removerImagem(empresa.cardapioBgCaminho);
+
+            data.cardapioBgCaminho = `/uploads/cardapio/${empresaId}/${req.file.filename}?t=${Date.now()}`;
+        }
+
+        const atualizado = await prisma.empresa.update({ where: { id: empresaId }, data });
+        res.json({ success: true, empresa: { cardapioCor: atualizado.cardapioCor, cardapioBgCaminho: atualizado.cardapioBgCaminho } });
+    } catch (error) {
+        console.error('Erro ao salvar aparência:', error);
+        res.status(500).json({ erro: error.message });
+    }
+});
+
+/**
+ * DELETE /api/cardapio/config-aparencia/bg
+ * Remover bg image
+ */
+router.delete('/config-aparencia/bg', authMiddleware, apenasMaster, async (req, res) => {
+    try {
+        const empresa = await prisma.empresa.findUnique({ where: { id: req.user.empresaId }, select: { cardapioBgCaminho: true } });
+        if (empresa?.cardapioBgCaminho) removerImagem(empresa.cardapioBgCaminho);
+        await prisma.empresa.update({ where: { id: req.user.empresaId }, data: { cardapioBgCaminho: null } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erro ao remover bg:', error);
         res.status(500).json({ erro: error.message });
     }
 });
