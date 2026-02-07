@@ -41,12 +41,7 @@
                 <strong>Home</strong><span>Visão geral do sistema</span>
               </div></a
             >
-          <a href="javascript:void(0)" onclick="goToStats()">
-    <i class="fas fa-chart-pie"></i>
-    <div>
-        <strong>Estatísticas</strong><span>Relatórios de desempenho</span>
-    </div>
-</a>
+           
           </div>
         </li>
 
@@ -67,12 +62,7 @@
                 <strong>Pesquisa Total</strong><span>Relatórios avançados</span>
               </div></a
             >
-            <a href="javascript:void(0)"
-              ><i class="fas fa-th-large"></i>
-              <div>
-                <strong>Cards</strong><span>Visualizar em blocos</span>
-              </div></a
-            >
+           
           </div>
         </li>
 
@@ -87,16 +77,7 @@
                 <strong>Fila de Espera</strong><span>Gestão de fluxo</span>
               </div></a
             >
-            <a href="javascript:void(0)"
-              ><i class="fas fa-utensils"></i>
-              <div><strong>Cardápio</strong><span>Itens e Preços</span></div></a
-            >
-            <a href="javascript:void(0)"
-              ><i class="fas fa-print"></i>
-              <div>
-                <strong>Impressões</strong><span>Mural e Salão</span>
-              </div></a
-            >
+           
           </div>
         </li>
 
@@ -135,7 +116,6 @@
                 <strong>Configurações</strong><span>Regras de Negócio</span>
               </div></a
             >
-
           </div>
         </li>
 
@@ -152,6 +132,13 @@
             <a href="/privacy">
               <i class="fas fa-shield-alt"></i>
               <div><strong>Privacidade</strong><span>Termos e LGPD</span></div>
+            </a>
+             <a href="javascript:void(0)" onclick="goToStats()">
+              <i class="fas fa-chart-pie"></i>
+              <div>
+                <strong>Estatísticas</strong
+                ><span>Relatórios de desempenho</span>
+              </div>
             </a>
           </div>
         </li>
@@ -187,7 +174,13 @@
       <div class="drawer-logo">
         <img src="" id="sidebarLogo" alt="Logo" />
       </div>
-      <div class="drawer-user-info" onclick="toggleMobileMenu(); openProfileModal();">
+      <div
+        class="drawer-user-info"
+        onclick="
+          toggleMobileMenu();
+          openProfileModal();
+        "
+      >
         <i class="fas fa-user-circle"></i>
         <span id="drawerUserName">Usuário</span>
       </div>
@@ -199,70 +192,148 @@
   <div class="drawer-links">
     <!-- INÍCIO -->
     <div class="drawer-section-label">Início</div>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToIndex();">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        goToIndex();
+      "
+    >
       <i class="fas fa-home"></i> Home
-    </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToStats();">
-      <i class="fas fa-chart-pie"></i> Estatísticas
     </a>
 
     <!-- RESERVAS -->
     <div class="drawer-section-label">Reservas</div>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); openReservationModal();">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        openReservationModal();
+      "
+    >
       <i class="fas fa-plus-circle"></i> Nova Reserva
     </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToSearch();">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        goToSearch();
+      "
+    >
       <i class="fas fa-search"></i> Pesquisa Total
     </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
-      <i class="fas fa-th-large"></i> Cards
-    </a>
+   
 
     <!-- OPERAÇÃO -->
     <div class="drawer-section-label">Operação</div>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); goToQueue();">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        goToQueue();
+      "
+    >
       <i class="fas fa-users-line"></i> Fila de Espera
     </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
-      <i class="fas fa-utensils"></i> Cardápio
-    </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu();">
-      <i class="fas fa-print"></i> Impressões
-    </a>
+    
 
     <!-- GESTÃO (ADMIN) -->
-    <div class="drawer-section-label drawer-admin-section" id="adminMenuMobile" style="display:none">Gestão</div>
-    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToUsuarios();" style="display:none">
+    <div
+      class="drawer-section-label drawer-admin-section"
+      id="adminMenuMobile"
+      style="display: none"
+    >
+      Gestão
+    </div>
+    <a
+      href="javascript:void(0)"
+      class="drawer-admin-link"
+      onclick="
+        toggleMobileMenu();
+        goToUsuarios();
+      "
+      style="display: none"
+    >
       <i class="fas fa-users-cog"></i> Equipe
     </a>
-    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToDashboard();" style="display:none">
+    <a
+      href="javascript:void(0)"
+      class="drawer-admin-link"
+      onclick="
+        toggleMobileMenu();
+        goToDashboard();
+      "
+      style="display: none"
+    >
       <i class="fas fa-chart-line"></i> Dashboard BI
     </a>
-    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToRelatorioFila();" style="display:none">
+    <a
+      href="javascript:void(0)"
+      class="drawer-admin-link"
+      onclick="
+        toggleMobileMenu();
+        goToRelatorioFila();
+      "
+      style="display: none"
+    >
       <i class="fas fa-clipboard-list"></i> Relatório Fila
     </a>
-    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu(); goToConfigCardapio();" style="display:none">
+    <a
+      href="javascript:void(0)"
+      class="drawer-admin-link"
+      onclick="
+        toggleMobileMenu();
+        goToConfigCardapio();
+      "
+      style="display: none"
+    >
       <i class="fas fa-utensils"></i> Config. Cardápio
     </a>
-    <a href="javascript:void(0)" class="drawer-admin-link" onclick="toggleMobileMenu();" style="display:none">
+    <a
+      href="javascript:void(0)"
+      class="drawer-admin-link"
+      onclick="toggleMobileMenu()"
+      style="display: none"
+    >
       <i class="fas fa-sliders-h"></i> Configurações
     </a>
 
     <!-- AJUDA -->
     <div class="drawer-section-label">Ajuda</div>
-    <a href="/support" onclick="toggleMobileMenu();">
+    <a href="/support" onclick="toggleMobileMenu()">
       <i class="fas fa-question-circle"></i> Suporte
     </a>
-    <a href="/privacy" onclick="toggleMobileMenu();">
+    <a href="/privacy" onclick="toggleMobileMenu()">
       <i class="fas fa-shield-alt"></i> Privacidade
     </a>
-
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        goToStats();
+      "
+    >
+      <i class="fas fa-chart-pie"></i> Estatísticas
+    </a>
     <hr />
     <!-- PERFIL E SAIR -->
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); openProfileModal();">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        openProfileModal();
+      "
+    >
       <i class="fas fa-id-badge"></i> Meu Perfil
     </a>
-    <a href="javascript:void(0)" onclick="toggleMobileMenu(); logout();" class="text-danger">
+    <a
+      href="javascript:void(0)"
+      onclick="
+        toggleMobileMenu();
+        logout();
+      "
+      class="text-danger"
+    >
       <i class="fas fa-sign-out-alt"></i> Sair do Sistema
     </a>
   </div>
@@ -563,7 +634,11 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid #eee;
-    background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-dark) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--brand-color) 0%,
+      var(--brand-dark) 100%
+    );
     flex-shrink: 0;
   }
   .drawer-header-left {
@@ -592,7 +667,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
@@ -610,7 +685,7 @@
     text-overflow: ellipsis;
   }
   .close-drawer {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
     width: 32px;
@@ -624,7 +699,7 @@
     flex-shrink: 0;
   }
   .close-drawer:hover {
-    background: rgba(255,255,255,0.35);
+    background: rgba(255, 255, 255, 0.35);
   }
 
   /* DRAWER LINKS - SCROLLÁVEL */
