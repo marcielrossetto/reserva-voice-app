@@ -1,26 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../lib/prisma");
+const authMiddleware = require("../middlewares/authMiddleware");
 
-// Middleware de autenticação
-const authMiddleware = (req, res, next) => {
-  const empresaId = req.headers["x-empresa-id"] || "1";
-  console.log("🔐 Auth - empresa_id:", empresaId);
-  
-  if (!req.session) req.session = {};
-  req.session.empresa_id = parseInt(empresaId);
-  
-  next();
-};
+/**
+ * Middleware flexível: aceita token JWT via header Authorization OU via query string ?token=
+ * Necessário porque GET /search é acessado diretamente pelo browser (sem fetch),
+ * então o token é passado na URL pelo frontend.
+ */
+async function authFlexivel(req, res, next) {
+  let token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) token = req.query.token;
+
+  if (!token) {
+    return res.redirect('/login.html');
+  }
+
+  req.headers.authorization = `Bearer ${token}`;
+  return authMiddleware(req, res, next);
+}
 
 /**
  * GET /search
  * Renderiza página de pesquisa com filtros
- * Agora compatível com /api/reservationQuery
+ * Usa JWT para garantir multi-tenant (só dados da empresa logada)
  */
-router.get("/search", authMiddleware, async (req, res) => {
+router.get("/search", authFlexivel, async (req, res) => {
   try {
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
     const { data_inicio, data_fim, busca, canceladas, incluirCanceladas } = req.query;
 
     console.log("🔍 /search params:", { data_inicio, data_fim, busca, canceladas, incluirCanceladas, empresaId });
@@ -43,10 +50,10 @@ router.get("/search", authMiddleware, async (req, res) => {
     }
 
     let tituloPagina, corBadge, corTexto;
-    
+
     // Suportar AMBOS os parâmetros: canceladas=1 OU incluirCanceladas=true
     const mostrarCanceladas = canceladas === "1" || incluirCanceladas === "true";
-    
+
     if (mostrarCanceladas) {
       where.status = false;
       tituloPagina = "Canceladas";
@@ -63,19 +70,17 @@ router.get("/search", authMiddleware, async (req, res) => {
 
     console.log("🔍 Where clause:", JSON.stringify(where, null, 2));
 
-   // Dentro da rota GET /search, mude o findMany para:
-const reservas = await prisma.cliente.findMany({
-  where,
-  include: {
-    empresa: { select: { nomeEmpresa: true } },
-    // Adicione a relação com o usuário para saber quem registrou
-    usuario: { select: { nome: true } } 
-  },
-  orderBy: { id: "desc" },
-});
+    const reservas = await prisma.cliente.findMany({
+      where,
+      include: {
+        empresa: { select: { nomeEmpresa: true } },
+        usuario: { select: { nome: true } }
+      },
+      orderBy: { id: "desc" },
+    });
 
     console.log(`✅ ${reservas.length} reservas encontradas com filtro status=${where.status}`);
-    
+
     // Debug: conta estatísticas
     const ativas = await prisma.cliente.count({
       where: { empresaId: empresaId, status: true },
@@ -110,7 +115,7 @@ const reservas = await prisma.cliente.findMany({
     });
   } catch (error) {
     console.error("❌ Erro em GET /search:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       erro: error.message,
       detalhes: process.env.NODE_ENV === 'development' ? error.stack : 'Erro interno'
     });
@@ -123,7 +128,7 @@ const reservas = await prisma.cliente.findMany({
 router.get("/api/reservas/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
 
     const reserva = await prisma.cliente.findFirst({
       where: {
@@ -152,7 +157,7 @@ router.get("/api/reservas/:id", authMiddleware, async (req, res) => {
 router.put("/api/reservas/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
     const {
       nome,
       data,
@@ -202,7 +207,7 @@ router.put("/api/reservas/:id", authMiddleware, async (req, res) => {
 router.put("/api/reservas/:id/obs", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
     const { obsCliente } = req.body;
 
     const reserva = await prisma.cliente.findFirst({
@@ -236,7 +241,7 @@ router.put("/api/reservas/:id/obs", authMiddleware, async (req, res) => {
 router.put("/api/reservas/:id/cancelar", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
     const { motivoCancelamento } = req.body;
 
     const reserva = await prisma.cliente.findFirst({
@@ -271,7 +276,7 @@ router.put("/api/reservas/:id/cancelar", authMiddleware, async (req, res) => {
 router.put("/api/reservas/:id/reativar", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const empresaId = req.session.empresa_id;
+    const empresaId = req.user.empresaId;
 
     const reserva = await prisma.cliente.findFirst({
       where: {

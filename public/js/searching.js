@@ -1,41 +1,15 @@
 /**
  * public/js/searching.js
  * Script para gerenciar as ações da página de busca/pesquisa
+ * Todas as chamadas API usam JWT para isolamento multi-tenant
  */
 
-/**
- * Carrega informações do usuário para exibir no header
- */
-async function loadUserInfo() {
-  try {
-    const response = await fetch('/api/user-info');
-    if (!response.ok) {
-      console.warn('⚠️ /api/user-info retornou:', response.status);
-      // Fallback: pega do localStorage
-      const userName = localStorage.getItem('user_name') || 'Usuário';
-      const userNameSpan = document.getElementById('userName');
-      if (userNameSpan) {
-        userNameSpan.textContent = userName;
-      }
-      return;
-    }
-    
-    const data = await response.json();
-    const userNameSpan = document.getElementById('userName');
-    
-    if (userNameSpan && data.nome) {
-      userNameSpan.textContent = data.nome;
-      // Salva no localStorage para fallback
-      localStorage.setItem('user_name', data.nome);
-    }
-  } catch (error) {
-    console.error('Erro ao carregar user-info:', error);
-    // Fallback silencioso
-    const userNameSpan = document.getElementById('userName');
-    if (userNameSpan) {
-      userNameSpan.textContent = localStorage.getItem('user_name') || 'Usuário';
-    }
-  }
+const TOKEN = localStorage.getItem('token');
+const AUTH_HEADERS = { 'Authorization': `Bearer ${TOKEN}` };
+
+// Redirecionar para login se não autenticado
+if (!TOKEN) {
+  window.location.href = '/login.html';
 }
 
 /**
@@ -93,8 +67,7 @@ function abrirModalObsCliente(id) {
     return;
   }
 
-  // Carrega dados da reserva
-  fetch(`/api/reservas/${id}`)
+  fetch(`/api/reservas/${id}`, { headers: AUTH_HEADERS })
     .then((res) => res.json())
     .then((reserva) => {
       document.getElementById('obs_id').value = id;
@@ -118,8 +91,7 @@ function abrirModalEditar(id) {
     return;
   }
 
-  // Carrega dados da reserva
-  fetch(`/api/reservas/${id}`)
+  fetch(`/api/reservas/${id}`, { headers: AUTH_HEADERS })
     .then((res) => res.json())
     .then((reserva) => {
       document.getElementById('edit_id').value = id;
@@ -182,6 +154,7 @@ function salvarObsCliente() {
   fetch(`/api/reservas/${id}/obs`, {
     method: 'PUT',
     headers: {
+      ...AUTH_HEADERS,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ obsCliente }),
@@ -226,6 +199,7 @@ function salvarEdicao() {
   fetch(`/api/reservas/${id}`, {
     method: 'PUT',
     headers: {
+      ...AUTH_HEADERS,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(formData),
@@ -269,6 +243,7 @@ function confirmarCancelamento() {
   fetch(`/api/reservas/${id}/cancelar`, {
     method: 'PUT',
     headers: {
+      ...AUTH_HEADERS,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ motivoCancelamento }),
@@ -300,6 +275,7 @@ function reativarReserva(id) {
   fetch(`/api/reservas/${id}/reativar`, {
     method: 'PUT',
     headers: {
+      ...AUTH_HEADERS,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({}),
@@ -342,5 +318,4 @@ function fecharModalClick(modal) {
  */
 document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ searching.js carregado');
-  // loadUserInfo será chamado pelo header.js
 });
